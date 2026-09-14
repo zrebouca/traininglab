@@ -1,0 +1,723 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz de Qualidade CS â€” Julho 2026</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0f172a;color:#e2e8f0;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px}
+.container{max-width:660px;width:100%}
+
+/* CARD */
+.card{background:#1e293b;border:1px solid #334155;border-radius:20px;padding:28px 32px;box-shadow:0 12px 40px rgba(0,0,0,.5);animation:fadeIn .25s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* CAPA */
+.cover-icon{font-size:52px;text-align:center;margin-bottom:12px}
+.cover-title{font-size:24px;font-weight:800;color:#f8fafc;text-align:center;margin-bottom:4px;line-height:1.3}
+.cover-sub{font-size:13px;color:#94a3b8;text-align:center;margin-bottom:20px}
+.cover-info{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px}
+.info-box{background:#0f172a;border:1px solid #334155;border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:10px}
+.info-box .ib-icon{font-size:22px}
+.info-box .ib-label{font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:.5px}
+.info-box .ib-val{font-size:15px;font-weight:700;color:#f8fafc}
+.badge-reconhecimento{display:flex;align-items:center;gap:8px;background:#f59e0b18;color:#f59e0b;border:1px solid #f59e0b44;padding:10px 16px;border-radius:12px;font-weight:700;font-size:14px;margin-bottom:16px}
+.cover-note{font-size:12px;color:#64748b;text-align:center;margin-bottom:20px;line-height:1.5}
+
+/* BOTÃƒO */
+.btn{display:block;width:100%;background:#6366f1;color:#fff;border:none;padding:15px 24px;border-radius:14px;font-size:16px;font-weight:700;cursor:pointer;transition:.18s;margin-top:4px;letter-spacing:.2px}
+.btn:hover{background:#4f46e5;transform:translateY(-2px);box-shadow:0 6px 20px #6366f144}
+.btn:active{transform:translateY(0)}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+.btn-outline{background:transparent;border:2px solid #334155;color:#94a3b8}
+.btn-outline:hover{border-color:#6366f1;color:#818cf8;background:#6366f108}
+
+/* HUD */
+.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.topbar-title{font-weight:700;font-size:13px;color:#64748b}
+.hud{display:flex;gap:10px}
+.hud-chip{background:#0f172a;border:1px solid #334155;border-radius:10px;padding:6px 12px;font-weight:700;font-size:14px;display:flex;align-items:center;gap:5px}
+.hud-chip.score{color:#818cf8}
+.hud-chip.streak{color:#f59e0b}
+
+/* PROGRESSO */
+.progress-wrap{margin-bottom:18px}
+.progress-label{display:flex;justify-content:space-between;font-size:11px;color:#64748b;margin-bottom:6px}
+.progress-outer{background:#0f172a;border-radius:8px;height:7px;overflow:hidden}
+.progress-inner{background:linear-gradient(90deg,#6366f1,#818cf8);height:100%;transition:width .4s ease;border-radius:8px}
+
+/* TAG DE TEMA */
+.q-tag{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:999px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:14px}
+.tag-KYC{background:#7c3aed22;color:#a78bfa;border:1px solid #7c3aed44}
+.tag-EMPATIA{background:#ec489922;color:#f472b6;border:1px solid #ec489944}
+.tag-ENCERRAMENTO{background:#0ea5e922;color:#38bdf8;border:1px solid #0ea5e944}
+.tag-ROBOTICO{background:#f59e0b22;color:#fbbf24;border:1px solid #f59e0b44}
+.tag-AUTORIZACAO{background:#ef444422;color:#f87171;border:1px solid #ef444444}
+.tag-HANDOFF{background:#10b98122;color:#34d399;border:1px solid #10b98144}
+.tag-CONHECIMENTO{background:#6366f122;color:#818cf8;border:1px solid #6366f144}
+.tag-CUPONS{background:#f97316 22;color:#fb923c;border:1px solid #f9731644}
+.trap-pill{background:#f59e0b;color:#0f172a;border-radius:999px;padding:2px 8px;font-size:10px;font-weight:800}
+
+/* PERGUNTA */
+.q-text{font-size:17px;line-height:1.6;color:#f1f5f9;margin-bottom:20px;font-weight:500}
+.q-num{font-size:12px;color:#64748b;margin-bottom:6px}
+
+/* OPÃ‡Ã•ES */
+.option{display:block;width:100%;text-align:left;background:#0f172a;border:2px solid #334155;color:#cbd5e1;padding:14px 18px;border-radius:14px;margin-bottom:10px;cursor:pointer;font-size:14.5px;line-height:1.5;transition:.15s;position:relative}
+.option:hover:not(:disabled){border-color:#6366f1;background:#6366f108;color:#e2e8f0}
+.option.correct{border-color:#10b981;background:#10b98118;color:#34d399}
+.option.correct::after{content:'âœ“';position:absolute;right:16px;top:50%;transform:translateY(-50%);font-weight:800;color:#10b981}
+.option.wrong{border-color:#ef4444;background:#ef444418;color:#f87171}
+.option.wrong::after{content:'âœ—';position:absolute;right:16px;top:50%;transform:translateY(-50%);font-weight:800;color:#ef4444}
+.option:disabled{cursor:default}
+
+/* FEEDBACK */
+.feedback{border-radius:12px;padding:16px 18px;margin:14px 0;font-size:14px;line-height:1.6;color:#cbd5e1;display:none}
+.feedback.visible{display:block;animation:fadeIn .2s ease}
+.feedback.ok{background:#10b98112;border-left:4px solid #10b981}
+.feedback.bad{background:#ef444412;border-left:4px solid #ef4444}
+.feedback-header{font-weight:700;font-size:15px;margin-bottom:8px}
+.feedback.ok .feedback-header{color:#34d399}
+.feedback.bad .feedback-header{color:#f87171}
+.feedback-body{color:#94a3b8;font-size:13.5px;line-height:1.65}
+.feedback-phrase{margin-top:10px;background:#0f172a;border-radius:8px;padding:10px 14px;border-left:3px solid #6366f1;font-size:13px;color:#818cf8;font-style:italic}
+
+/* STREAK BONUS */
+.bonus-toast{position:fixed;top:24px;left:50%;transform:translateX(-50%);background:#f59e0b;color:#0f172a;font-weight:800;font-size:15px;padding:10px 24px;border-radius:999px;z-index:999;animation:toastIn .3s ease;pointer-events:none}
+@keyframes toastIn{from{opacity:0;top:10px}to{opacity:1;top:24px}}
+
+/* RESUME */
+.resume-banner{background:#6366f118;border:1px solid #6366f144;border-radius:10px;padding:10px 14px;margin-bottom:16px;font-size:13px;color:#818cf8;text-align:center}
+
+/* TELA FINAL */
+.end-icon{font-size:64px;text-align:center;margin-bottom:10px;animation:pop .3s ease}
+@keyframes pop{from{transform:scale(.7)}to{transform:scale(1)}}
+.end-title{font-size:26px;font-weight:800;color:#f8fafc;text-align:center;margin-bottom:4px}
+.end-sub{font-size:13px;color:#94a3b8;text-align:center;margin-bottom:20px}
+.badge-final{text-align:center;font-size:20px;font-weight:800;padding:14px;border-radius:14px;margin:16px 0;letter-spacing:1px}
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px}
+.stat-box{background:#0f172a;border:1px solid #334155;border-radius:14px;padding:16px;text-align:center}
+.stat-box .s-val{font-size:28px;font-weight:800;color:#818cf8}
+.stat-box .s-label{font-size:12px;color:#64748b;margin-top:4px}
+.end-note{font-size:13px;color:#64748b;text-align:center;line-height:1.6;margin-bottom:16px}
+.lock-note{text-align:center;color:#475569;font-size:11px;margin-top:12px}
+
+/* MOBILE */
+@media(max-width:480px){
+  .card{padding:20px 18px;border-radius:16px}
+  .cover-info{grid-template-columns:1fr}
+  .q-text{font-size:15.5px}
+  .option{font-size:13.5px;padding:12px 14px}
+  .stats-grid{grid-template-columns:1fr 1fr}
+  .cover-title{font-size:21px}
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+<!-- â•â• TELA INICIAL â•â• -->
+<div id="startScreen" class="card">
+  <div class="cover-icon">ðŸŽ¯</div>
+  <div class="cover-title">Quiz de Qualidade CS<br>Julho 2026</div>
+  <div class="cover-sub">Baseado na auditoria real de 39 contatos â€” 18 a 23/Jul</div>
+
+  <div class="cover-info">
+    <div class="info-box"><span class="ib-icon">â“</span><div><div class="ib-label">Perguntas</div><div class="ib-val">42 questÃµes</div></div></div>
+    <div class="info-box"><span class="ib-icon">ðŸ”¥</span><div><div class="ib-label">Dificuldade</div><div class="ib-val">DifÃ­cil</div></div></div>
+    <div class="info-box"><span class="ib-icon">ðŸŽŸï¸</span><div><div class="ib-label">Tentativas</div><div class="ib-val">1 por pessoa</div></div></div>
+    <div class="info-box"><span class="ib-icon">â±ï¸</span><div><div class="ib-label">Tempo estimado</div><div class="ib-val">~15 minutos</div></div></div>
+  </div>
+
+  <div class="badge-reconhecimento">ðŸ† PrÃªmio: 35 minutos de reconhecimento para quem completar</div>
+
+  <div class="cover-note">
+    Este quiz Ã© um <strong style="color:#e2e8f0">diagnÃ³stico antes dos workshops</strong> â€” nÃ£o Ã© uma prova.<br>
+    Errar Ã© esperado e normal. Cada resposta traz uma explicaÃ§Ã£o completa com<br>frases prontas para usar no dia a dia. Boa sorte!
+  </div>
+
+  <button class="btn" onclick="startGame()">ComeÃ§ar Quiz â†’</button>
+  <p style="text-align:center;font-size:11px;color:#475569;margin-top:10px">Envie um print da tela final no privado para participar do prÃªmio</p>
+</div>
+
+<!-- â•â• TELA DO JOGO â•â• -->
+<div id="gameScreen" class="card" style="display:none">
+  <div id="resumeBanner"></div>
+  <div class="topbar">
+    <div class="topbar-title">Quiz Qualidade CS</div>
+    <div class="hud">
+      <div class="hud-chip score">â­ <span id="scoreVal">0</span></div>
+      <div class="hud-chip streak">ðŸ”¥ <span id="streakVal">0</span></div>
+    </div>
+  </div>
+  <div class="progress-wrap">
+    <div class="progress-label">
+      <span id="progLabel">Pergunta 1 de 42</span>
+      <span id="progPct">0%</span>
+    </div>
+    <div class="progress-outer"><div class="progress-inner" id="progressBar" style="width:0%"></div></div>
+  </div>
+  <div id="questionCard"></div>
+</div>
+
+<!-- â•â• TELA FINAL â•â• -->
+<div id="endScreen" class="card" style="display:none">
+  <div class="end-icon" id="endEmoji">ðŸ†</div>
+  <div class="end-title" id="endTitle">Quiz Finalizado!</div>
+  <div class="end-sub">Auditoria de Qualidade CS â€” Julho 2026</div>
+  <div class="badge-final" id="endBadge">EXPERT</div>
+  <div class="stats-grid">
+    <div class="stat-box"><div class="s-val" id="endScore">0</div><div class="s-label">PontuaÃ§Ã£o Final</div></div>
+    <div class="stat-box"><div class="s-val" id="endStreak">0 ðŸ”¥</div><div class="s-label">Melhor SequÃªncia</div></div>
+    <div class="stat-box"><div class="s-val" id="endCorrect">0</div><div class="s-label">Acertos</div></div>
+    <div class="stat-box"><div class="s-val" id="endPct">0%</div><div class="s-label">Aproveitamento</div></div>
+  </div>
+  <div class="badge-reconhecimento">ðŸ† PrÃªmio: 35 min de reconhecimento â€” envie o print desta tela no privado</div>
+  <div class="end-note">
+    Este resultado Ã© sÃ³ um ponto de partida â€” os workshops das prÃ³ximas semanas<br>
+    vÃ£o cobrir cada um desses temas em detalhe. NÃ£o existe resposta "vergonhosa" aqui.
+  </div>
+  <p class="lock-note">Este quiz permite apenas 1 tentativa por pessoa. Resultado salvo.</p>
+</div>
+
+</div>
+
+<script>
+const questions = [
+// â”€â”€ KYC (8 perguntas) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+{
+  tag:"KYC",
+  text:"Um cliente nÃ£o possui RG nem passaporte para completar o KYC solicitado numa devoluÃ§Ã£o de item danificado. A aÃ§Ã£o correta Ã© orientar o cliente ao 0800 e encerrar o contato, pois sem documento nÃ£o hÃ¡ nada a fazer.",
+  options:["Verdadeiro â€” sem RG/passaporte, o atendimento deve ser encerrado e o cliente direcionado ao 0800","Falso â€” o KYC continua obrigatÃ³rio, mas o associate deve escalar internamente para verificar um caminho alternativo antes de encerrar sem soluÃ§Ã£o"],
+  correct:1, trap:true,
+  explain:"Caso real (ID 34): o cliente nÃ£o tinha RG nem passaporte e o associate apenas direcionou para um 0800 e encerrou, sem buscar qualquer alternativa. O KYC continua sendo obrigatÃ³rio â€” o que precisa mudar Ã© a CONDUTA. Nunca decida sozinho pular a verificaÃ§Ã£o: sempre escale quando o cliente relatar impossibilidade de completar o KYC.",
+  phrase:"'Entendo a dificuldade, [Nome]. A verificaÃ§Ã£o Ã© obrigatÃ³ria para sua seguranÃ§a, entÃ£o vou verificar com a equipe qual outro caminho pode ser seguido no seu caso â€” sÃ³ um momento.'"
+},
+{
+  tag:"KYC",
+  text:"O link de verificaÃ§Ã£o de KYC estÃ¡ com erro tÃ©cnico. Como o KYC Ã© obrigatÃ³rio, o associate deve pedir para o cliente tentar mais tarde e encerrar, jÃ¡ que problema tÃ©cnico estÃ¡ fora do controle do associate.",
+  options:["Verdadeiro â€” problemas tÃ©cnicos no KYC estÃ£o fora do controle do associate","Falso â€” o associate deve escalar o problema tÃ©cnico e oferecer alternativa antes de encerrar"],
+  correct:1, trap:true,
+  explain:"Casos reais (IDs 30 e 37): link de KYC com erro tÃ©cnico e o associate insistiu no mesmo link sem alternativa. Um problema tÃ©cnico na ferramenta nunca justifica encerrar ou repetir a mesma orientaÃ§Ã£o que nÃ£o funciona â€” registre o erro e escale internamente.",
+  phrase:"'Percebi que o link nÃ£o estÃ¡ funcionando no seu caso. Vou escalar internamente agora para verificar uma forma alternativa de concluir sua verificaÃ§Ã£o, combinado?'"
+},
+{
+  tag:"KYC",
+  text:"Alguns contatos da auditoria mostraram associates aplicando o KYC de forma confusa, sem explicar claramente o motivo ao cliente. O gap identificado foi na COMUNICAÃ‡ÃƒO (falta de clareza), nÃ£o na exigÃªncia da verificaÃ§Ã£o em si.",
+  options:["Verdadeiro â€” o KYC deve ser seguido conforme o fluxo; o gap foi na comunicaÃ§Ã£o, nÃ£o na exigÃªncia","Falso â€” quando o reembolso parece simples, o associate pode avaliar por conta prÃ³pria e reduzir o KYC"],
+  correct:0, trap:true,
+  explain:"IDs 25 e 30: KYC aplicado de forma confusa â€” cliente nÃ£o entendeu o motivo e sentiu bloqueio injusto. O KYC nunca deve ser pulado ou decidido por julgamento individual. O que precisa melhorar Ã© a CLAREZA: explicar por que estÃ¡ sendo pedido, o que o cliente ganha com ele e quanto tempo leva.",
+  phrase:"'Para garantir a seguranÃ§a da sua conta e do seu reembolso, preciso confirmar sua identidade atravÃ©s de [X]. Ã‰ rÃ¡pido e Ã© assim que tambÃ©m protegemos vocÃª contra fraudes.'"
+},
+{
+  tag:"KYC",
+  text:"Cliente reclama: 'Na hora de comprar nÃ£o pediram identidade, agora para devolver estÃ£o pedindo.' Isso Ã© percepÃ§Ã£o equivocada e deve ser corrigida com firmeza, sem necessidade de explicar o motivo.",
+  options:["Verdadeiro","Falso â€” o associate deve explicar claramente o motivo (seguranÃ§a/antifraude) de forma didÃ¡tica, sem soar defensivo"],
+  correct:1, trap:true,
+  explain:"HMD real (ID 37): 'Que dificuldade... Na hora de comprar nÃ£o pediram identidade.' O cliente nÃ£o estava errado em estranhar â€” o papel do associate Ã© explicar o PORQUÃŠ da polÃ­tica, nÃ£o apenas repeti-la. O KYC na devoluÃ§Ã£o existe para proteger a conta e evitar fraude/uso indevido do reembolso.",
+  phrase:"'Faz sentido vocÃª estranhar! Na compra, o prÃ³prio pagamento jÃ¡ Ã© uma verificaÃ§Ã£o. Na devoluÃ§Ã£o, como envolve reembolso de valor, pedimos essa confirmaÃ§Ã£o extra para garantir que Ã© vocÃª mesmo recebendo e proteger sua conta.'"
+},
+{
+  tag:"KYC",
+  text:"Um monitor Dell de alto valor (~R$4k) estÃ¡ com KYC pendente. Como o valor Ã© alto, o correto Ã© ser mais rÃ­gido e negar qualquer flexibilidade atÃ© documentaÃ§Ã£o completa.",
+  options:["Verdadeiro â€” quanto maior o valor, mais rÃ­gido deve ser o KYC, sem exceÃ§Ãµes","Falso â€” mesmo em itens de alto valor, o associate deve comunicar com clareza e acompanhar de perto, nÃ£o apenas bloquear sem explicaÃ§Ã£o"],
+  correct:1, trap:true,
+  explain:"ID 20 (Monitor Dell ~R$4k): KYC bloqueou o atendimento sem clareza para o cliente. Item de alto valor justifica atenÃ§Ã£o redobrada â€” mas isso significa comunicar com MAIS clareza e acompanhar o caso de perto, nunca bloquear sem explicaÃ§Ã£o.",
+  phrase:"'Como se trata de um item de valor mais alto, quero garantir que tudo corra bem e com seguranÃ§a para vocÃª. Vou te guiar passo a passo nessa verificaÃ§Ã£o e acompanhar atÃ© a conclusÃ£o.'"
+},
+{
+  tag:"KYC",
+  text:"Um cliente com 15 dias de coleta pendente reclama de KYC aplicado sem clareza. A prioridade Ã© comunicar claramente o motivo do KYC E resolver a pendÃªncia da coleta com urgÃªncia â€” as duas frentes em paralelo.",
+  options:["Verdadeiro â€” comunicar o motivo do KYC e priorizar a pendÃªncia mais antiga em paralelo","Falso â€” o KYC deve sempre ser resolvido primeiro, independente de outras pendÃªncias"],
+  correct:0, trap:false,
+  explain:"ID 28: coleta pendente hÃ¡ 15 dias, KYC aplicado sem clareza. A resposta correta cobre as duas frentes em paralelo â€” nunca use o KYC como desculpa para nÃ£o avanÃ§ar na pendÃªncia operacional. O cliente precisa saber o prÃ³ximo passo de ambas as pendÃªncias antes do encerramento.",
+  phrase:"'Vejo que sua coleta estÃ¡ pendente hÃ¡ alguns dias, sinto muito pela demora. Vou confirmar sua identidade rapidamente e jÃ¡ vou providenciar a atualizaÃ§Ã£o da sua coleta ao mesmo tempo.'"
+},
+{
+  tag:"KYC",
+  text:"KYC foi o gap de maior frequÃªncia da auditoria (21% da amostra). Isso significa que a polÃ­tica de KYC em si estÃ¡ errada e deveria ser eliminada.",
+  options:["Verdadeiro â€” a alta frequÃªncia prova que a polÃ­tica deveria ser eliminada","Falso â€” o KYC Ã© uma polÃ­tica legÃ­tima; o problema Ã© a aplicaÃ§Ã£o (comunicaÃ§Ã£o e falta de alternativas), nÃ£o a polÃ­tica em si"],
+  correct:1, trap:true,
+  explain:"O relatÃ³rio Ã© explÃ­cito: 'KYC Ã© uma polÃ­tica legÃ­tima mas estÃ¡ sendo aplicada como barreira sem orientaÃ§Ã£o.' A alta frequÃªncia Ã© evidÃªncia de lacuna de treinamento, nÃ£o de polÃ­tica errada. Nunca comente com o cliente que 'o KYC Ã© chato' ou 'eu tambÃ©m acho exagerado' â€” isso mina a confianÃ§a.",
+  phrase:"'Essa verificaÃ§Ã£o existe para proteger vocÃª e sua conta â€” Ã© um passo padrÃ£o que seguimos com todos os clientes nessa mesma situaÃ§Ã£o.'"
+},
+{
+  tag:"KYC",
+  text:"O roteiro correto para o KYC Ã©: explicar o motivo â†’ guiar passo a passo â†’ oferecer canal alternativo se o link falhar â†’ nunca encerrar sem caminho claro.",
+  options:["Verdadeiro","Falso â€” o roteiro correto Ã© apenas enviar o link e aguardar o retorno do cliente"],
+  correct:0, trap:false,
+  explain:"Roteiro recomendado para o KYC: (1) explicar o motivo, (2) guiar passo a passo, (3) se o link falhar, escalar e buscar alternativa imediatamente, (4) nunca encerrar sem deixar claro o prÃ³ximo passo. Se nÃ£o puder resolver na hora, informe prazo e como o cliente serÃ¡ contatado.",
+  phrase:"'Ficou claro o prÃ³ximo passo, [Nome]? Vou acompanhar seu caso e retorno em atÃ© [prazo] com uma soluÃ§Ã£o.' Nunca finalize com 'faÃ§a o KYC e volte a nos contatar' sem direÃ§Ã£o clara."
+},
+// â”€â”€ ENCERRAMENTO (5 perguntas) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+{
+  tag:"ENCERRAMENTO",
+  text:"Um cliente estÃ¡ perguntando sobre como acionar a Ouvidoria. Como isso nÃ£o estÃ¡ relacionado ao problema original jÃ¡ resolvido, o associate pode encerrar o chat normalmente.",
+  options:["Verdadeiro â€” perguntas sobre Ouvidoria podem ser tratadas como assunto encerrado se o problema original foi resolvido","Falso â€” nunca se encerra um contato enquanto o cliente tem pergunta pendente, especialmente sobre Ouvidoria"],
+  correct:1, trap:true,
+  explain:"ID 7: o associate encerrou exatamente enquanto o cliente perguntava sobre a Ouvidoria. Uma das 5 situaÃ§Ãµes em que NUNCA se encerra: pedido de Ouvidoria, pedido de supervisor, aÃ§Ã£o em andamento, cliente com dÃºvida aberta, aÃ§Ã£o tomada sem confirmaÃ§Ã£o.",
+  phrase:"'Vi que vocÃª quer acionar a Ouvidoria â€” vou te passar as informaÃ§Ãµes agora. Posso te ajudar com mais alguma coisa antes de encerrarmos?'"
+},
+{
+  tag:"ENCERRAMENTO",
+  text:"A pergunta correta antes de encerrar qualquer contato deve ser explÃ­cita, do tipo 'Posso encerrar nosso atendimento?', aguardando confirmaÃ§Ã£o do cliente.",
+  options:["Verdadeiro","Falso â€” basta uma mensagem de despedida automÃ¡tica, sem necessidade de confirmaÃ§Ã£o explÃ­cita"],
+  correct:0, trap:false,
+  explain:"Regra inviolÃ¡vel: nunca encerrar sem confirmaÃ§Ã£o explÃ­cita do cliente. Se o cliente nÃ£o responder por 2 minutos apÃ³s pergunta de encerramento, aÃ­ sim pode seguir o protocolo padrÃ£o de encerramento por inatividade â€” mas sempre com mensagem de aviso antes.",
+  phrase:"'Posso finalizar nosso atendimento por aqui, ou vocÃª ainda tem alguma dÃºvida?'"
+},
+{
+  tag:"ENCERRAMENTO",
+  text:"Um cliente relata pela segunda vez o mesmo problema de entregador sem contato. Por jÃ¡ ser recorrÃªncia documentada, o associate pode encerrar mais rapidamente do que num primeiro contato.",
+  options:["Verdadeiro â€” recorrÃªncias podem ser encerradas mais rapidamente por jÃ¡ estarem documentadas","Falso â€” recorrÃªncias exigem ainda mais atenÃ§Ã£o, pois o cliente jÃ¡ estÃ¡ frustrado pela repetiÃ§Ã£o do problema"],
+  correct:1, trap:true,
+  explain:"ID 18: segunda ocorrÃªncia do mesmo problema, associate encerrou sem permissÃ£o. HMD: 'Encerrou sem minha permissÃ£o.' RecorrÃªncias precisam de mais cuidado, nÃ£o menos â€” o cliente chegou jÃ¡ frustrado e precisa sentir que dessa vez o problema serÃ¡ resolvido definitivamente.",
+  phrase:"'Vejo que isso jÃ¡ aconteceu antes, sinto muito pela repetiÃ§Ã£o. Vou priorizar o registro desse caso agora para garantir que nÃ£o aconteÃ§a novamente â€” posso confirmar que ficou tudo resolvido antes de encerrarmos?'"
+},
+{
+  tag:"ENCERRAMENTO",
+  text:"As 5 situaÃ§Ãµes em que NUNCA se deve encerrar sÃ£o: pedido de Ouvidoria, pedido de supervisor, aÃ§Ã£o em andamento, cliente com dÃºvida aberta, e aÃ§Ã£o tomada sem confirmaÃ§Ã£o do cliente.",
+  options:["Verdadeiro","Falso â€” essas situaÃ§Ãµes nÃ£o impedem o encerramento, apenas atrasam"],
+  correct:0, trap:false,
+  explain:"Regra que serÃ¡ detalhada no Workshop 3 de Encerramento Consciente. Na dÃºvida, o princÃ­pio prÃ¡tico Ã©: se vocÃª nÃ£o tem 100% de certeza que o cliente terminou, pergunte antes de finalizar. Jamais assuma que o silÃªncio do cliente Ã© concordÃ¢ncia."
+},
+{
+  tag:"ENCERRAMENTO",
+  text:"Um associate iniciou uma devoluÃ§Ã£o sem perguntar ao cliente se queria devolver ou trocar o item. Como a intenÃ§Ã£o era agilizar, isso nÃ£o Ã© considerado uma falha grave.",
+  options:["Verdadeiro â€” boa intenÃ§Ã£o de agilizar justifica a aÃ§Ã£o sem confirmaÃ§Ã£o prÃ©via","Falso â€” qualquer aÃ§Ã£o irreversÃ­vel sem consentimento explÃ­cito Ã© falha grave, independente da intenÃ§Ã£o"],
+  correct:1, trap:true,
+  explain:"ID 24: associate iniciou devoluÃ§Ã£o sem confirmar â€” cliente queria TROCA, nÃ£o devoluÃ§Ã£o. HMD: 'Atendimento completamente inÃºtil. Iniciou uma devoluÃ§Ã£o que eu nÃ£o queria.' A intenÃ§Ã£o nÃ£o cancela o impacto. Toda aÃ§Ã£o irreversÃ­vel exige confirmaÃ§Ã£o antes de executar.",
+  phrase:"'Antes de seguir com [aÃ§Ã£o], posso confirmar com vocÃª se Ã© isso que deseja?' â€” e sÃ³ depois de ouvir o 'sim' registrar no sistema."
+},
+// â”€â”€ EMPATIA (5 perguntas) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+{
+  tag:"EMPATIA",
+  text:"Uma cliente relata que o produto nÃ£o entregue hÃ¡ 2 meses era para uma pessoa que faleceu. O correto Ã© seguir o fluxo tÃ©cnico padrÃ£o de atraso normalmente, sem alterar o tom do atendimento.",
+  options:["Verdadeiro â€” o fluxo tÃ©cnico padrÃ£o deve ser aplicado normalmente, sem alteraÃ§Ã£o no tom","Falso â€” antes de qualquer resoluÃ§Ã£o tÃ©cnica, o associate deve reconhecer e validar a dimensÃ£o emocional"],
+  correct:1, trap:true,
+  explain:"ID 9: cliente relatou que o produto era para pessoa falecida e o associate tratou como chamada tÃ©cnica padrÃ£o. Resultado: cliente cancelou a conta. Este Ã© o gap de maior risco de dano irreversÃ­vel Ã  relaÃ§Ã£o com o cliente â€” Prioridade 1 do plano de coaching.",
+  phrase:"'Imagino como deve ter sido difÃ­cil estar lidando com isso e ainda precisar resolver esse problema. Vou cuidar com atenÃ§Ã£o especial do seu caso agora.'"
+},
+{
+  tag:"EMPATIA",
+  text:"Frases genÃ©ricas como 'sinto muito pela situaÃ§Ã£o', sem qualquer personalizaÃ§Ã£o, jÃ¡ sÃ£o suficientes para demonstrar empatia real ao cliente.",
+  options:["Verdadeiro","Falso â€” frases vazias e genÃ©ricas NÃƒO demonstram empatia real; Ã© preciso validar o sentimento especÃ­fico daquele cliente"],
+  correct:1, trap:true,
+  explain:"Empatia real nÃ£o Ã© uma frase decorada â€” Ã© reconhecer o sentimento especÃ­fico daquele cliente naquele momento. 'Sinto muito pela situaÃ§Ã£o' pode ser dita de forma robÃ³tica para qualquer problema, e o cliente percebe isso imediatamente.",
+  phrase:"Em vez de 'sinto muito pela situaÃ§Ã£o', tente: 'Imagino como deve ter sido frustrante esperar 2 meses por um presente tÃ£o importante' â€” especÃ­fico, pessoal, real."
+},
+{
+  tag:"EMPATIA",
+  text:"Uma cliente que passou por uma reviravolta na vida teve o prazo de 30 dias aplicado rigidamente pelo associate â€” essa Ã© a conduta correta, pois prazos sÃ£o regras fixas.",
+  options:["Verdadeiro â€” prazos sÃ£o regras fixas e devem ser aplicados sem exceÃ§Ã£o","Falso â€” o correto seria reconhecer a situaÃ§Ã£o pessoal antes de aplicar a regra, e avaliar se existe margem de exceÃ§Ã£o"],
+  correct:1, trap:true,
+  explain:"ID 38: prazo de 30 dias aplicado rigidamente sem empatia. HMD: 'Vou procurar outro meio.' A regra pode ser a mesma â€” mas a forma de comunicÃ¡-la precisa considerar o contexto humano de quem estÃ¡ do outro lado. Rigidez sem empatia Ã© uma das 6 dimensÃµes CCX mais impactadas.",
+  phrase:"'Entendo que vocÃª passou por um momento muito difÃ­cil. Vou verificar o que posso fazer pelo seu caso dentro das possibilidades que temos disponÃ­veis.'"
+},
+{
+  tag:"EMPATIA",
+  text:"Em um caso com 5 cancelamentos consecutivos por falhas de processo, o mais importante Ã© resolver rÃ¡pido o sexto pedido, sem necessidade de comentar sobre os cancelamentos anteriores.",
+  options:["Verdadeiro â€” focar apenas no problema atual, ignorando o histÃ³rico acumulado","Falso â€” o histÃ³rico de frustraÃ§Ã£o acumulada exige reconhecimento explÃ­cito antes de prosseguir"],
+  correct:1, trap:true,
+  explain:"ID 29: 5 cancelamentos consecutivos 'sem nenhuma demonstraÃ§Ã£o de compreensÃ£o'. HMD: 'NÃ£o resolveu nenhum dos meus problemas.' Ignorar o histÃ³rico Ã© como se o associate dissesse 'nÃ£o sei o que aconteceu antes e nÃ£o me importo'. O cliente precisa sentir que alguÃ©m finalmente entendeu toda a situaÃ§Ã£o.",
+  phrase:"'Vejo aqui que vocÃª jÃ¡ teve [X] cancelamentos seguidos â€” isso nÃ£o deveria ter acontecido e entendo sua frustraÃ§Ã£o. Vou tratar o seu caso com prioridade agora.'"
+},
+{
+  tag:"EMPATIA",
+  text:"As frases de ancoragem emocional devem ser usadas somente quando o cliente demonstrar sinais explÃ­citos de choro ou raiva extrema no texto do chat.",
+  options:["Verdadeiro â€” apenas em casos extremos e explÃ­citos","Falso â€” sinais de estresse emocional podem ser sutis e devem ser reconhecidos mesmo sem explosÃµes Ã³bvias"],
+  correct:1, trap:true,
+  explain:"O Workshop 1 vai treinar o reconhecimento de sinais sutis de estresse â€” nÃ£o apenas explosÃµes Ã³bvias. Fique atento a: 'jÃ¡ tentei de tudo', 'isso jÃ¡ aconteceu antes', mensagens muito curtas e secas, ou silÃªncios longos entre mensagens. Todos esses sinais merecem uma resposta mais cuidadosa."
+},
+// â”€â”€ RESPOSTA ROBÃ“TICA (6 perguntas) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+{
+  tag:"ROBOTICO",
+  text:"Um Nintendo Switch 2 estÃ¡ sem envio hÃ¡ 2 meses. Como a polÃ­tica padrÃ£o para esse cenÃ¡rio Ã© cancelamento, essa Ã© a Ãºnica resposta correta e nÃ£o deve ser questionada.",
+  options:["Verdadeiro â€” seguir a polÃ­tica padrÃ£o de cancelamento Ã© sempre a resposta correta","Falso â€” antes de aplicar a polÃ­tica padrÃ£o, deveria verificar disponibilidade, escalar, ou oferecer compensaÃ§Ã£o"],
+  correct:1, trap:true,
+  explain:"ID 12: Ãºnica resposta foi cancelamento, 'sem verificar disponibilidade alternativa, sem escalar, sem oferecer voucher'. HMD: 'Atendente robÃ³tico.' A polÃ­tica padrÃ£o Ã© o ponto de partida â€” nÃ£o o ponto final quando o cliente estÃ¡ hÃ¡ 2 meses esperando.",
+  phrase:"'Vou verificar o status atual desse pedido e o que temos disponÃ­vel para resolver da melhor forma para vocÃª â€” nÃ£o vou apenas oferecer cancelamento sem antes explorar as opÃ§Ãµes.'"
+},
+{
+  tag:"ROBOTICO",
+  text:"Um Kindle foi cancelado acidentalmente no Prime Day. Como cancelamentos acidentais nÃ£o tÃªm previsÃ£o de exceÃ§Ã£o, o associate estÃ¡ certo em negar qualquer avaliaÃ§Ã£o de exceÃ§Ã£o.",
+  options:["Verdadeiro â€” cancelamentos acidentais nunca justificam avaliaÃ§Ã£o de exceÃ§Ã£o","Falso â€” o associate deveria ao menos avaliar a possibilidade de exceÃ§Ã£o antes de negar"],
+  correct:1, trap:true,
+  explain:"ID 23: 'negou qualquer exceÃ§Ã£o sem sequer avaliar'. HMD: 'Perderam um cliente.' Avaliar nÃ£o Ã© o mesmo que conceder â€” o associate pode verificar e concluir que nÃ£o Ã© possÃ­vel, mas precisava ter avaliado antes de responder 'nÃ£o' automaticamente.",
+  phrase:"'Deixa eu verificar o que posso fazer pelo seu caso antes de te dar uma resposta definitiva.' Mesmo que a conclusÃ£o seja a mesma, o cliente sente que foi ouvido."
+},
+{
+  tag:"ROBOTICO",
+  text:"Diante de um caso em que a polÃ­tica padrÃ£o claramente nÃ£o resolve o problema, a postura ideal Ã© 'sigo o script, mesmo quando ele falha' â€” informar ao cliente que nÃ£o hÃ¡ soluÃ§Ã£o, sem buscar alternativas.",
+  options:["Verdadeiro â€” seguir o script Ã  risca Ã© sempre o caminho mais seguro, mesmo quando nÃ£o resolve","Falso â€” a postura ideal Ã© 'resolvo, nÃ£o informo': buscar ativamente uma alternativa ou escalar antes de devolver o problema ao cliente"],
+  correct:1, trap:true,
+  explain:"'Resolvo, nÃ£o informo' Ã© a mentalidade que buscamos: quando o fluxo padrÃ£o nÃ£o resolve, o papel do associate nÃ£o Ã© apenas comunicar a limitaÃ§Ã£o â€” Ã© buscar ativamente uma saÃ­da antes de devolver o problema ao cliente. Este Ã© o foco do Workshop 4.",
+  phrase:"Em vez de 'infelizmente nÃ£o tenho como fazer nada', tente: 'Deixa eu verificar uma alternativa para o seu caso antes de te dar uma resposta.'"
+},
+{
+  tag:"ROBOTICO",
+  text:"Quando a polÃ­tica padrÃ£o claramente nÃ£o resolve, a aÃ§Ã£o mais segura Ã© repetir a polÃ­tica de forma mais clara, garantindo que o cliente entenda por que nÃ£o hÃ¡ soluÃ§Ã£o.",
+  options:["Verdadeiro â€” reforÃ§ar a polÃ­tica de forma mais clara Ã© a aÃ§Ã£o mais segura","Falso â€” quando a polÃ­tica nÃ£o resolve, o correto Ã© avaliar escalada para exceÃ§Ã£o justificada, nÃ£o apenas repetir a informaÃ§Ã£o"],
+  correct:1, trap:true,
+  explain:"Repetir a mesma polÃ­tica que nÃ£o resolveu, de forma mais clara, apenas confirma para o cliente que ninguÃ©m estÃ¡ olhando para o caso dele individualmente. A aÃ§Ã£o correta Ã© avaliar escalada â€” serÃ¡ aprofundado no Workshop 4.",
+  phrase:"'Vejo que a soluÃ§Ã£o padrÃ£o nÃ£o estÃ¡ resolvendo seu caso. Vou verificar com minha lideranÃ§a se existe uma alternativa especÃ­fica para essa situaÃ§Ã£o.'"
+},
+{
+  tag:"ROBOTICO",
+  text:"Uma exceÃ§Ã£o justificada Ã© diferente de abuso de concessÃ£o â€” a diferenÃ§a Ã© avaliada caso a caso, considerando contexto e histÃ³rico do cliente, nÃ£o apenas a solicitaÃ§Ã£o em si.",
+  options:["Verdadeiro","Falso â€” toda concessÃ£o fora do padrÃ£o Ã© automaticamente abuso, sem necessidade de avaliaÃ§Ã£o de contexto"],
+  correct:0, trap:false,
+  explain:"Essa distinÃ§Ã£o entre exceÃ§Ã£o justificada e abuso de concessÃ£o exige avaliaÃ§Ã£o de contexto e histÃ³rico â€” nunca Ã© automÃ¡tica. SerÃ¡ um dos temas centrais do Workshop 4 de Autonomia e ExceÃ§Ãµes."
+},
+{
+  tag:"ROBOTICO",
+  text:"Um produto ficou fora de estoque no Prime Day apÃ³s confirmaÃ§Ã£o da compra. A Ãºnica aÃ§Ã£o disponÃ­vel Ã© informar cancelamento e reembolso integral, sem considerar outra compensaÃ§Ã£o.",
+  options:["Verdadeiro â€” reembolso Ã© a Ãºnica aÃ§Ã£o possÃ­vel","Falso â€” antes de recorrer sÃ³ ao reembolso, o associate deveria avaliar outras formas de compensaÃ§Ã£o (voucher, prioridade em reposiÃ§Ã£o, etc.)"],
+  correct:1, trap:true,
+  explain:"ID 39: produto fora de estoque no Prime Day, 'pior experiÃªncia relatada'. HMD: 'Pior experiÃªncia que jÃ¡ tive.' Reembolso Ã© a rede de seguranÃ§a, nÃ£o a primeira e Ãºnica opÃ§Ã£o â€” principalmente em datas de alto valor emocional como o Prime Day.",
+  phrase:"'Sinto muito pelo transtorno no Prime Day. AlÃ©m do reembolso, vou verificar se existe alguma forma de compensar essa experiÃªncia com vocÃª.'"
+},
+// â”€â”€ AUTORIZAÃ‡ÃƒO (4 perguntas) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+{
+  tag:"AUTORIZACAO",
+  text:"Um cliente relata item errado e danificado. Para agilizar, o associate pode iniciar diretamente uma devoluÃ§Ã£o no sistema, jÃ¡ que devoluÃ§Ã£o Ã© o caminho mais comum nesses casos.",
+  options:["Verdadeiro â€” devoluÃ§Ã£o Ã© o caminho padrÃ£o e mais comum, pode ser iniciada diretamente","Falso â€” o associate deve confirmar com o cliente qual resoluÃ§Ã£o ele deseja antes de qualquer aÃ§Ã£o irreversÃ­vel"],
+  correct:1, trap:true,
+  explain:"ID 24: cliente queria TROCA, nÃ£o devoluÃ§Ã£o, mas o associate iniciou devoluÃ§Ã£o sem perguntar. HMD: 'Atendimento completamente inÃºtil.' 'Mais comum' nÃ£o significa que Ã© o que aquele cliente quer â€” sempre confirme antes.",
+  phrase:"'Para o seu caso de item errado e danificado, prefere que eu faÃ§a a devoluÃ§Ã£o para reembolso, ou prefere a troca pelo item correto?'"
+},
+{
+  tag:"AUTORIZACAO",
+  text:"AÃ§Ãµes irreversÃ­veis (iniciar devoluÃ§Ã£o, cancelar pedido, encerrar contato) exigem confirmaÃ§Ã£o explÃ­cita do cliente antes de serem executadas.",
+  options:["Verdadeiro","Falso â€” apenas cancelamentos de pedidos exigem confirmaÃ§Ã£o; devoluÃ§Ãµes podem ser iniciadas livremente"],
+  correct:0, trap:false,
+  explain:"Regra geral que cobre os Gaps #2 e #7 do relatÃ³rio: toda aÃ§Ã£o irreversÃ­vel exige confirmaÃ§Ã£o explÃ­cita antes de executar. NÃ£o existe categoria de aÃ§Ã£o irreversÃ­vel que seja 'livre' de confirmaÃ§Ã£o."
+},
+{
+  tag:"AUTORIZACAO",
+  text:"Documentar a aÃ§Ã£o tomada no sistema DEPOIS de executÃ¡-la Ã© suficiente para proteger o associate, mesmo sem confirmaÃ§Ã£o prÃ©via do cliente.",
+  options:["Verdadeiro â€” documentar depois jÃ¡ resolve o problema de autorizaÃ§Ã£o","Falso â€” a autorizaÃ§Ã£o deve ser obtida ANTES da aÃ§Ã£o; documentaÃ§Ã£o nÃ£o substitui consentimento prÃ©vio"],
+  correct:1, trap:true,
+  explain:"A orientaÃ§Ã£o Ã© documentar ANTES de qualquer aÃ§Ã£o irreversÃ­vel â€” documentaÃ§Ã£o Ã© proteÃ§Ã£o adicional, nunca substituto do consentimento do cliente. SerÃ¡ detalhado no Workshop 3.",
+  phrase:"'Antes de seguir com [aÃ§Ã£o], posso confirmar com vocÃª se Ã© isso que deseja?' â†’ ouvir o 'sim' â†’ registrar no sistema."
+},
+{
+  tag:"AUTORIZACAO",
+  text:"'Atendimento completamente inÃºtil' foi a citaÃ§Ã£o literal de um cliente cujo contato envolveu uma devoluÃ§Ã£o iniciada sem autorizaÃ§Ã£o.",
+  options:["Verdadeiro","Falso â€” essa citaÃ§Ã£o estÃ¡ associada a um caso de KYC bloqueando reembolso"],
+  correct:0, trap:false,
+  explain:"HMD do ID 24: 'Atendimento completamente inÃºtil. Iniciou uma devoluÃ§Ã£o que eu nÃ£o queria.' Gap #7 â€” AÃ§Ã£o Sem AutorizaÃ§Ã£o."
+},
+// â”€â”€ HANDOFF (5 perguntas) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+{
+  tag:"HANDOFF",
+  text:"Quando um contato passa por um segundo associate, o mais profissional Ã© iniciar com saudaÃ§Ã£o padrÃ£o ('OlÃ¡! Como posso ajudar?'), pois demonstra cordialidade independente do histÃ³rico.",
+  options:["Verdadeiro â€” saudaÃ§Ã£o padrÃ£o sempre demonstra profissionalismo","Falso â€” em contato jÃ¡ em andamento, saudaÃ§Ã£o genÃ©rica ignora o histÃ³rico e obriga o cliente a se re-explicar"],
+  correct:1, trap:true,
+  explain:"A regra Ã© clara: nunca enviar saudaÃ§Ã£o genÃ©rica em contato jÃ¡ em andamento â€” o cliente jÃ¡ estÃ¡ no meio de um problema e uma saudaÃ§Ã£o padrÃ£o soa como se ninguÃ©m tivesse lido o histÃ³rico. O cliente vai precisar re-explicar tudo do zero, aumentando a frustraÃ§Ã£o.",
+  phrase:"'[Nome], vi aqui que vocÃª estÃ¡ com [resumo do problema] desde [quando]. Vou continuar a partir daqui â€” nÃ£o precisa me re-explicar nada.'"
+},
+{
+  tag:"HANDOFF",
+  text:"O template de retomada recomendado Ã©: '[Nome], vi que vocÃª estava com [X]. Vou continuar a partir daqui.'",
+  options:["Verdadeiro","Falso â€” o template recomendado nÃ£o menciona o histÃ³rico, apenas pergunta o que o cliente precisa"],
+  correct:0, trap:false,
+  explain:"Esse Ã© o template que serÃ¡ apresentado no Workshop 5 de Retomada de Contato: demonstrar ao cliente que o histÃ³rico foi lido antes de responder, em vez de fazer o cliente re-explicar tudo desde o inÃ­cio."
+},
+{
+  tag:"HANDOFF",
+  text:"Um problema de endereÃ§o digital persiste hÃ¡ mais de uma semana, jÃ¡ passando por mÃºltiplos associates. Como o histÃ³rico jÃ¡ estÃ¡ registrado, nÃ£o Ã© necessÃ¡rio ler tudo â€” basta seguir o prÃ³ximo passo lÃ³gico do fluxo.",
+  options:["Verdadeiro â€” o histÃ³rico registrado dispensa leitura detalhada","Falso â€” problemas crÃ´nicos exigem leitura completa do histÃ³rico antes de qualquer nova tentativa"],
+  correct:1, trap:true,
+  explain:"ID 32: problema crÃ´nico hÃ¡ mais de uma semana, 'mÃºltiplos associates sem soluÃ§Ã£o'. Sem leitura completa, o risco de repetir tentativas que jÃ¡ falharam Ã© alto â€” e nada frustra mais o cliente do que receber a mesma sugestÃ£o que ele jÃ¡ disse que nÃ£o funcionou."
+},
+{
+  tag:"HANDOFF",
+  text:"InformaÃ§Ãµes conflitantes entre associates diferentes geram mais frustraÃ§Ã£o no cliente do que o problema tÃ©cnico original.",
+  options:["Verdadeiro","Falso â€” o cliente sempre valoriza mais a resoluÃ§Ã£o tÃ©cnica do que a consistÃªncia das informaÃ§Ãµes recebidas"],
+  correct:0, trap:false,
+  explain:"ID 33: associate anterior prometeu correÃ§Ã£o, o novo deu informaÃ§Ã£o conflitante â€” aumentando a frustraÃ§Ã£o de forma desproporcional. O problema original ficou em segundo plano; o cliente estava mais frustrado com a contradiÃ§Ã£o do que com o atraso em si."
+},
+{
+  tag:"HANDOFF",
+  text:"Antes de responder um contato em andamento, o checklist ideal inclui verificar: histÃ³rico lido? soluÃ§Ã£o jÃ¡ tentada? cliente jÃ¡ estÃ¡ frustrado?",
+  options:["Verdadeiro","Falso â€” o checklist ideal foca apenas em confirmar os dados cadastrais do cliente"],
+  correct:0, trap:false,
+  explain:"Esse checklist serÃ¡ apresentado no Workshop 5. O princÃ­pio Ã© simples: leia tudo antes de digitar a primeira mensagem. Nada frustra mais do que ter que re-explicar o problema ou receber uma sugestÃ£o que jÃ¡ foi tentada."
+},
+// â”€â”€ CONHECIMENTO (5 perguntas) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+{
+  tag:"CONHECIMENTO",
+  text:"Um cliente pergunta como mudar o mÃ©todo de pagamento no Programe e Poupe. Como Ã© funcionalidade avanÃ§ada e pouco comum, Ã© aceitÃ¡vel que o associate nÃ£o saiba responder e apenas oriente a pesquisar no site.",
+  options:["Verdadeiro â€” funcionalidades avanÃ§adas podem ficar sem resposta detalhada","Falso â€” esse gap de conhecimento Ã© uma lacuna de treinamento a ser corrigida, nÃ£o uma exceÃ§Ã£o aceitÃ¡vel"],
+  correct:1, trap:true,
+  explain:"ID 22: associate nÃ£o conhecia a funcionalidade de P&P. HMD: 'Perguntas de quem nÃ£o tem experiÃªncia nenhuma.' O cliente percebeu a lacuna e disse isso diretamente. Gap #6 â€” serÃ¡ abordado com atualizaÃ§Ã£o do CorujÃ£oCS e quiz de validaÃ§Ã£o de knowledge.",
+  phrase:"Se nÃ£o sabe na hora: 'Vou verificar essa informaÃ§Ã£o para te dar uma resposta certeira â€” sÃ³ um momento.' Nunca adivinhe ou palpite sobre funcionalidades que nÃ£o domina."
+},
+{
+  tag:"CONHECIMENTO",
+  text:"Uma explicaÃ§Ã£o confusa sobre cobranÃ§a parcelada, que leva ao cancelamento indevido de um item, Ã© classificada no relatÃ³rio como problema de Conhecimento â€” impactando a dimensÃ£o CCX de Conhecimento.",
+  options:["Verdadeiro","Falso â€” Ã© classificado como problema de Empatia, nÃ£o de Conhecimento"],
+  correct:0, trap:false,
+  explain:"ID 10: explicaÃ§Ã£o confusa sobre parcelamento levou a cancelamento indevido. Gap #6 â€” Falta de Conhecimento de Produto/Funcionalidade Amazon, com impacto direto na dimensÃ£o Conhecimento do CCX BTB."
+},
+{
+  tag:"CONHECIMENTO",
+  text:"CrÃ©ditos de missÃµes nÃ£o aplicÃ¡veis a uma compra devem ser tratados como cupons comuns â€” se nÃ£o aplicam, basta informar e encerrar, sem necessidade de oferecer alternativa.",
+  options:["Verdadeiro â€” crÃ©ditos de missÃµes seguem a mesma regra simplificada de cupons comuns","Falso â€” o associate deve investigar o motivo da inaplicabilidade e oferecer alternativa antes de encerrar"],
+  correct:1, trap:true,
+  explain:"ID 26: crÃ©dito de missÃµes nÃ£o aplicÃ¡vel, associate 'encerrou sem alternativa'. ReforÃ§a o Gap #6 e o padrÃ£o de nunca encerrar sem caminho claro â€” mesmo quando a resposta tÃ©cnica Ã© 'nÃ£o se aplica', o associate pode verificar alternativas antes de finalizar.",
+  phrase:"'Vou verificar por que esse crÃ©dito nÃ£o estÃ¡ sendo aplicado ao seu caso e o que podemos fazer a partir disso.'"
+},
+{
+  tag:"CONHECIMENTO",
+  text:"O plano de coaching recomenda atualizar o CorujÃ£oCS com fluxos de Programe e Poupe, missÃµes e vale-presente de reembolso.",
+  options:["Verdadeiro","Falso â€” o plano recomenda remover essas funcionalidades do CorujÃ£oCS por serem raramente usadas"],
+  correct:0, trap:false,
+  explain:"AÃ§Ã£o recomendada literal da Prioridade 6 (Conhecimento de Produto): mapear funcionalidades com maior taxa de erro e atualizar o CorujÃ£oCS com fluxos de P&P, missÃµes e vale-presente de reembolso."
+},
+{
+  tag:"CONHECIMENTO",
+  text:"Vale-presente de reembolso ainda existe e deve ser explicado corretamente â€” mas a Amazon BR CS nÃ£o vende mais vale-presente (gift card) como produto ao cliente.",
+  options:["Verdadeiro","Falso â€” a Amazon BR CS ainda vende vale-presente normalmente como produto ao cliente"],
+  correct:0, trap:false,
+  explain:"A equipe processa redenÃ§Ãµes e reembolso-em-vale-presente (crÃ©dito), mas nÃ£o vende mais vale-presente como produto. Confundir isso reforÃ§a o Gap #6 e pode gerar promessas incorretas ao cliente."
+},
+// â”€â”€ CUPONS (4 perguntas) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+{
+  tag:"CUPONS",
+  text:"Um cliente relata que o cupom 'Chutou Ganhou' nÃ£o foi aplicado no checkout. Como cupons tÃªm regras especÃ­ficas de elegibilidade, a resposta correta Ã© negar diretamente, sem verificar o histÃ³rico da compra.",
+  options:["Verdadeiro â€” basta negar, pois cupons tÃªm regras fixas que nÃ£o exigem verificaÃ§Ã£o adicional","Falso â€” o associate deve verificar o histÃ³rico da compra e as condiÃ§Ãµes de elegibilidade do cupom antes de responder"],
+  correct:1, trap:true,
+  explain:"ID 5: cupom nÃ£o aplicado no checkout, associate negou sem verificar. As regras dos cupons sÃ£o legÃ­timas e devem ser seguidas â€” o gap nÃ£o Ã© a regra em si, Ã© a falta de VERIFICAÃ‡ÃƒO antes de responder. Gap #8 â€” negaÃ§Ã£o sem investigaÃ§Ã£o prÃ©via, risco de percepÃ§Ã£o de propaganda enganosa.",
+  phrase:"'Vou verificar sua compra e as condiÃ§Ãµes desse cupom para te dar uma resposta certeira â€” sÃ³ um momento.' Depois de verificar, explique o motivo especÃ­fico se realmente nÃ£o for elegÃ­vel."
+},
+{
+  tag:"CUPONS",
+  text:"O cupom QUEMLEVA50 apareceu em pelo menos dois contatos distintos da amostra, ambos com negaÃ§Ã£o sem investigaÃ§Ã£o adequada.",
+  options:["Verdadeiro","Falso â€” o cupom QUEMLEVA50 apareceu em apenas um contato da amostra"],
+  correct:0, trap:false,
+  explain:"IDs 7 e 15 envolveram o cupom QUEMLEVA50 â€” ambos negados sem investigaÃ§Ã£o adequada do contexto do cliente."
+},
+{
+  tag:"CUPONS",
+  text:"Se um cupom estÃ¡ expirado no momento do uso, a Ãºnica resposta possÃ­vel Ã© negar o benefÃ­cio, jÃ¡ que cupom expirado nunca pode ser honrado de nenhuma forma.",
+  options:["Verdadeiro â€” cupom expirado nunca pode ser honrado ou compensado de qualquer forma","Falso â€” mesmo com cupom expirado, o associate deve avaliar contexto e alternativas de compensaÃ§Ã£o antes de simplesmente negar"],
+  correct:1, trap:true,
+  explain:"ID 15: cupom expirado, associate 'negou sem investigar contexto'. Mesmo com regra tÃ©cnica correta, avaliar contexto e alternativas Ã© necessÃ¡rio â€” especialmente se o cliente entrou em contato dentro de um curto perÃ­odo apÃ³s a expiraÃ§Ã£o ou se houve falha tÃ©cnica envolvida.",
+  phrase:"'Entendo que o cupom expirou. Vou verificar o que aconteceu no seu caso e se existe alguma alternativa para compensar esse benefÃ­cio.'"
+},
+{
+  tag:"CUPONS",
+  text:"Negar cupons e promoÃ§Ãµes sem investigaÃ§Ã£o adequada Ã© apontado no relatÃ³rio como risco de 'percepÃ§Ã£o de propaganda enganosa', com alto risco de chargeback e PROCON.",
+  options:["Verdadeiro","Falso â€” o relatÃ³rio trata isso apenas como questÃ£o de eficiÃªncia operacional, sem relaÃ§Ã£o com riscos legais"],
+  correct:0, trap:false,
+  explain:"Texto literal do Gap #8: 'PercepÃ§Ã£o de propaganda enganosa. Alto risco de chargeback e PROCON.' Negar sem investigar nÃ£o Ã© apenas uma questÃ£o de eficiÃªncia â€” Ã© um risco legal e de reputaÃ§Ã£o."
+}
+];
+
+// â”€â”€ Mapa de cores por tag â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+const TAG_LABELS = {
+  KYC: "ðŸ” KYC",
+  EMPATIA: "ðŸ’™ Empatia",
+  ENCERRAMENTO: "ðŸšª Encerramento",
+  ROBOTICO: "ðŸ¤– Resposta RobÃ³tica",
+  AUTORIZACAO: "âœ‹ AutorizaÃ§Ã£o",
+  HANDOFF: "ðŸ”„ Handoff",
+  CONHECIMENTO: "ðŸ“š Conhecimento",
+  CUPONS: "ðŸŽŸï¸ Cupons"
+};
+
+// â”€â”€ Estado â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+const STORAGE_KEY = 'qualidadeCS_v2_state';
+let state = {
+  idx: 0, score: 0, streak: 0, maxStreak: 0,
+  correct: 0, completed: false, finalScore: 0,
+  answered: false, selected: null
+};
+
+function loadState() {
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if (raw) { try { state = JSON.parse(raw); } catch(e) {} }
+}
+function saveState() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+// â”€â”€ Start â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+function startGame() {
+  loadState();
+  document.getElementById('startScreen').style.display = 'none';
+  if (state.completed) { showEnd(); return; }
+  document.getElementById('gameScreen').style.display = 'block';
+  if (state.idx > 0) {
+    document.getElementById('resumeBanner').innerHTML =
+      '<div class="resume-banner">â†©ï¸ Continuando de onde vocÃª parou â€” pergunta ' + (state.idx + 1) + ' de ' + questions.length + '</div>';
+  }
+  renderQuestion();
+}
+
+// â”€â”€ Render â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+function renderQuestion() {
+  const q = questions[state.idx];
+  const pct = Math.round((state.idx / questions.length) * 100);
+
+  document.getElementById('scoreVal').textContent = state.score;
+  document.getElementById('streakVal').textContent = state.streak;
+  document.getElementById('progLabel').textContent = 'Pergunta ' + (state.idx + 1) + ' de ' + questions.length;
+  document.getElementById('progPct').textContent = pct + '%';
+  document.getElementById('progressBar').style.width = pct + '%';
+
+  const tagLabel = TAG_LABELS[q.tag] || q.tag;
+  const trapHtml = q.trap ? ' <span class="trap-pill">âš¡ PEGADINHA</span>' : '';
+
+  let optsHtml = '';
+  q.options.forEach((opt, i) => {
+    optsHtml += `<button class="option" id="opt${i}" onclick="answer(${i})">${opt}</button>`;
+  });
+
+  const phraseHtml = q.phrase
+    ? `<div class="feedback-phrase">ðŸ’¬ Frase sugerida: ${q.phrase}</div>`
+    : '';
+
+  document.getElementById('questionCard').innerHTML = `
+    <div class="q-tag tag-${q.tag}">${tagLabel}${trapHtml}</div>
+    <div class="q-text">${q.text}</div>
+    <div id="optsWrap">${optsHtml}</div>
+    <div class="feedback" id="feedbackBox">
+      <div class="feedback-header" id="feedbackHeader"></div>
+      <div class="feedback-body" id="feedbackBody"></div>
+      ${phraseHtml}
+    </div>
+    <button class="btn" id="nextBtn" style="display:none;margin-top:12px" onclick="nextQuestion()">
+      ${state.idx + 1 < questions.length ? 'PrÃ³xima â†’' : 'ðŸ Ver Resultado'}
+    </button>
+  `;
+
+  if (state.answered) restoreAnsweredUI(q);
+}
+
+// â”€â”€ Restore apÃ³s F5 â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+function restoreAnsweredUI(q) {
+  document.querySelectorAll('.option').forEach((btn, i) => {
+    btn.disabled = true;
+    if (i === q.correct) btn.classList.add('correct');
+    if (i === state.selected && state.selected !== q.correct) btn.classList.add('wrong');
+  });
+  const isCorrect = state.selected === q.correct;
+  showFeedback(q, isCorrect);
+  document.getElementById('nextBtn').style.display = 'block';
+}
+
+// â”€â”€ Answer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+function answer(i) {
+  if (state.answered) return;
+  const q = questions[state.idx];
+  state.answered = true;
+  state.selected = i;
+  const isCorrect = (i === q.correct);
+
+  if (isCorrect) {
+    const base = q.trap ? 15 : 10;
+    state.streak += 1;
+    const bonus = state.streak >= 2 ? Math.min(3 * (state.streak - 1), 15) : 0;
+    state.score += base + bonus;
+    state.correct += 1;
+    if (state.streak > state.maxStreak) state.maxStreak = state.streak;
+    if (bonus > 0) showBonusToast('+' + bonus + ' bÃ´nus sequÃªncia!');
+  } else {
+    state.streak = 0;
+  }
+
+  saveState();
+
+  document.querySelectorAll('.option').forEach((btn, idx2) => {
+    btn.disabled = true;
+    if (idx2 === q.correct) btn.classList.add('correct');
+    if (idx2 === i && i !== q.correct) btn.classList.add('wrong');
+  });
+
+  document.getElementById('scoreVal').textContent = state.score;
+  document.getElementById('streakVal').textContent = state.streak;
+
+  showFeedback(q, isCorrect);
+  document.getElementById('nextBtn').style.display = 'block';
+}
+
+function showFeedback(q, isCorrect) {
+  const box = document.getElementById('feedbackBox');
+  const header = document.getElementById('feedbackHeader');
+  const body = document.getElementById('feedbackBody');
+  box.className = 'feedback visible ' + (isCorrect ? 'ok' : 'bad');
+  header.textContent = isCorrect ? 'âœ… Correto!' : 'âŒ Incorreto.';
+  body.textContent = q.explain;
+}
+
+// â”€â”€ Bonus toast â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+function showBonusToast(msg) {
+  const t = document.createElement('div');
+  t.className = 'bonus-toast';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 1800);
+}
+
+// â”€â”€ Next â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+function nextQuestion() {
+  state.idx += 1;
+  state.answered = false;
+  state.selected = null;
+  if (state.idx >= questions.length) { finishGame(); return; }
+  saveState();
+  document.getElementById('questionCard').innerHTML = '';
+  setTimeout(renderQuestion, 80);
+}
+
+// â”€â”€ Finish â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+function finishGame() {
+  state.completed = true;
+  state.finalScore = state.score;
+  saveState();
+  document.getElementById('gameScreen').style.display = 'none';
+  showEnd();
+}
+
+function showEnd() {
+  document.getElementById('endScreen').style.display = 'block';
+  const maxPossible = questions.length * 15;
+  const pct = state.finalScore / maxPossible;
+  const correctCount = state.correct || 0;
+  const pctCorrect = Math.round((correctCount / questions.length) * 100);
+
+  let emoji, title, badge, badgeColor;
+  if (pct >= 0.8)      { emoji='ðŸ†'; title='Excelente!';          badge='EXPERT';        badgeColor='#10b981'; }
+  else if (pct >= 0.5) { emoji='ðŸŽ¯'; title='Bom trabalho!';       badge='INTERMEDIÃRIO'; badgeColor='#f59e0b'; }
+  else                 { emoji='ðŸ“š'; title='Continue estudando!';  badge='INICIANTE';     badgeColor='#ef4444'; }
+
+  document.getElementById('endEmoji').textContent = emoji;
+  document.getElementById('endTitle').textContent = title;
+
+  const bEl = document.getElementById('endBadge');
+  bEl.textContent = badge;
+  bEl.style.background = badgeColor + '22';
+  bEl.style.color = badgeColor;
+  bEl.style.border = '1px solid ' + badgeColor + '55';
+
+  document.getElementById('endScore').textContent = state.finalScore;
+  document.getElementById('endStreak').textContent = state.maxStreak + ' ðŸ”¥';
+  document.getElementById('endCorrect').textContent = correctCount + '/' + questions.length;
+  document.getElementById('endPct').textContent = pctCorrect + '%';
+}
+
+// â”€â”€ Init â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+(function init() {
+  loadState();
+  if (state.completed) {
+    document.getElementById('startScreen').style.display = 'none';
+    showEnd();
+  }
+})();
+</script>
+</body>
+</html>

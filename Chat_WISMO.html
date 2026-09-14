@@ -1,0 +1,1172 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Chat Simulator WISMO v5 | CS OPs-VAR BR</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0f172a;color:#f1f5f9;font-family:"Segoe UI",Arial,sans-serif;min-height:100vh;font-size:15px}
+#app{max-width:1080px;margin:0 auto;padding:20px}
+
+/* TELA INICIAL */
+#si{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;text-align:center;padding:40px}
+.lt{font-size:2.4rem;font-weight:900;color:#7dd3fc;letter-spacing:3px;margin-bottom:6px}
+.ls{font-size:.8rem;color:#94a3b8;letter-spacing:5px;margin-bottom:20px}
+.sic-info{background:#1e293b;border:1px solid #334155;padding:8px 22px;font-size:.78rem;color:#7dd3fc;letter-spacing:1px;margin-bottom:22px;border-radius:4px}
+.it{max-width:560px;color:#cbd5e1;line-height:2.1;margin-bottom:18px;font-size:.9rem}
+.it em{color:#7dd3fc;font-style:normal;font-weight:700}
+.bmain{background:linear-gradient(135deg,#0ea5e9,#0369a1);color:#fff;font-size:.95rem;font-weight:700;padding:14px 44px;border:none;cursor:pointer;letter-spacing:2px;border-radius:4px;transition:all .2s}
+.bmain:hover{filter:brightness(1.15);transform:translateY(-2px)}
+.ver{font-size:.65rem;color:#475569;margin-top:20px;letter-spacing:2px}
+
+/* HUD */
+#hud{display:none;position:sticky;top:0;z-index:100;background:#0f172aee;border-bottom:2px solid #1e293b;padding:10px 18px;backdrop-filter:blur(8px)}
+.hi{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+.hf{font-size:.78rem;color:#94a3b8}.hf b{color:#7dd3fc;font-size:.92rem}
+.htimer{font-size:1.2rem;font-weight:900;color:#7dd3fc;min-width:54px;text-align:right;font-family:"Courier New",monospace}
+.sc-prog{display:flex;gap:5px;margin-top:6px}
+.sc-dot{width:28px;height:5px;background:#1e293b;border-radius:3px;transition:all .3s}
+.sc-dot.done{background:#34d399}.sc-dot.active{background:#7dd3fc}.sc-dot.fail{background:#f87171}
+.pb-w{background:#1e293b;height:3px;margin-top:7px;border-radius:2px}
+.pb{background:linear-gradient(90deg,#38bdf8,#0ea5e9);height:3px;border-radius:2px;transition:width .5s}
+.phase-badge{display:inline-block;padding:2px 10px;border-radius:10px;font-size:.68rem;font-weight:700;letter-spacing:1px;margin-left:8px}
+.phase-badge.conv{background:#1e3a5f;color:#7dd3fc;border:1px solid #38bdf844}
+.phase-badge.sic{background:#2d1a4a;color:#c084fc;border:1px solid #a855f744}
+
+/* LAYOUT PRINCIPAL */
+#sim{display:none;margin-top:14px}
+.sim-wrap{display:grid;grid-template-columns:270px 1fr;gap:16px}
+@media(max-width:700px){.sim-wrap{grid-template-columns:1fr}}
+
+/* PAINEL PEDIDO */
+.order-panel{background:#1e293b;border:1px solid #334155;padding:16px;border-radius:8px;height:fit-content;position:sticky;top:80px}
+.op-title{font-size:.72rem;color:#7dd3fc;letter-spacing:3px;font-weight:700;border-bottom:1px solid #334155;padding-bottom:7px;margin-bottom:10px}
+.op-row{display:flex;justify-content:space-between;font-size:.78rem;padding:5px 0;border-bottom:1px solid #0f172a66}
+.op-label{color:#94a3b8;flex-shrink:0;margin-right:6px}
+.op-val{color:#f1f5f9;font-weight:600;text-align:right}
+.op-val.ok{color:#34d399}.op-val.warn{color:#fbbf24}.op-val.bad{color:#f87171}
+.tl-title{font-size:.68rem;color:#64748b;letter-spacing:2px;margin:12px 0 7px;text-transform:uppercase}
+.tl-item{display:flex;gap:9px;margin-bottom:7px;font-size:.75rem}
+.tl-dot{width:9px;height:9px;border-radius:50%;margin-top:3px;flex-shrink:0}
+.tl-dot.done{background:#34d399}.tl-dot.pend{background:#fbbf24}.tl-dot.fail{background:#f87171}
+.tl-txt{color:#cbd5e1;line-height:1.4}.tl-date{color:#64748b;font-size:.67rem}
+
+/* DICAS RÃPIDAS */
+.tips-panel{margin-top:14px;background:#0f172a;border:1px solid #1e293b;border-radius:8px;padding:12px}
+.tips-title{font-size:.68rem;color:#64748b;letter-spacing:2px;margin-bottom:8px}
+.tip-item{font-size:.75rem;color:#94a3b8;padding:4px 0;border-bottom:1px solid #1e293b11;line-height:1.5}
+.tip-item:last-child{border:none}
+.tip-item em{color:#38bdf8;font-style:normal}
+
+/* CHAT */
+.chat-panel{background:#1e293b;border:1px solid #334155;border-radius:8px;display:flex;flex-direction:column;min-height:500px}
+.chat-header{background:#0f172a;padding:9px 14px;font-size:.75rem;color:#94a3b8;border-radius:8px 8px 0 0;border-bottom:1px solid #334155;display:flex;align-items:center;gap:8px}
+.chat-header b{color:#7dd3fc}
+.online-dot{width:8px;height:8px;border-radius:50%;background:#34d399;display:inline-block;animation:onlinepulse 2s infinite}
+@keyframes onlinepulse{0%,100%{opacity:1}50%{opacity:.4}}
+.chat-msgs{padding:14px;flex:1;min-height:320px;max-height:420px;overflow-y:auto;display:flex;flex-direction:column;gap:10px}
+.msg{max-width:88%;padding:10px 14px;font-size:.83rem;line-height:1.7;border-radius:8px;animation:fadein .3s ease}
+@keyframes fadein{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.msg.client{background:#0f172a;color:#f1f5f9;align-self:flex-start;border-left:3px solid #7dd3fc;border-radius:4px 8px 8px 4px}
+.msg.agent{background:#083344;color:#e0f2fe;align-self:flex-end;border-right:3px solid #0ea5e9;border-radius:8px 4px 4px 8px}
+.msg.sys{background:transparent;color:#64748b;align-self:center;font-size:.7rem;letter-spacing:1px;border:1px solid #1e293b;padding:4px 12px;border-radius:20px}
+.msg.reaction{background:transparent;align-self:flex-start;font-size:.8rem;color:#94a3b8;font-style:italic;padding:4px 8px}
+.typing-wrap{display:none;align-self:flex-start;padding:8px 14px;background:#0f172a;border-left:3px solid #7dd3fc;border-radius:4px 8px 8px 4px;font-size:.75rem;color:#64748b}
+.typing-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:#64748b;margin:0 2px;animation:typebounce 1s infinite}
+.typing-dot:nth-child(2){animation-delay:.2s}.typing-dot:nth-child(3){animation-delay:.4s}
+@keyframes typebounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+
+/* SUGESTÃ•ES DE BLURB */
+.suggestions{padding:8px 14px;background:#071e2e;border-top:1px solid #0c2d45;display:none}
+.sug-title{font-size:.68rem;color:#38bdf8;letter-spacing:1px;margin-bottom:6px}
+.sug-chips{display:flex;flex-wrap:wrap;gap:6px}
+.sug-chip{background:#0f172a;border:1px solid #1e3a5f;color:#7dd3fc;font-size:.72rem;padding:4px 10px;border-radius:20px;cursor:pointer;transition:all .2s;max-width:100%;text-align:left}
+.sug-chip:hover{background:#1e3a5f;border-color:#38bdf8}
+
+/* INPUT */
+.input-area{padding:12px 14px;border-top:2px solid #334155;background:#0f172a;border-radius:0 0 8px 8px}
+.input-context{font-size:.72rem;color:#64748b;margin-bottom:7px;line-height:1.5}
+.input-context em{color:#7dd3fc;font-style:normal}
+.input-row{display:flex;gap:8px;align-items:flex-end}
+.chat-input{flex:1;background:#1e293b;border:2px solid #334155;color:#f1f5f9;padding:10px 14px;font-size:.85rem;font-family:"Segoe UI",Arial,sans-serif;border-radius:6px;resize:none;min-height:72px;line-height:1.5;transition:border .2s}
+.chat-input:focus{outline:none;border-color:#38bdf8}
+.chat-input::placeholder{color:#334155}
+.btn-send{background:linear-gradient(135deg,#0ea5e9,#0369a1);color:#fff;font-size:.82rem;font-weight:700;padding:10px 18px;border:none;cursor:pointer;border-radius:6px;white-space:nowrap;transition:all .2s;align-self:stretch;min-width:80px}
+.btn-send:hover{filter:brightness(1.15)}
+.btn-send:disabled{background:#1e293b;color:#475569;cursor:not-allowed}
+
+/* FEEDBACK TURNO */
+.turn-feedback{display:none;margin:0 14px 8px;padding:10px 14px;font-size:.8rem;line-height:1.7;border-left:4px solid;border-radius:0 6px 6px 0}
+.turn-feedback.great{border-color:#34d399;background:#052e16;color:#a7f3d0}
+.turn-feedback.ok{border-color:#fbbf24;background:#1c1400;color:#fde68a}
+.turn-feedback.miss{border-color:#f87171;background:#2d0a0a;color:#fecaca}
+.tf-title{font-weight:700;font-size:.75rem;letter-spacing:1px;margin-bottom:4px}
+.kw-tags{margin-top:6px;display:flex;flex-wrap:wrap;gap:4px}
+.kw-tag{font-size:.7rem;padding:2px 8px;border-radius:10px;border:1px solid}
+.kw-tag.found{background:#052e16;color:#34d399;border-color:#34d39933}
+.kw-tag.miss{background:#2d0a0a;color:#f87171;border-color:#f8717133}
+
+/* FASE SIC */
+.sic-area{display:none;padding:14px;background:#130d24;border-top:2px solid #7c3aed33}
+.sic-label{font-size:.72rem;color:#c084fc;letter-spacing:2px;font-weight:700;margin-bottom:8px}
+.sic-question{font-size:.82rem;color:#e2e8f0;margin-bottom:12px;line-height:1.6}
+.sic-opts{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:10px}
+@media(max-width:600px){.sic-opts{grid-template-columns:1fr}}
+.sic-opt{background:#1e293b;border:2px solid #334155;color:#f1f5f9;padding:9px 12px;font-size:.78rem;cursor:pointer;border-radius:6px;text-align:left;transition:all .2s;line-height:1.4}
+.sic-opt:hover{border-color:#a855f7;background:#1e1035}
+.sic-opt.selected{border-color:#a855f7;background:#1e1035;color:#c084fc}
+.sic-opt.correct{border-color:#34d399;background:#052e16;color:#34d399}
+.sic-opt.wrong{border-color:#f87171;background:#2d0a0a;color:#f87171}
+.btn-confirm-sic{background:linear-gradient(135deg,#7c3aed,#5b21b6);color:#fff;font-size:.82rem;font-weight:700;padding:10px 0;border:none;cursor:pointer;border-radius:6px;width:100%;letter-spacing:1px;transition:all .2s;margin-top:4px}
+.btn-confirm-sic:disabled{background:#1e293b;color:#475569;cursor:not-allowed}
+.sic-result{display:none;margin-top:10px;padding:10px 14px;border-left:4px solid;border-radius:0 6px 6px 0;font-size:.8rem;line-height:1.7}
+.sic-result.ok{border-color:#34d399;background:#052e16;color:#a7f3d0}
+.sic-result.bad{border-color:#f87171;background:#2d0a0a;color:#fecaca}
+
+/* BOTÃƒO PRÃ“XIMO */
+.btn-next{display:none;background:linear-gradient(135deg,#0ea5e9,#0369a1);color:#fff;font-size:.85rem;font-weight:700;padding:12px 0;border:none;cursor:pointer;border-radius:6px;width:calc(100% - 28px);margin:8px 14px 14px;letter-spacing:1px;transition:all .2s}
+.btn-next:hover{filter:brightness(1.15)}
+
+/* CCX */
+.ccx-bar{display:none;padding:10px 14px;background:#082035;border-top:1px solid #0c3050;text-align:center}
+.ccx-label{font-size:.68rem;color:#7dd3fc;letter-spacing:2px;margin-bottom:6px}
+.stars-row{display:flex;justify-content:center;gap:8px;margin-bottom:4px}
+.star{font-size:1.5rem;opacity:.2;transition:all .4s;color:#fbbf24}
+.star.lit{opacity:1}
+.ccx-msg{font-size:.78rem;color:#94a3b8;font-style:italic}
+
+/* TELA FINAL */
+#sf{display:none;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:40px;text-align:center}
+.sf-badge{font-size:4rem;margin-bottom:10px}
+.sf-rank{font-size:1.9rem;font-weight:900;letter-spacing:3px;margin-bottom:4px}
+.sf-sub{font-size:.82rem;color:#94a3b8;letter-spacing:2px;margin-bottom:26px}
+.sf-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;max-width:620px;width:100%;margin-bottom:22px}
+.sf-card{background:#1e293b;border:1px solid #334155;padding:18px 8px;border-radius:8px}
+.sf-val{font-size:1.6rem;font-weight:900;color:#7dd3fc}
+.sf-lbl{font-size:.67rem;color:#64748b;letter-spacing:2px;margin-top:5px}
+.sf-timer-row{background:#071e2e;border:1px solid #1e3a5f;padding:10px 28px;border-radius:6px;margin-bottom:16px;font-size:.82rem;color:#7dd3fc;letter-spacing:1px;display:flex;gap:28px;justify-content:center}
+.sf-reconhecimento{background:#082f49;border:2px solid #38bdf8;padding:14px 36px;font-size:1rem;color:#7dd3fc;letter-spacing:2px;margin-bottom:20px;font-weight:900;border-radius:6px}
+.sf-msg{max-width:500px;color:#94a3b8;font-size:.85rem;line-height:1.9;margin-bottom:22px}
+.btn-sec{background:transparent;border:2px solid #38bdf8;color:#7dd3fc;font-size:.82rem;padding:10px 28px;cursor:pointer;letter-spacing:1px;border-radius:4px;transition:all .2s}
+.btn-sec:hover{background:#082f49}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- TELA INICIAL -->
+<div id="si">
+  <div class="lt">&#128172; CHAT SIMULATOR</div>
+  <div class="ls">WISMO &mdash; WHERE IS MY ORDER?</div>
+  <div class="sic-info">Check Order Status / Tracking &nbsp;|&nbsp; 876 contatos/semana &nbsp;|&nbsp; AHT 9,4 min &nbsp;|&nbsp; CS OPs-VAR BR</div>
+  <div class="it">
+    Voc&#234; &#233; o CSA. O cliente entra no chat e voc&#234; conduz o atendimento.<br>
+    <em>Escreva respostas reais</em> &mdash; o cliente reage ao que voc&#234; diz.<br>
+    Cada conversa tem in&#237;cio, meio e fim: <em>abertura &#8594; investiga&#231;&#227;o &#8594; resolu&#231;&#227;o &#8594; encerramento.</em><br>
+    Ao final classifique o <em>SIC correto</em> antes de ir pro pr&#243;ximo caso.
+  </div>
+  <div class="it" style="font-size:.8rem;color:#64748b">5 cen&#225;rios &nbsp;&#183;&nbsp; Conversa real em turnos &nbsp;&#183;&nbsp; Feedback por turno &nbsp;&#183;&nbsp; Classifica&#231;&#227;o SIC &nbsp;&#183;&nbsp; reconhecimento por desempenho</div>
+  <button class="bmain" onclick="startGame()">&#9654;&#65039; INICIAR ATENDIMENTO</button>
+  <div class="ver">CHAT SIMULATOR v5.0 &nbsp;|&nbsp; WISMO &nbsp;|&nbsp; CS OPs-VAR BR &nbsp;|&nbsp; Ago 2026</div>
+</div>
+
+<!-- HUD -->
+<div id="hud">
+  <div class="hi">
+    <span class="hf">CEN&Aacute;RIO <b id="hsc">1</b>/5</span>
+    <span style="font-size:.92rem;font-weight:900;color:#7dd3fc;letter-spacing:2px">WISMO <span id="hphase" class="phase-badge conv">CONVERSA</span></span>
+    <div style="display:flex;gap:18px;align-items:center">
+      <span class="hf">PONTOS <b id="hpts">0</b></span>
+      <span class="hf">SIC <b id="hsic">-</b></span>
+      <span class="hf">CCX <b id="hccx">-</b></span>
+      <span class="htimer" id="htimer">00:00</span>
+    </div>
+  </div>
+  <div class="sc-prog" id="scprog"></div>
+  <div class="pb-w"><div class="pb" id="hpb" style="width:0%"></div></div>
+</div>
+
+<!-- SIMULADOR -->
+<div id="sim">
+  <div class="sim-wrap">
+    <!-- PAINEL ESQUERDO -->
+    <div>
+      <div class="order-panel">
+        <div class="op-title">&#128203; DADOS DO PEDIDO</div>
+        <div id="ordrows"></div>
+        <div class="tl-title">&#9203; Linha do Tempo</div>
+        <div id="tlines"></div>
+      </div>
+      <div class="tips-panel">
+        <div class="tips-title">&#128161; DICAS DO TURNO</div>
+        <div id="tiplist"></div>
+      </div>
+    </div>
+
+    <!-- CHAT -->
+    <div class="chat-panel">
+      <div class="chat-header">
+        <span class="online-dot"></span>
+        <b id="custname">Cliente</b> &nbsp;&#183;&nbsp; SIC: WISMO &nbsp;&#183;&nbsp; <span style="color:#64748b;font-size:.7rem" id="turnlabel">Turno 1 de 4</span>
+      </div>
+
+      <div class="chat-msgs" id="chatmsgs">
+        <div class="typing-wrap" id="typing">
+          <span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span>
+        </div>
+      </div>
+
+      <!-- SUGESTÃ•ES DE BLURB DO CORUJÃƒO -->
+      <div class="suggestions" id="suggestions">
+        <div class="sug-title">&#129417; BLURBS DO CORUJ&#195;O &mdash; clique para usar como base</div>
+        <div class="sug-chips" id="sugchips"></div>
+      </div>
+
+      <!-- INPUT -->
+      <div class="input-area" id="inputarea">
+        <div class="input-context" id="inputctx">&#9997;&#65039; <em>Abertura</em> &mdash; Cumprimente o cliente, use o nome dele e ofere&#231;a ajuda. Ctrl+Enter para enviar.</div>
+        <div class="input-row">
+          <textarea class="chat-input" id="chatinput" rows="3" placeholder="Digite sua resposta..."></textarea>
+          <button class="btn-send" id="btnsend" onclick="submitTurn()">&#10148; ENVIAR</button>
+        </div>
+      </div>
+
+      <!-- FEEDBACK DE TURNO -->
+      <div class="turn-feedback" id="turnfb">
+        <div class="tf-title" id="tfbtitle"></div>
+        <div id="tfbtext"></div>
+        <div class="kw-tags" id="tfbtags"></div>
+      </div>
+
+      <!-- CCX -->
+      <div class="ccx-bar" id="ccxbar">
+        <div class="ccx-label">&#11088; AVALIA&#199;&#195;O FINAL DO CLIENTE</div>
+        <div class="stars-row" id="starsrow"></div>
+        <div class="ccx-msg" id="ccxmsg"></div>
+      </div>
+
+      <!-- FASE SIC -->
+      <div class="sic-area" id="sicarea">
+        <div class="sic-label">&#128269; CLASSIFICA&#199;&#195;O DO SIC</div>
+        <div class="sic-question">Com base no atendimento que voc&#234; realizou, qual o <strong>SIC correto</strong> para este caso? Classifique agora &mdash; antes de encerrar.</div>
+        <div class="sic-opts" id="sicopts"></div>
+        <button class="btn-confirm-sic" id="btnconfirmsic" onclick="confirmSIC()" disabled>CONFIRMAR SIC</button>
+        <div class="sic-result" id="sicresult"></div>
+      </div>
+
+      <!-- PRÃ“XIMO -->
+      <button class="btn-next" id="btnnext" onclick="nextScenario()">PR&#211;XIMO CLIENTE &#8594;</button>
+    </div>
+  </div>
+</div>
+
+<!-- TELA FINAL -->
+<div id="sf">
+  <div class="sf-badge" id="sfbadge"></div>
+  <div class="sf-rank" id="sfrank"></div>
+  <div class="sf-sub" id="sfsub"></div>
+  <div class="sf-grid">
+    <div class="sf-card"><div class="sf-val" id="sfpts">0</div><div class="sf-lbl">PONTOS</div></div>
+    <div class="sf-card"><div class="sf-val" id="sfconv">0/5</div><div class="sf-lbl">CONV. OK</div></div>
+    <div class="sf-card"><div class="sf-val" id="sfsic">0/5</div><div class="sf-lbl">SICs CERTOS</div></div>
+    <div class="sf-card"><div class="sf-val" id="sfccx">-</div><div class="sf-lbl">CCX M&Eacute;DIO</div></div>
+  </div>
+  <div class="sf-timer-row">&#9201; TEMPO: <span id="sftimer" style="color:#fff;font-weight:900">--:--</span> &nbsp;&nbsp; CCX M&eacute;dio: <span id="sfccx2" style="color:#fbbf24;font-weight:900">-</span>/5</div>
+  <div class="sf-reconhecimento" id="sfreconhecimento"></div>
+  <div class="sf-msg" id="sfmsg"></div>
+  <div style="font-size:.72rem;color:#475569;margin-bottom:14px">Tire screenshot e envie via Chime para concorrer ao reconhecimento</div>
+  <button class="btn-sec" onclick="location.reload()">&#8635; NOVO TURNO</button>
+</div>
+
+<script>
+
+/* ===== DADOS ===== */
+var SIC_OPTIONS=[
+  "Rastreamento de pedido (WISMO)",
+  "Pedido nÃ£o recebido / DNR",
+  "Pedido ainda nÃ£o enviado (NYS)",
+  "Pedido devolvido Ã  origem",
+  "Entrega atrasada / fora do prazo",
+  "Pedido cancelado pelo sistema",
+  "Volume parcial entregue",
+  "EndereÃ§o incorreto / problema de entrega",
+  "Problema com vendedor parceiro (3P)",
+  "Pedido cancelado pelo cliente"
+];
+
+var SCENARIOS=[
+{
+  id:1, custName:"Ana Lima",
+  order:{num:"#114-8823761",status:"Tentativa frustrada",prev:"12/08",carrier:"Correios",item:"Fone Bluetooth",pay:"Aprovado"},
+  timeline:[
+    {s:"done",date:"06/08",txt:"Pedido confirmado"},
+    {s:"done",date:"08/08",txt:"Enviado pelo vendedor"},
+    {s:"done",date:"10/08",txt:"Coletado pelos Correios"},
+    {s:"fail",date:"12/08",txt:"Tentativa â€” cliente ausente"}
+  ],
+  sic:{correct:0, why:"SIC: 'Rastreamento de pedido (WISMO)' â€” cliente rastreou e encontrou status de tentativa frustrada. Ã‰ acompanhamento de entrega, nÃ£o DNR."},
+  turns:[
+    {
+      id:"abertura",
+      label:"Turno 1 â€” Abertura",
+      tip:"Cumprimente, use o nome da cliente, apresente-se e ofereÃ§a ajuda.",
+      clientMsg:"Oi! Meu pedido deveria ter chegado hoje mas nÃ£o veio. O que aconteceu?",
+      criteria:[
+        {label:"SaudaÃ§Ã£o (olÃ¡/boa tarde/bem-vinda)",keys:["ola","oi","bom dia","boa tarde","boa noite","bem-vinda","bem vinda"],pts:2},
+        {label:"Usou o nome â€” Ana",keys:["ana"],pts:3},
+        {label:"Apresentou-se / Amazon",keys:["amazon","meu nome","sou","atendimento"],pts:1},
+        {label:"Ofereceu ajuda",keys:["posso ajudar","como posso","ajudo","disposi","resolver","verificar"],pts:2}
+      ],
+      maxPts:8,
+      feedbacks:{
+        great:"Abertura excelente! Nome, saudaÃ§Ã£o e oferta de ajuda â€” o cliente jÃ¡ se sente acolhido antes de expor o problema.",
+        ok:"Boa abertura! Mas lembre: usar o nome do cliente no primeiro contato reduz a tensÃ£o imediatamente.",
+        miss:"Abertura fria. Toda abertura precisa ter: (1) saudaÃ§Ã£o, (2) nome do cliente, (3) oferta de ajuda."
+      },
+      clientReactions:{
+        great:"Que bom! Fico mais tranquila assim. Meu pedido Ã© o #114-8823761, um fone bluetooth. Estava esperando desde ontem...",
+        ok:"Tudo bem... Meu pedido Ã© #114-8823761. Esperei o dia todo e nada chegou.",
+        miss:"Hm... TÃ¡. Meu pedido Ã© #114-8823761. Um fone bluetooth que deveria ter chegado hoje."
+      }
+    },
+    {
+      id:"investigacao",
+      label:"Turno 2 â€” InvestigaÃ§Ã£o",
+      tip:"Acesse o pedido, identifique o status de tentativa frustrada e demonstre que estÃ¡ investigando.",
+      clientMsg:null,
+      criteria:[
+        {label:"Agradeceu/pediu um momento para verificar",keys:["verificar","checar","consultar","momento","instante","aguarde","analisar"],pts:2},
+        {label:"Identificou tentativa frustrada / ausÃªncia",keys:["ausente","tentativa","nao estava","correios tentou","motorista","entregador"],pts:3},
+        {label:"Demonstrou empatia pela espera",keys:["entendo","frustracao","chateado","lamento","sei como","desculpe","sinto"],pts:2},
+        {label:"Deu retorno claro sobre o status",keys:["status","rastreio","consta","sistema","registrado","informacao"],pts:1}
+      ],
+      maxPts:8,
+      feedbacks:{
+        great:"Perfeito! Investigou, identificou a causa real (tentativa frustrada) e foi empÃ¡tico. O cliente sabe exatamente o que aconteceu.",
+        ok:"Bom! Identificou o problema, mas faltou clareza sobre o motivo especÃ­fico da nÃ£o entrega.",
+        miss:"NÃ£o identificou a causa. O cliente precisa saber o que aconteceu antes de propor soluÃ§Ã£o."
+      },
+      clientReactions:{
+        great:"Ah, entÃ£o o entregador foi lÃ¡ e eu nÃ£o estava... Mas eu fiquei em casa o dia todo! Tem como reenviar?",
+        ok:"EntÃ£o houve uma tentativa? NÃ£o vi ninguÃ©m aqui. O que eu faÃ§o agora?",
+        miss:"Mas entÃ£o cadÃª o meu pedido? VocÃª conseguiu ver alguma coisa no sistema?"
+      }
+    },
+    {
+      id:"resolucao",
+      label:"Turno 3 â€” ResoluÃ§Ã£o",
+      tip:"OfereÃ§a 2 opÃ§Ãµes concretas: retirada na agÃªncia dos Correios OU reagendamento de entrega.",
+      clientMsg:null,
+      criteria:[
+        {label:"OpÃ§Ã£o 1 â€” retirar na agÃªncia Correios",keys:["agencia","retirar","correios","buscar","posto","documento"],pts:3},
+        {label:"OpÃ§Ã£o 2 â€” reagendar nova entrega",keys:["reagendar","nova entrega","segunda tentativa","remarcar","agendar","amanha","novo dia"],pts:3},
+        {label:"Deu prazo / orientaÃ§Ã£o prÃ¡tica",keys:["dias","prazo","ate","horario","funciona","disponivel"],pts:1},
+        {label:"Perguntou o que a cliente prefere",keys:["prefere","qual opcao","o que prefere","melhor","quer que"],pts:1}
+      ],
+      maxPts:8,
+      feedbacks:{
+        great:"ResoluÃ§Ã£o completa! Duas opÃ§Ãµes concretas e perguntou o que a cliente prefere. WISMO resolvido no primeiro contato.",
+        ok:"Boa resoluÃ§Ã£o! Mas ofereÃ§a sempre as duas opÃ§Ãµes â€” retirada E reagendamento â€” para o cliente escolher.",
+        miss:"Resposta incompleta. O cliente precisa de opÃ§Ãµes concretas: retirar na agÃªncia OU reagendar entrega."
+      },
+      clientReactions:{
+        great:"Prefiro reagendar! Pode ser para amanhÃ£? Que horas o entregador costuma passar?",
+        ok:"Entendi. Posso retirar nos Correios, mas preferiria que viesse aqui. Tem como?",
+        miss:"Mas o que eu faÃ§o entÃ£o? Fico esperando? Ou tenho que ir buscar?"
+      }
+    },
+    {
+      id:"encerramento",
+      label:"Turno 4 â€” Encerramento",
+      tip:"Confirme a aÃ§Ã£o tomada, informe o prÃ³ximo passo, despeÃ§a-se cordialmente.",
+      clientMsg:null,
+      criteria:[
+        {label:"Confirmou a aÃ§Ã£o tomada (reagendamento/instruÃ§Ãµes)",keys:["reagendado","confirmado","registrado","agendado","enviou","encaminhei","nova data"],pts:3},
+        {label:"Informou prÃ³ximo passo ao cliente",keys:["prazo","amanha","acompanhar","rastreio","email","notificacao","aviso"],pts:2},
+        {label:"Encerramento cordial",keys:["disposi","qualquer","duvida","prazer","ajudar","obrigado","ate logo","sucesso","tenha"],pts:2},
+        {label:"NÃ£o pediu avaliaÃ§Ã£o explicitamente",keys:["avalie","avaliacao","nota","pesquisa","satisfacao"],pts:1,inverse:true}
+      ],
+      maxPts:8,
+      feedbacks:{
+        great:"Encerramento impecÃ¡vel! Resumo claro, prÃ³ximo passo definido e despedida calorosa. CCX 5 estrelas garantida.",
+        ok:"Bom encerramento. Lembre de sempre confirmar o que foi feito E o prÃ³ximo passo â€” assim o cliente sai seguro.",
+        miss:"Encerramento fraco. O cliente precisa saber: (1) o que foi feito, (2) o que esperar a seguir."
+      },
+      clientReactions:{
+        great:"Muito obrigada! Adorei o atendimento, bem atencioso. AtÃ© amanhÃ£ entÃ£o!",
+        ok:"Ok, obrigada. Vou aguardar entÃ£o.",
+        miss:"TÃ¡... mas e aÃ­, o que acontece agora? AlguÃ©m me avisa?"
+      }
+    }
+  ]
+},
+{
+  id:2, custName:"Carlos Mendes",
+  order:{num:"#114-5512334",status:"Processando",prev:"A definir",carrier:"Pendente",item:"Tablet Samsung 10.4",pay:"PIX confirmado"},
+  timeline:[
+    {s:"done",date:"09/08",txt:"PIX confirmado"},
+    {s:"pend",date:"10/08",txt:"Aguardando despacho"},
+    {s:"pend",date:"--",txt:"Envio nÃ£o iniciado"}
+  ],
+  sic:{correct:2, why:"SIC: 'Pedido ainda nÃ£o enviado (NYS)' â€” pedido pago mas sem envio iniciado. Diferente de WISMO (jÃ¡ enviado) ou atraso (prazo expirado)."},
+  turns:[
+    {
+      id:"abertura",
+      label:"Turno 1 â€” Abertura",
+      tip:"Cumprimente pelo nome, apresente-se, ofereÃ§a ajuda.",
+      clientMsg:"Bom dia! Fiz um pedido de um tablet hÃ¡ 2 dias e atÃ© agora nÃ£o recebi nem cÃ³digo de rastreio. Isso Ã© normal?",
+      criteria:[
+        {label:"SaudaÃ§Ã£o cordial",keys:["bom dia","ola","oi","boa tarde"],pts:2},
+        {label:"Usou o nome â€” Carlos",keys:["carlos"],pts:3},
+        {label:"Tranquilizou / mostrou que vai verificar",keys:["verificar","checar","vou ver","analisar","consultar","entender"],pts:2},
+        {label:"Tom empÃ¡tico",keys:["entendo","compreendo","boa pergunta","valido","normal","vamos"],pts:1}
+      ],
+      maxPts:8,
+      feedbacks:{
+        great:"Abertura perfeita! Usou o nome, tranquilizou e mostrou proatividade.",
+        ok:"Boa abertura. Usar o nome do cliente e uma frase tranquilizadora faz muita diferenÃ§a nesses casos de ansiedade.",
+        miss:"Abertura genÃ©rica. Carlos estÃ¡ ansioso â€” ele precisa sentir que alguÃ©m estÃ¡ cuidando do caso dele especificamente."
+      },
+      clientReactions:{
+        great:"Que bom, obrigado Carlos! Ah desculpa, sou eu que sou Carlos haha. Ã‰ que comprei pra um presente e tÃ´ preocupado.",
+        ok:"TÃ¡ bom. O nÃºmero do pedido Ã© #114-5512334.",
+        miss:"Hm. O pedido Ã© o #114-5512334. Paguei com PIX jÃ¡."
+      }
+    },
+    {
+      id:"investigacao",
+      label:"Turno 2 â€” DiagnÃ³stico NYS",
+      tip:"Identifique que o pedido estÃ¡ em processamento (NYS) e explique que isso Ã© normal dentro do prazo.",
+      clientMsg:null,
+      criteria:[
+        {label:"Identificou status NYS / processando",keys:["processando","preparacao","centro de distribuicao","estoque","separacao","ainda nao enviado","nys"],pts:3},
+        {label:"Explicou que Ã© normal / dentro do prazo",keys:["normal","dentro do prazo","prazo","esperado","ate","dias uteis","48 horas","72 horas"],pts:3},
+        {label:"Informou quando deve receber rastreio",keys:["rastreio","codigo","email","notificacao","assim que","quando"],pts:2}
+      ],
+      maxPts:8,
+      feedbacks:{
+        great:"DiagnÃ³stico correto! Explicou NYS com clareza e antecipou a dÃºvida do rastreio. Cliente informado = menos recontato.",
+        ok:"Bom diagnÃ³stico. Mas sempre diga quando o cliente deve esperar receber o cÃ³digo de rastreio.",
+        miss:"NÃ£o explicou o status NYS. O cliente fica sem entender por que nÃ£o tem rastreio e vai recontatar."
+      },
+      clientReactions:{
+        great:"Ah, entÃ£o tÃ¡ tudo certo! Quanto tempo normalmente demora pra despachar?",
+        ok:"Entendi. Mas quando eu recebo o cÃ³digo de rastreio?",
+        miss:"EntÃ£o por que ainda nÃ£o chegou o cÃ³digo? JÃ¡ se passaram 2 dias."
+      }
+    },
+    {
+      id:"resolucao",
+      label:"Turno 3 â€” Prazo e prÃ³ximos passos",
+      tip:"Informe o prazo esperado para envio e o que o cliente pode fazer se nÃ£o receber atualizaÃ§Ã£o.",
+      clientMsg:null,
+      criteria:[
+        {label:"Deu prazo estimado para envio",keys:["24 horas","48 horas","72 horas","1 dia","2 dias","ate amanha","dias uteis","prazo"],pts:3},
+        {label:"Instruiu sobre rastreio pelo app/site",keys:["app","aplicativo","site","amazon shopping","meus pedidos","acompanhar"],pts:2},
+        {label:"Orientou o que fazer se nÃ£o enviar",keys:["se nao","caso nao","prazo expirar","entrar em contato","retornar","voltar","acionamos"],pts:2},
+        {label:"Tranquilizou sobre o presente",keys:["tranquilo","certo","garantido","nao preocupe","vai chegar"],pts:1}
+      ],
+      maxPts:8,
+      feedbacks:{
+        great:"ResoluÃ§Ã£o completa! Prazo, canal de acompanhamento e plano de fallback. Carlos sai tranquilo.",
+        ok:"Bom! Mas sempre dÃª um plano B: 'se nÃ£o enviar em X dias, nos contate e acionamos o time.'",
+        miss:"Resposta vaga. Carlos precisa saber: (1) quando vai enviar, (2) como acompanhar, (3) o que fazer se nÃ£o acontecer."
+      },
+      clientReactions:{
+        great:"Perfeito! Muito obrigado pela explicaÃ§Ã£o. Agora fiquei mais tranquilo mesmo.",
+        ok:"Ok, vou aguardar entÃ£o. Espero que chegue a tempo.",
+        miss:"EntÃ£o fico esperando? NÃ£o tem como eu acompanhar isso de alguma forma?"
+      }
+    },
+    {
+      id:"encerramento",
+      label:"Turno 4 â€” Encerramento",
+      tip:"Resuma, despeÃ§a-se e deixe o cliente com a sensaÃ§Ã£o de atendimento resolvido.",
+      clientMsg:null,
+      criteria:[
+        {label:"Resumiu o que foi tratado",keys:["resumindo","recapitulando","entao","portanto","ficou acordado","combinado"],pts:2},
+        {label:"Desejou boa experiÃªncia / presente bem-sucedido",keys:["presente","sucesso","chegue","feliz","aproveite","alegria","comemoracao"],pts:2},
+        {label:"Encerramento cordial com disposiÃ§Ã£o",keys:["disposi","qualquer","duvida","prazer","ajudar","obrigado","ate logo"],pts:3},
+        {label:"Tom positivo",keys:["otimo","perfeito","feliz","bom","excelente","legal"],pts:1}
+      ],
+      maxPts:8,
+      feedbacks:{
+        great:"Encerramento caloroso! Mencionou o presente â€” personalizou o atendimento atÃ© o fim. CCX 5 estrelas.",
+        ok:"Bom encerramento. Um toque pessoal (mencionar o presente) torna o atendimento memorÃ¡vel.",
+        miss:"Encerramento genÃ©rico. Personalizar a despedida com o contexto do cliente gera avaliaÃ§Ã£o espontÃ¢nea."
+      },
+      clientReactions:{
+        great:"Haha obrigado! Tomara que chegue a tempo pra aniversÃ¡rio da minha esposa. Muito bom o atendimento!",
+        ok:"Obrigado. Vou aguardar.",
+        miss:"Ok. Tchau."
+      }
+    }
+  ]
+},
+{
+  id:3, custName:"Fernanda Souza",
+  order:{num:"#114-7761023",status:"Devolvido Ã  origem",prev:"08/08",carrier:"Correios",item:"Kit Skincare Premium",pay:"CartÃ£o crÃ©dito"},
+  timeline:[
+    {s:"done",date:"05/08",txt:"Pedido enviado"},
+    {s:"done",date:"07/08",txt:"Em rota de entrega"},
+    {s:"fail",date:"08/08",txt:"CEP nÃ£o atendido â€” devolvendo"},
+    {s:"fail",date:"11/08",txt:"Pacote retornando ao CD"}
+  ],
+  sic:{correct:3, why:"SIC: 'Pedido devolvido Ã  origem' â€” carrier registrou CEP nÃ£o atendido e o pacote estÃ¡ retornando ao centro de distribuiÃ§Ã£o."},
+  turns:[
+    {
+      id:"abertura",
+      label:"Turno 1 â€” Abertura",
+      tip:"Cumprimente, use o nome Fernanda, ofereÃ§a ajuda â€” ela estÃ¡ frustrada.",
+      clientMsg:"OlÃ¡! Eu tÃ´ muito brava porque meu pedido sumiu do mapa. Ontem estava em rota e hoje aparece 'devolvendo'. O que aconteceu???",
+      criteria:[
+        {label:"SaudaÃ§Ã£o + nome Fernanda",keys:["fernanda","ola","oi","bom dia","boa tarde"],pts:3},
+        {label:"Reconheceu a frustraÃ§Ã£o",keys:["entendo","frustracao","brava","chateada","lamento","sinto","compreendo"],pts:3},
+        {label:"Comprometeu-se a investigar",keys:["investigar","verificar","checar","vou ver","entender","resolver"],pts:2}
+      ],
+      maxPts:8,
+      feedbacks:{
+        great:"Abertura empÃ¡tica e comprometida. Fernanda estÃ¡ frustrada â€” reconhecer isso antes de tudo Ã© fundamental.",
+        ok:"Boa abertura. Em casos de frustraÃ§Ã£o clara, o reconhecimento emocional deve vir ANTES da investigaÃ§Ã£o.",
+        miss:"Abertura fria para uma cliente brava. Sem empatia inicial, o tom da conversa toda fica comprometido."
+      },
+      clientReactions:{
+        great:"Obrigada por entender! O nÃºmero do pedido Ã© #114-7761023. Era um kit skincare pra mim mesma, esperava ansiosamente.",
+        ok:"Ok. Pedido #114-7761023. Kit skincare. CadÃª meu pedido?",
+        miss:"Hmpf. Ã‰ o pedido #114-7761023. Quero saber O QUE aconteceu com meu pacote."
+      }
+    },
+    {
+      id:"investigacao",
+      label:"Turno 2 â€” DiagnÃ³stico devoluÃ§Ã£o",
+      tip:"Identifique o motivo: CEP nÃ£o atendido pela transportadora. Explique o que acontece agora.",
+      clientMsg:null,
+      criteria:[
+        {label:"Identificou motivo â€” CEP / endereÃ§o nÃ£o atendido",keys:["cep","endereco","nao atendido","nao cobre","area","regiao","transportadora"],pts:3},
+        {label:"Explicou o processo de retorno ao CD",keys:["retornando","voltando","centro de distribuicao","cd","origem","devolvido"],pts:2},
+        {label:"NÃ£o culpou a cliente",keys:[],pts:1,checkAbsence:["sua culpa","erro seu","voce errou","endereco errado"]},
+        {label:"Demonstrou empatia â€” nÃ£o Ã© aceitÃ¡vel",keys:["lamento","sinto","nao e o esperado","nao deveria","desculpe","frustrante"],pts:2}
+      ],
+      maxPts:8,
+      feedbacks:{
+        great:"DiagnÃ³stico excelente! Explicou o motivo real (CEP) sem culpar a cliente e validou a frustraÃ§Ã£o.",
+        ok:"Bom diagnÃ³stico. Cuidado para nunca soar como se a culpa fosse da cliente â€” mesmo que o CEP seja o problema.",
+        miss:"DiagnÃ³stico incompleto. A Fernanda precisa entender POR QUE o pacote estÃ¡ voltando."
+      },
+      clientReactions:{
+        great:"Nossa, o CEP nÃ£o Ã© atendido?! Mas eu moro aqui hÃ¡ anos e jÃ¡ recebi da Amazon antes... E agora, o que acontece com meu pedido?",
+        ok:"Entendi, mas nunca tive problema antes. O que eu faÃ§o agora?",
+        miss:"Mas entÃ£o o que acontece? Meu dinheiro volta? O produto vem de novo?"
+      }
+    },
+    {
+      id:"resolucao",
+      label:"Turno 3 â€” ResoluÃ§Ã£o",
+      tip:"OfereÃ§a as opÃ§Ãµes: reembolso OU reenvio com endereÃ§o alternativo. Consulte a preferÃªncia da Fernanda.",
+      clientMsg:null,
+      criteria:[
+        {label:"OpÃ§Ã£o reembolso com prazo",keys:["reembolso","estorno","devolucao","credito","prazo","5 dias","dias uteis","pagamento"],pts:3},
+        {label:"OpÃ§Ã£o reenvio (endereÃ§o alternativo)",keys:["reenvio","reenviar","novo endereco","alternativo","trabalho","vizinho","ponto de retirada"],pts:3},
+        {label:"Perguntou a preferÃªncia da cliente",keys:["prefere","qual opcao","o que prefere","deseja","quer"],pts:2}
+      ],
+      maxPts:8,
+      feedbacks:{
+        great:"ResoluÃ§Ã£o perfeita! Duas opÃ§Ãµes claras e consulta Ã  preferÃªncia. A cliente decide â€” isso reduz insatisfaÃ§Ã£o.",
+        ok:"Boa resoluÃ§Ã£o. Mas sempre ofereÃ§a as DUAS opÃ§Ãµes e pergunte o que ela prefere.",
+        miss:"Resolveu pela metade. Fernanda precisa escolher entre reembolso e reenvio â€” apresente as duas opÃ§Ãµes."
+      },
+      clientReactions:{
+        great:"Prefiro o reenvio! Vou colocar o endereÃ§o do meu trabalho que Ã© mais seguro. Como eu faÃ§o?",
+        ok:"Quero o reenvio, nÃ£o o reembolso. Tem como mandar pra outro endereÃ§o?",
+        miss:"E eu tenho que escolher como? NinguÃ©m me perguntou nada..."
+      }
+    },
+    {
+      id:"encerramento",
+      label:"Turno 4 â€” Encerramento",
+      tip:"Confirme o reenvio, informe prazo, encerre com tom positivo.",
+      clientMsg:null,
+      criteria:[
+        {label:"Confirmou aÃ§Ã£o (reenvio registrado / instruÃ§Ãµes passadas)",keys:["registrado","confirmado","atualizado","endereco","reenvio","processo"],pts:3},
+        {label:"Informou prazo do reenvio",keys:["prazo","dias","chegue","entrega","previsao"],pts:2},
+        {label:"Encerramento empÃ¡tico â€” virou a situaÃ§Ã£o",keys:["dessa vez","agora vai","resolver","garantido","contamos","disposi"],pts:2},
+        {label:"Tom positivo de fechamento",keys:["prazer","obrigada","feliz","sucesso","tenha","otimo"],pts:1}
+      ],
+      maxPts:8,
+      feedbacks:{
+        great:"Encerramento impecÃ¡vel! Resolveu uma situaÃ§Ã£o ruim e o cliente saiu com sensaÃ§Ã£o de cuidado. CCX 5 estrelas.",
+        ok:"Bom encerramento. Reforce que 'dessa vez vai funcionar' â€” transforma frustraÃ§Ã£o em confianÃ§a.",
+        miss:"Encerramento fraco apÃ³s uma situaÃ§Ã£o complicada. A Fernanda precisa sair com a sensaÃ§Ã£o de que estÃ¡ resolvido."
+      },
+      clientReactions:{
+        great:"Muito obrigada! Dessa vez vou pro endereÃ§o certo. VocÃª foi muito prestativo, obrigada mesmo!",
+        ok:"Ok obrigada. Espero que dessa vez chegue.",
+        miss:"TÃ¡... vamos ver nÃ©. Tomara que resolva."
+      }
+    }
+  ]
+},
+{
+  id:4, custName:"Roberto Alves",
+  order:{num:"#114-2209874",status:"Entrega atrasada",prev:"07/08",carrier:"Azul Cargo",item:"Notebook Dell i5",pay:"Boleto"},
+  timeline:[
+    {s:"done",date:"03/08",txt:"Pedido confirmado"},
+    {s:"done",date:"04/08",txt:"Enviado â€” Azul Cargo"},
+    {s:"done",date:"06/08",txt:"Em trÃ¢nsito"},
+    {s:"fail",date:"07/08",txt:"Prazo expirado â€” sem atualizaÃ§Ã£o"}
+  ],
+  sic:{correct:4, why:"SIC: 'Entrega atrasada / fora do prazo' â€” rastreio ativo, pedido foi enviado, mas prazo estimado jÃ¡ expirou. Diferente de WISMO puro ou DNR."},
+  turns:[
+    {
+      id:"abertura",
+      label:"Turno 1 â€” Abertura",
+      tip:"Cumprimente Roberto, use o nome, reconheÃ§a que esperar por um notebook Ã© especialmente ansioso.",
+      clientMsg:"OlÃ¡! Meu notebook deveria ter chegado dia 07 e hoje jÃ¡ Ã© dia 12 e nada. JÃ¡ liguei pro Azul Cargo e nÃ£o me deram uma resposta clara. Preciso desse notebook urgente pra trabalho.",
+      criteria:[
+        {label:"SaudaÃ§Ã£o + nome Roberto",keys:["roberto","ola","oi","bom dia","boa tarde"],pts:3},
+        {label:"Reconheceu urgÃªncia / impacto no trabalho",keys:["urgente","trabalho","entendo","sei como","importante","precisa","impacto"],pts:3},
+        {label:"Comprometeu-se a verificar e resolver",keys:["verificar","checar","resolver","investigar","cuidar","ajudar","prioridade"],pts:2}
+      ],
+      maxPts:8,
+      feedbacks:{
+        great:"Abertura excelente! Reconheceu o impacto real no trabalho do Roberto â€” isso Ã© empatia funcional.",
+        ok:"Boa abertura. Mas mencione o impacto concreto ('trabalho') â€” mostra que vocÃª ouviu alÃ©m das palavras.",
+        miss:"Abertura sem empatia para uma situaÃ§Ã£o urgente. Roberto estÃ¡ sem ferramenta de trabalho â€” reconheÃ§a isso."
+      },
+      clientReactions:{
+        great:"Obrigado por entender! Ã‰ sÃ©rio, tÃ´ perdendo reuniÃµes por causa disso. Pedido #114-2209874.",
+        ok:"TÃ¡ bom. Pedido #114-2209874. JÃ¡ passou 5 dias do prazo.",
+        miss:"Hm. #114-2209874. JÃ¡ tentei de tudo e ninguÃ©m resolve."
+      }
+    },
+    {
+      id:"investigacao",
+      label:"Turno 2 â€” DiagnÃ³stico atraso",
+      tip:"Confirme atraso, verifique Ãºltimo rastreio, demonstre que estÃ¡ investigando ativamente.",
+      clientMsg:null,
+      criteria:[
+        {label:"Confirmou o atraso / reconheceu que prazo expirou",keys:["prazo expirou","atraso","atrasado","ja passou","fora do prazo","confirmado"],pts:3},
+        {label:"Informou Ãºltimo status do rastreio",keys:["ultimo status","rastreio","consta","sistema","transportadora","azul","registro","base"],pts:3},
+        {label:"Mostrou que estÃ¡ tomando aÃ§Ã£o ativa",keys:["investigar","verificar","acionar","contato","equipe","logistica","escalar","prioridade"],pts:2}
+      ],
+      maxPts:8,
+      feedbacks:{
+        great:"DiagnÃ³stico ativo! Roberto sente que alguÃ©m estÃ¡ realmente agindo, nÃ£o sÃ³ repassando informaÃ§Ã£o.",
+        ok:"Bom diagnÃ³stico. Deixe claro que vocÃª estÃ¡ tomando aÃ§Ã£o â€” nÃ£o apenas consultando o sistema.",
+        miss:"Apenas relatou o problema sem mostrar aÃ§Ã£o. Roberto jÃ¡ sabe que estÃ¡ atrasado â€” precisa ver movimento."
+      },
+      clientReactions:{
+        great:"Que bom que tÃ¡ investigando! Porque o Azul Cargo sÃ³ disse 'aguarde'. Quanto tempo pode levar pra resolver?",
+        ok:"Ok. E quanto tempo vai demorar pra chegar?",
+        miss:"EntÃ£o vocÃª tambÃ©m nÃ£o sabe? Igual ao Azul Cargo..."
+      }
+    },
+    {
+      id:"resolucao",
+      label:"Turno 3 â€” ResoluÃ§Ã£o atraso crÃ­tico",
+      tip:"Apresente as opÃ§Ãµes: aguardar + prazo TRACES, OU acionar reembolso/reenvio se TRACES jÃ¡ passou.",
+      clientMsg:null,
+      criteria:[
+        {label:"Deu prazo concreto para resoluÃ§Ã£o",keys:["prazo","dias","ate","data","17","previsao","traces","aguardar"],pts:3},
+        {label:"OpÃ§Ã£o de reembolso ou reenvio se prazo expirar",keys:["reembolso","reenvio","substituicao","caso nao chegue","se nao chegar","garantia"],pts:3},
+        {label:"Ofereceu acompanhamento / proatividade",keys:["acompanhar","monitorar","aviso","notificacao","retorno","contato","atualizo"],pts:2}
+      ],
+      maxPts:8,
+      feedbacks:{
+        great:"ResoluÃ§Ã£o proativa! Prazo definido, plano B apresentado e acompanhamento oferecido. Roberto sai com um plano.",
+        ok:"Boa resoluÃ§Ã£o. Sempre apresente o plano B (reembolso/reenvio) com prazo â€” elimina a incerteza do cliente.",
+        miss:"Vaga demais. Roberto estÃ¡ urgente â€” ele precisa de datas concretas e plano de aÃ§Ã£o claro."
+      },
+      clientReactions:{
+        great:"Ok, se nÃ£o chegar atÃ© dia 17 eu aciono vocÃªs de novo. Mas e enquanto isso, tem alguma forma de priorizar?",
+        ok:"TÃ¡ bom. Vou aguardar atÃ© lÃ¡ entÃ£o.",
+        miss:"Isso Ã© a mesma coisa que o Azul disse... 'aguarde'. NÃ£o tem como acelerar?"
+      }
+    },
+    {
+      id:"encerramento",
+      label:"Turno 4 â€” Encerramento",
+      tip:"ReconheÃ§a a urgÃªncia, confirme o plano, ofereÃ§a contato direto caso precise.",
+      clientMsg:null,
+      criteria:[
+        {label:"Reconheceu urgÃªncia da situaÃ§Ã£o",keys:["urgente","sei que precisa","importante","prioridade","critico"],pts:2},
+        {label:"Resumiu o plano combinado com prazo",keys:["combinado","prazo","ate","data","entrar em contato","voltar","reembolso"],pts:3},
+        {label:"Encerramento empÃ¡tico e firme",keys:["disposi","qualquer coisa","conte","estamos aqui","resolver","garantir"],pts:3}
+      ],
+      maxPts:8,
+      feedbacks:{
+        great:"Encerramento profissional! Roberto saiu com um plano claro e sentiu que a Amazon estÃ¡ do lado dele.",
+        ok:"Bom encerramento. Mas reforÃ§ar a urgÃªncia ('sei que Ã© crÃ­tico para seu trabalho') eleva o CCX.",
+        miss:"Encerramento genÃ©rico para uma situaÃ§Ã£o urgente. Roberto precisa sair com clareza e confianÃ§a."
+      },
+      clientReactions:{
+        great:"Ok, obrigado. Pelo menos agora tenho um plano. Espero que resolva mesmo.",
+        ok:"TÃ¡ bom. Aguardo entÃ£o.",
+        miss:"Ok... espero que seja diferente das outras vezes."
+      }
+    }
+  ]
+},
+{
+  id:5, custName:"Luciana Ferreira",
+  order:{num:"#114-9934521",status:"Entregue (sistema)",prev:"10/08",carrier:"AMZL",item:"Aspirador RobÃ´",pay:"CartÃ£o dÃ©bito"},
+  timeline:[
+    {s:"done",date:"08/08",txt:"Pedido enviado"},
+    {s:"done",date:"09/08",txt:"Saiu para entrega"},
+    {s:"done",date:"10/08",txt:"Status: ENTREGUE â€” 14h22"},
+    {s:"fail",date:"10/08",txt:"Cliente nega recebimento"}
+  ],
+  sic:{correct:1, why:"SIC: 'Pedido nÃ£o recebido / DNR' â€” sistema marca entregue mas cliente nega. Diferente de WISMO (rastreando) ou atraso (prazo)."},
+  turns:[
+    {
+      id:"abertura",
+      label:"Turno 1 â€” Abertura DNR",
+      tip:"DNR Ã© sensÃ­vel â€” presuma boa-fÃ©. Cumprimente, use o nome Luciana, valide a frustraÃ§Ã£o sem sugerir culpa.",
+      clientMsg:"Boa tarde! O sistema da Amazon diz que meu pedido foi entregue ontem mas eu nÃ£o recebi NADA. Fiquei em casa o dia todo esperando! Onde estÃ¡ meu aspirador robÃ´???",
+      criteria:[
+        {label:"SaudaÃ§Ã£o + nome Luciana",keys:["luciana","boa tarde","ola","oi","bom dia"],pts:3},
+        {label:"Validou a situaÃ§Ã£o sem questionar a veracidade",keys:["entendo","lamento","sinto","compreendo","frustrante","situacao","nao e o esperado"],pts:3},
+        {label:"Comprometeu-se a investigar com cuidado",keys:["investigar","verificar","cuidado","detalhes","fotos","entregador","checar"],pts:2}
+      ],
+      maxPts:8,
+      feedbacks:{
+        great:"Abertura excelente para DNR! Validou sem questionar â€” Luciana se sente respeitada antes da investigaÃ§Ã£o.",
+        ok:"Boa abertura. Em DNR, NUNCA questione a cliente logo na abertura â€” investigue primeiro, depois conclua.",
+        miss:"Abertura inadequada para DNR. Sem empatia inicial o cliente se sente acusado antes de qualquer investigaÃ§Ã£o."
+      },
+      clientReactions:{
+        great:"Obrigada por acreditar em mim! O pedido Ã© #114-9934521. Realmente fiquei em casa esperando o dia todo.",
+        ok:"Ok. Pedido #114-9934521. Fiquei em casa o dia todo. Onde pode estar?",
+        miss:"Eu nÃ£o minto! Fiquei em casa! Pedido #114-9934521. Quero meu aspirador ou meu dinheiro de volta!"
+      }
+    },
+    {
+      id:"investigacao",
+      label:"Turno 2 â€” InvestigaÃ§Ã£o DNR",
+      tip:"Verifique foto de entrega, horÃ¡rio, endereÃ§o, vizinhos, portaria. NÃ£o acuse â€” investigue.",
+      clientMsg:null,
+      criteria:[
+        {label:"Verificou foto de entrega ou registro do entregador",keys:["foto","comprovante","registro","entregador","motorista","evidencia","imagem"],pts:3},
+        {label:"Sugeriu verificar locais alternativos",keys:["portaria","vizinho","recepcao","guarita","condominio","garagem","vizinhos"],pts:2},
+        {label:"Confirmou endereÃ§o da entrega",keys:["endereco","confirmado","mesmo","correto","sua casa","local","rua"],pts:2},
+        {label:"Tom investigativo, nÃ£o acusatÃ³rio",keys:["verificar","checar","investigar","entender","analisar"],pts:1}
+      ],
+      maxPts:8,
+      feedbacks:{
+        great:"InvestigaÃ§Ã£o correta! Foto de entrega + locais alternativos + confirmaÃ§Ã£o de endereÃ§o. Procedimento DNR completo.",
+        ok:"Boa investigaÃ§Ã£o. Sempre verifique foto de entrega E sugira verificar portaria/vizinhos antes de concluir.",
+        miss:"InvestigaÃ§Ã£o incompleta. DNR exige: (1) foto de entrega, (2) endereÃ§o confirmado, (3) locais alternativos."
+      },
+      clientReactions:{
+        great:"Verifiquei na portaria e os vizinhos, nÃ£o tem nada. E a foto do entregador? Pode me mostrar?",
+        ok:"JÃ¡ olhei em todo lugar. NÃ£o tem nada. O sistema tÃ¡ errado.",
+        miss:"JÃ¡ procurei em todo canto. NÃ£o estÃ¡ em lugar nenhum. Quero resolver isso agora."
+      }
+    },
+    {
+      id:"resolucao",
+      label:"Turno 3 â€” ResoluÃ§Ã£o DNR",
+      tip:"Se a investigaÃ§Ã£o nÃ£o localiza o pacote: registre DNR, abra investigaÃ§Ã£o logÃ­stica e ofereÃ§a reembolso ou reenvio.",
+      clientMsg:null,
+      criteria:[
+        {label:"Registrou / abriu investigaÃ§Ã£o DNR",keys:["registrar","abrir","investigacao","ocorrencia","protocolo","logistica","transportadora"],pts:2},
+        {label:"Ofereceu reembolso OU reenvio",keys:["reembolso","reenvio","nova unidade","devolver","credito","ressarcimento"],pts:3},
+        {label:"Consultou a preferÃªncia da cliente",keys:["prefere","qual opcao","deseja","quer","o que prefere"],pts:2},
+        {label:"Deu prazo para resoluÃ§Ã£o",keys:["prazo","dias","ate","data","48 horas","72 horas","3 dias"],pts:1}
+      ],
+      maxPts:8,
+      feedbacks:{
+        great:"ResoluÃ§Ã£o DNR correta! InvestigaÃ§Ã£o registrada, opÃ§Ãµes apresentadas, preferÃªncia consultada. Luciana sai com plano.",
+        ok:"Boa resoluÃ§Ã£o. Sempre consulte a preferÃªncia â€” reembolso ou reenvio â€” e dÃª prazo para resoluÃ§Ã£o.",
+        miss:"ResoluÃ§Ã£o incompleta. DNR exige: (1) registro da ocorrÃªncia, (2) opÃ§Ãµes ao cliente, (3) prazo."
+      },
+      clientReactions:{
+        great:"Prefiro o reenvio! Quero muito esse aspirador. Qual o prazo para chegar o novo?",
+        ok:"Quero o reenvio. Quando chega?",
+        miss:"Mas o que acontece agora? Fico esperando de novo sem saber?"
+      }
+    },
+    {
+      id:"encerramento",
+      label:"Turno 4 â€” Encerramento",
+      tip:"Confirme o reenvio, informe prazo, reforce que o problema foi registrado e ela serÃ¡ notificada.",
+      clientMsg:null,
+      criteria:[
+        {label:"Confirmou registro e aÃ§Ã£o tomada",keys:["registrado","confirmado","aberto","protocolo","reenvio","processo","iniciado"],pts:3},
+        {label:"Informou prazo de entrega do reenvio",keys:["prazo","dias","previsao","chegara","entrega","ate"],pts:2},
+        {label:"ReforÃ§ou que serÃ¡ notificada",keys:["notificacao","email","aviso","acompanhar","rastreio","informaremos"],pts:2},
+        {label:"Encerramento empÃ¡tico",keys:["disposi","qualquer","prazer","lamento","situacao","agradeco","paciencia"],pts:1}
+      ],
+      maxPts:8,
+      feedbacks:{
+        great:"Encerramento perfeito para DNR! Luciana sabe o que foi feito, o prazo e como acompanhar. ConfianÃ§a restaurada.",
+        ok:"Bom encerramento. Sempre informe como ela vai ser notificada sobre o reenvio.",
+        miss:"Encerramento fraco para uma situaÃ§Ã£o de DNR. Luciana precisa sair com certeza de que foi resolvido."
+      },
+      clientReactions:{
+        great:"Muito obrigada! Ainda bem que tem gente que resolve. AgradeÃ§o demais a atenÃ§Ã£o!",
+        ok:"Ok obrigada. Espero que resolva mesmo dessa vez.",
+        miss:"TÃ¡ bom... mais uma espera entÃ£o."
+      }
+    }
+  ]
+}
+];
+
+/* ===== ENGINE ===== */
+var state={sc:0,turn:0,pts:0,elapsed:0,ccxTotal:0,correct:0,sicCorrect:0,
+           lastCCX:0,lastQuality:'ok',timer:null,sicChosen:-1};
+
+function startGame(){
+  document.getElementById('si').style.display='none';
+  document.getElementById('hud').style.display='block';
+  document.getElementById('sim').style.display='block';
+  buildDots();
+  startTimer();
+  loadScenario(0);
+}
+
+function buildDots(){
+  var p=document.getElementById('scprog');p.innerHTML='';
+  for(var i=0;i<SCENARIOS.length;i++){
+    var d=document.createElement('div');
+    d.className='sc-dot'+(i===0?' active':'');
+    d.id='dot'+i;p.appendChild(d);
+  }
+}
+
+function startTimer(){
+  clearInterval(state.timer);
+  var el=document.getElementById('htimer');el.textContent='00:00';
+  state.timer=setInterval(function(){
+    state.elapsed++;
+    var m=Math.floor(state.elapsed/60),s=state.elapsed%60;
+    el.textContent=(m<10?'0':'')+m+':'+(s<10?'0':'')+s;
+  },1000);
+}
+
+function loadScenario(idx){
+  state.sc=idx;state.turn=0;
+  var sc=SCENARIOS[idx];
+  document.getElementById('hsc').textContent=idx+1;
+  document.getElementById('hpb').style.width=((idx/SCENARIOS.length)*100)+'%';
+  document.getElementById('custname').textContent=sc.custName;
+  // order panel
+  var or=document.getElementById('ordrows');or.innerHTML='';
+  var o=sc.order;
+  var rows=[['Pedido',o.num,''],['Status',o.status,o.status.includes('atras')||o.status.includes('Devol')||o.status.includes('frustr')||o.status.includes('Entregue')?'bad':o.status.includes('Proce')||o.status.includes('Aguard')?'warn':'ok'],['PrevisÃ£o',o.prev,''],['Transportadora',o.carrier,''],['Item',o.item,''],['Pagamento',o.pay,'ok']];
+  rows.forEach(function(r){
+    or.innerHTML+='<div class="op-row"><span class="op-label">'+r[0]+'</span><span class="op-val '+(r[2]||'')+'">'+r[1]+'</span></div>';
+  });
+  var tl=document.getElementById('tlines');tl.innerHTML='';
+  sc.timeline.forEach(function(t){
+    tl.innerHTML+='<div class="tl-item"><div class="tl-dot '+t.s+'"></div><div class="tl-txt">'+t.txt+'<div class="tl-date">'+t.date+'</div></div></div>';
+  });
+  // reset chat
+  var msgs=document.getElementById('chatmsgs');msgs.innerHTML='<div class="typing-wrap" id="typing"><span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span></div>';
+  // reset areas
+  document.getElementById('turnfb').style.display='none';
+  document.getElementById('ccxbar').style.display='none';
+  document.getElementById('sicarea').style.display='none';
+  document.getElementById('btnnext').style.display='none';
+  document.getElementById('suggestions').style.display='none';
+  document.getElementById('inputarea').style.display='block';
+  document.getElementById('btnsend').disabled=false;
+  // load first turn
+  setTimeout(function(){loadTurn();},600);
+}
+
+function loadTurn(){
+  var sc=SCENARIOS[state.sc];
+  var turn=sc.turns[state.turn];
+  document.getElementById('turnlabel').textContent='Turno '+(state.turn+1)+' de '+sc.turns.length;
+  document.getElementById('hphase').textContent=turn.label.split('â€”')[1].trim().toUpperCase();
+  // update tip
+  var tips=document.getElementById('tiplist');
+  tips.innerHTML='<div class="tip-item"><em>Objetivo:</em> '+turn.tip+'</div>';
+  if(state.turn===0){
+    tips.innerHTML+='<div class="tip-item"><em>Dica:</em> Sempre use o nome do cliente no primeiro contato.</div>';
+  }
+  if(state.turn===sc.turns.length-1){
+    tips.innerHTML+='<div class="tip-item"><em>Dica:</em> Encerre sem pedir avaliaÃ§Ã£o â€” deixe o cliente querer avaliar espontaneamente.</div>';
+  }
+  // update input hint
+  document.getElementById('inputctx').innerHTML='&#9997;&#65039; <em>'+turn.label+'</em> &mdash; '+turn.tip+' &nbsp;|&nbsp; <em>Ctrl+Enter</em> para enviar';
+  document.getElementById('chatinput').value='';
+  document.getElementById('chatinput').placeholder='Digite sua resposta para '+sc.custName+'...';
+  // show client message
+  if(turn.clientMsg){
+    showTyping(function(){
+      addMsg('client',turn.clientMsg);
+      showSuggestions(state.turn);
+    });
+  } else {
+    showSuggestions(state.turn);
+  }
+  document.getElementById('turnfb').style.display='none';
+}
+
+function showTyping(cb){
+  var t=document.getElementById('typing');
+  if(!t){
+    var msgs=document.getElementById('chatmsgs');
+    t=document.createElement('div');t.id='typing';t.className='typing-wrap';
+    t.innerHTML='<span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span>';
+    msgs.appendChild(t);
+  }
+  t.style.display='block';scrollChat();
+  setTimeout(function(){t.style.display='none';cb();},1200);
+}
+
+function addMsg(type,text){
+  var msgs=document.getElementById('chatmsgs');
+  var d=document.createElement('div');d.className='msg '+type;
+  d.innerHTML=text.replace(/\n/g,'<br>');
+  msgs.appendChild(d);scrollChat();
+}
+
+function scrollChat(){
+  var m=document.getElementById('chatmsgs');m.scrollTop=m.scrollHeight;
+}
+
+/* SUGESTÃ•ES DO CORUJÃƒO */
+var BLURB_SUGGESTIONS=[
+  // turn 0 abertura
+  [
+    "OlÃ¡, [Nome]! Seja bem-vindo(a) ao atendimento Amazon Brasil! Sou [SEU NOME] e estou aqui para resolver qualquer dÃºvida. Como posso te ajudar?",
+    "Oi [Nome], tudo bem? Que bom receber vocÃª aqui! Me conta o que aconteceu que vou fazer o possÃ­vel para resolver. ðŸ˜Š",
+    "OlÃ¡, tudo bem? Obrigado por entrar em contato com a Amazon Brasil, meu nome Ã© ___, como posso ajudar vocÃª hoje?"
+  ],
+  // turn 1 investigacao
+  [
+    "Me dÃ¡ sÃ³ um minutinho para verificar tudo pra vocÃª! â³ JÃ¡ volto com a melhor soluÃ§Ã£o!",
+    "[Nome], vou investigar isso agora mesmo. Um momento, por favor.",
+    "[Nome], vou pedir que vocÃª aguarde por dois minutos enquanto verifico os detalhes do pedido no sistema, ok?"
+  ],
+  // turn 2 resolucao
+  [
+    "[Nome], verifiquei seu pedido e tenho boas opÃ§Ãµes para resolver isso. Vou te apresentar as alternativas disponÃ­veis:",
+    "Entendo a situaÃ§Ã£o, [Nome]. Baseado no que encontrei, posso oferecer as seguintes opÃ§Ãµes:",
+    "[Nome], tomei nota de tudo. Aqui estÃ¡ o que podemos fazer para resolver isso da melhor forma:"
+  ],
+  // turn 3 encerramento
+  [
+    "[Nome], tudo resolvido: [resumo]. VocÃª pode acompanhar pelo rastreio. Se acontecer qualquer coisa, estamos aqui. Tenha um Ã³timo dia!",
+    "Recapitulando: [aÃ§Ã£o tomada]. Se nÃ£o chegar, Ã© sÃ³ nos procurar. Ficou alguma dÃºvida?",
+    "Foi um prazer te atender hoje! Espero ter resolvido tudo direitinho. Desejo que seu pedido chegue rapidinho! ðŸ’™"
+  ]
+];
+
+function showSuggestions(turnIdx){
+  var sugs=BLURB_SUGGESTIONS[Math.min(turnIdx,3)];
+  var sc=SCENARIOS[state.sc];
+  var chips=document.getElementById('sugchips');
+  chips.innerHTML='';
+  sugs.forEach(function(s){
+    var clean=s.replace(/\[Nome\]/g,sc.custName).replace(/\[SEU NOME\]/g,'[seu nome]');
+    var btn=document.createElement('button');
+    btn.className='sug-chip';
+    btn.textContent=clean.substring(0,80)+(clean.length>80?'...':'');
+    btn.title=clean;
+    btn.onclick=function(){
+      var inp=document.getElementById('chatinput');
+      inp.value=clean;
+      inp.focus();
+    };
+    chips.appendChild(btn);
+  });
+  document.getElementById('suggestions').style.display='block';
+}
+
+/* AVALIAR TURNO */
+function submitTurn(){
+  var txt=document.getElementById('chatinput').value.trim();
+  if(txt.length<5)return;
+  document.getElementById('btnsend').disabled=true;
+  document.getElementById('suggestions').style.display='none';
+  var sc=SCENARIOS[state.sc];
+  var turn=sc.turns[state.turn];
+  addMsg('agent',txt);
+  // avaliar
+  var norm=txt.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  var totalPts=0,maxPts=turn.maxPts;
+  var results=[];
+  turn.criteria.forEach(function(cr){
+    var found=false;
+    if(cr.inverse){
+      found=!cr.keys.some(function(k){return norm.includes(k);});
+    } else if(cr.checkAbsence){
+      found=!cr.checkAbsence.some(function(k){return norm.includes(k);});
+    } else {
+      found=cr.keys.some(function(k){return norm.includes(k);});
+    }
+    if(found)totalPts+=cr.pts;
+    results.push({label:cr.label,found:found,pts:cr.pts});
+  });
+  var pct=totalPts/maxPts;
+  var quality=pct>=0.75?'great':pct>=0.4?'ok':'miss';
+  state.lastQuality=quality;
+  if(quality==='great')state.correct++;
+  var addPts=Math.round(pct*10);
+  state.pts+=addPts;
+  document.getElementById('hpts').textContent=state.pts;
+  // mostrar feedback
+  var fb=document.getElementById('turnfb');
+  var fbTitle=quality==='great'?'âœ… TURNO EXCELENTE! +'+addPts+' pts':quality==='ok'?'ðŸŸ¡ TURNO PARCIAL â€” +'+addPts+' pts':'âŒ TURNO FRACO â€” +'+addPts+' pts';
+  document.getElementById('tfbtitle').textContent=fbTitle;
+  document.getElementById('tfbtext').textContent=turn.feedbacks[quality];
+  var tags=document.getElementById('tfbtags');tags.innerHTML='';
+  results.forEach(function(r){
+    var t=document.createElement('span');
+    t.className='kw-tag '+(r.found?'found':'miss');
+    t.textContent=(r.found?'âœ“ ':'âœ— ')+r.label;
+    tags.appendChild(t);
+  });
+  fb.className='turn-feedback '+quality;
+  fb.style.display='block';
+  scrollChat();
+  // reaÃ§Ã£o do cliente
+  setTimeout(function(){
+    var reaction=turn.clientReactions[quality];
+    showTyping(function(){
+      addMsg('client',reaction);
+      state.turn++;
+      if(state.turn<sc.turns.length){
+        document.getElementById('btnsend').disabled=false;
+        document.getElementById('chatinput').value='';
+        setTimeout(function(){loadTurn();},400);
+      } else {
+        // conversa terminou â€” mostrar CCX
+        setTimeout(function(){showCCX();},600);
+      }
+    });
+  },800);
+}
+
+/* CCX */
+function showCCX(){
+  var sc=SCENARIOS[state.sc];
+  var quality=state.lastQuality;
+  var stars=quality==='great'?5:quality==='ok'?3:2;
+  state.ccxTotal+=stars;state.lastCCX=stars;
+  document.getElementById('hccx').textContent=stars+'/5';
+  document.getElementById('inputarea').style.display='none';
+  document.getElementById('turnfb').style.display='none';
+  var bar=document.getElementById('ccxbar');
+  var row=document.getElementById('starsrow');row.innerHTML='';
+  for(var i=1;i<=5;i++){var s=document.createElement('span');s.className='star';s.textContent='â˜…';row.appendChild(s);}
+  bar.style.display='block';
+  var msgs5=['Atendimento excelente! Adorei a atenÃ§Ã£o e a soluÃ§Ã£o rÃ¡pida.','Muito prestativo! '+sc.custName+' muito satisfeita.','Problema resolvido e atendimento cuidadoso. 5 estrelas!'];
+  var msgs3=['Atendimento razoÃ¡vel â€” resolveu, mas faltou clareza.','Ok, mas poderia ter sido mais empÃ¡tico.','Resolveu no final, mas o caminho foi longo.'];
+  var msgs2=['Pouco empÃ¡tico e soluÃ§Ã£o vaga. Pode melhorar.','NÃ£o ficou claro o que foi resolvido.','Atendimento bÃ¡sico â€” sem destaque.'];
+  var comment=stars>=5?msgs5[Math.floor(Math.random()*3)]:stars>=3?msgs3[Math.floor(Math.random()*3)]:msgs2[Math.floor(Math.random()*3)];
+  var i=0;var iv=setInterval(function(){
+    if(i<stars){row.children[i].classList.add('lit');i++;}
+    else{clearInterval(iv);document.getElementById('ccxmsg').textContent=comment;showSICPhase();}
+  },280);
+}
+
+/* FASE SIC */
+function showSICPhase(){
+  var sc=SCENARIOS[state.sc];
+  var area=document.getElementById('sicarea');
+  var opts=document.getElementById('sicopts');opts.innerHTML='';
+  state.sicChosen=-1;
+  document.getElementById('btnconfirmsic').disabled=true;
+  document.getElementById('sicresult').style.display='none';
+  document.getElementById('hphase').textContent='SIC';
+  document.getElementById('hphase').className='phase-badge sic';
+  SIC_OPTIONS.forEach(function(opt,idx){
+    var btn=document.createElement('button');
+    btn.className='sic-opt';btn.textContent=opt;
+    btn.setAttribute('data-idx',idx);
+    btn.onclick=function(){
+      document.querySelectorAll('.sic-opt').forEach(function(b){b.classList.remove('selected');});
+      btn.classList.add('selected');state.sicChosen=idx;
+      document.getElementById('btnconfirmsic').disabled=false;
+    };
+    opts.appendChild(btn);
+  });
+  area.style.display='block';
+  area.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function confirmSIC(){
+  if(state.sicChosen<0)return;
+  var sc=SCENARIOS[state.sc];
+  var correct=sc.sic.correct;
+  var isRight=(state.sicChosen===correct);
+  document.getElementById('btnconfirmsic').disabled=true;
+  document.querySelectorAll('.sic-opt').forEach(function(b){
+    var idx=parseInt(b.getAttribute('data-idx'));
+    if(idx===correct)b.classList.add('correct');
+    else if(idx===state.sicChosen&&!isRight)b.classList.add('wrong');
+  });
+  if(isRight){state.sicCorrect++;state.pts+=5;document.getElementById('hpts').textContent=state.pts;}
+  document.getElementById('hsic').textContent=state.sicCorrect+'/'+(state.sc+1);
+  var res=document.getElementById('sicresult');
+  res.className='sic-result '+(isRight?'ok':'bad');
+  res.innerHTML=(isRight?'<strong>SIC CORRETO! +5 pts</strong><br>':'<strong>SIC INCORRETO</strong><br>VocÃª escolheu: '+SIC_OPTIONS[state.sicChosen]+'<br><br>')+sc.sic.why;
+  res.style.display='block';
+  setTimeout(function(){document.getElementById('btnnext').style.display='block';},600);
+}
+
+/* PRÃ“XIMO */
+function nextScenario(){
+  var dot=document.getElementById('dot'+state.sc);
+  if(dot){dot.classList.remove('active');dot.classList.add(state.lastCCX>=4?'done':'fail');}
+  var next=state.sc+1;
+  if(next<SCENARIOS.length){
+    var nd=document.getElementById('dot'+next);if(nd)nd.classList.add('active');
+    loadScenario(next);window.scrollTo({top:0,behavior:'smooth'});
+  } else {showFinal();}
+}
+
+/* TELA FINAL */
+function showFinal(){
+  clearInterval(state.timer);
+  document.getElementById('hud').style.display='none';
+  document.getElementById('sim').style.display='none';
+  var sf=document.getElementById('sf');sf.style.display='flex';
+  var n=SCENARIOS.length;
+  var ccxAvg=Math.round((state.ccxTotal/n)*10)/10;
+  var convPct=state.correct/n;var sicPct=state.sicCorrect/n;
+  var combined=(convPct+sicPct)/2;
+  var badge,rank,sub,reconhecimento,msg;
+  if(combined>=0.8){
+    badge='ðŸ¥‡';rank='ESPECIALISTA WISMO';sub='Conversa fluida + SIC sempre correto!';
+    reconhecimento='ðŸŽ‰ reconhecimento: 15 minutos';
+    msg='VocÃª domina o ciclo completo: abertura humana, investigaÃ§Ã£o precisa, resoluÃ§Ã£o com opÃ§Ãµes e encerramento que gera avaliaÃ§Ã£o espontÃ¢nea. ReferÃªncia de atendimento WISMO para o time.';
+  } else if(combined>=0.5){
+    badge='ðŸ¥ˆ';rank='BOM TRABALHO';sub='Boa conversa! Refina a classificaÃ§Ã£o SIC.';
+    reconhecimento='â³ reconhecimento: 10 minutos';
+    msg='VocÃª acerta a empatia e a resoluÃ§Ã£o! Foco em: (1) identificar o sub-tipo WISMO correto antes de responder, (2) sempre oferecer 2 opÃ§Ãµes na resoluÃ§Ã£o, (3) encerrar com resumo + prÃ³ximo passo.';
+  } else {
+    badge='ðŸ”';rank='EM DESENVOLVIMENTO';sub='Continue praticando os turnos!';
+    reconhecimento='â³ reconhecimento: 5 minutos';
+    msg='WISMO Ã© 40% do volume do time. Revise os blurbs do CorujÃ£oCS para abertura, investigaÃ§Ã£o e resoluÃ§Ã£o. Dica: invista 1min no diagnÃ³stico correto â€” evita 3 recontatos.';
+  }
+  var mm=Math.floor(state.elapsed/60),ss=state.elapsed%60;
+  var timeStr=(mm<10?'0':'')+mm+':'+(ss<10?'0':'')+ss;
+  document.getElementById('sfbadge').textContent=badge;
+  document.getElementById('sfrank').textContent=rank;
+  document.getElementById('sfrank').style.color=combined>=0.8?'#34d399':combined>=0.5?'#fbbf24':'#94a3b8';
+  document.getElementById('sfsub').textContent=sub;
+  document.getElementById('sfpts').textContent=state.pts;
+  document.getElementById('sfconv').textContent=state.correct+'/'+n;
+  document.getElementById('sfsic').textContent=state.sicCorrect+'/'+n;
+  document.getElementById('sfccx').textContent=ccxAvg+'/5';
+  document.getElementById('sftimer').textContent=timeStr;
+  document.getElementById('sfccx2').textContent=ccxAvg;
+  document.getElementById('sfreconhecimento').textContent=reconhecimento;
+  document.getElementById('sfmsg').textContent=msg;
+}
+
+/* KEYBOARD */
+document.addEventListener('keydown',function(e){
+  if(e.ctrlKey&&e.key==='Enter'){e.preventDefault();submitTurn();}
+});
+</script>
+</body>
+</html>

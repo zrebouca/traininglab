@@ -1,0 +1,884 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Operação AHT: Caso Arquivado</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0a0f;color:#e2e8f0;font-family:'Courier New',monospace;min-height:100vh}
+#app{max-width:960px;margin:0 auto;padding:20px}
+#si{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;text-align:center;padding:40px}
+.lt{font-size:2.6rem;font-weight:900;color:#f59e0b;text-shadow:0 0 30px #f59e0b88;letter-spacing:4px;margin-bottom:8px}
+.ls{font-size:.85rem;color:#94a3b8;letter-spacing:6px;margin-bottom:40px}
+.it{max-width:580px;color:#cbd5e1;line-height:1.9;margin-bottom:36px;font-size:.9rem}
+.it em{color:#f59e0b;font-style:normal;font-weight:700}
+.bmain{background:linear-gradient(135deg,#f59e0b,#d97706);color:#000;font-family:'Courier New',monospace;font-size:.95rem;font-weight:900;padding:13px 40px;border:none;cursor:pointer;letter-spacing:3px;clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%);transition:all .2s}
+.bmain:hover{filter:brightness(1.15);transform:scale(1.04)}
+.ver{font-size:.6rem;color:#334155;margin-top:24px;letter-spacing:2px}
+#hud{display:none;position:sticky;top:0;z-index:100;background:#0a0a0fee;border-bottom:1px solid #1e293b;padding:10px 16px;backdrop-filter:blur(4px)}
+.hi{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+.hf{font-size:.75rem;color:#64748b}.hf b{color:#f59e0b}
+.ht{font-size:1.15rem;color:#f59e0b;font-weight:900;letter-spacing:2px}
+.hh{font-size:1rem;letter-spacing:2px}
+.hinv{font-size:.68rem;color:#475569;cursor:pointer;padding:3px 8px;border:1px solid #1e293b;transition:all .2s}
+.hinv:hover{color:#f59e0b;border-color:#f59e0b55}
+.pb-w{background:#1e293b;height:2px;margin-top:6px}.pb{background:linear-gradient(90deg,#f59e0b,#d97706);height:2px;transition:width .6s}
+.fase{display:none;animation:fi .4s ease}.fase.active{display:block}
+@keyframes fi{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.fase-card{background:#0f172a;border:1px solid #1e293b;padding:20px;margin-bottom:16px}
+.sb{display:inline-block;background:#1e293b;border:1px solid #f59e0b33;color:#f59e0b;font-size:.6rem;letter-spacing:3px;padding:3px 10px;margin-bottom:10px}
+.diff{color:#94a3b8;font-size:.68rem;float:right;margin-top:2px}
+.stit{font-size:1.25rem;font-weight:900;color:#f1f5f9;margin-bottom:6px;clear:both}
+.sdesc{color:#64748b;font-size:.83rem;line-height:1.6;margin-bottom:14px}
+/* ROOM / SCENE */
+.room{position:relative;background:#070d1a;border:1px solid #1e293b;min-height:240px;overflow:hidden;margin:12px 0;border-radius:2px}
+.rg{position:absolute;inset:0;background-image:linear-gradient(#0f172a 1px,transparent 1px),linear-gradient(90deg,#0f172a 1px,transparent 1px);background-size:36px 36px;opacity:.4}
+.room-lbl{position:absolute;top:8px;left:10px;font-size:.58rem;color:#334155;letter-spacing:2px;z-index:5}
+.obj{position:absolute;cursor:pointer;z-index:10;text-align:center;transition:transform .15s}
+.obj:hover{transform:scale(1.15)}
+.oi{font-size:1.8rem;display:block;line-height:1;transition:filter .2s}
+.ol{font-size:.55rem;color:#475569;letter-spacing:1px;margin-top:2px}
+.obj.found .oi{filter:grayscale(1) opacity(.3)}
+.obj.found .ol{color:#22c55e}
+/* POPUP */
+.pop-ov{display:none;position:fixed;inset:0;background:#000000dd;z-index:200;align-items:center;justify-content:center}
+.pop-ov.open{display:flex}
+.pop{background:#0f172a;border:1px solid #f59e0b55;padding:24px;max-width:480px;width:90%;position:relative;animation:fi .2s ease}
+.pop h3{color:#f59e0b;font-size:.88rem;letter-spacing:2px;margin-bottom:12px;text-transform:uppercase}
+.pop p{color:#cbd5e1;font-size:.83rem;line-height:1.7;margin-bottom:8px}
+.pop ul{color:#94a3b8;font-size:.82rem;line-height:1.8;padding-left:16px;margin-bottom:8px}
+.pop-x{position:absolute;top:10px;right:12px;background:none;border:none;color:#475569;font-size:1rem;cursor:pointer;transition:color .2s}
+.pop-x:hover{color:#f59e0b}
+.ev{display:inline-block;background:#f59e0b15;border:1px solid #f59e0b44;color:#f59e0b;font-size:.62rem;padding:2px 8px;margin-top:8px;letter-spacing:1px}
+/* QUIZ */
+.tbox{background:#070d1a;border:1px solid #1e293b;padding:14px;margin:10px 0}
+.tlbl{font-size:.6rem;color:#e2e8f0;letter-spacing:3px;margin-bottom:6px;text-transform:uppercase}
+.tq{font-size:.88rem;color:#e2e8f0;line-height:1.65;margin-bottom:12px}
+.opts{display:flex;flex-direction:column;gap:7px}
+.opt{background:#1e293b;border:1px solid #2d3748;color:#94a3b8;font-family:'Courier New',monospace;font-size:.8rem;padding:9px 12px;text-align:left;cursor:pointer;transition:all .2s;width:100%}
+.opt:hover:not([disabled]){border-color:#f59e0b55;color:#cbd5e1;background:#1e293bdd}
+.opt.correct{background:#14532d33;border-color:#22c55e;color:#86efac}
+.opt.wrong{background:#7f1d1d33;border-color:#ef4444;color:#fca5a5}
+.fb{display:none;margin-top:10px;padding:11px;font-size:.82rem;line-height:1.7;border-left:3px solid}
+.fb.ok{background:#14532d15;border-color:#22c55e;color:#86efac}
+.fb.err{background:#7f1d1d15;border-color:#ef4444;color:#fca5a5}
+.fb.show{display:block}
+.bnext{display:none;margin-top:12px;background:linear-gradient(135deg,#f59e0b,#d97706);color:#000;font-family:'Courier New',monospace;font-size:.82rem;font-weight:900;padding:9px 22px;border:none;cursor:pointer;letter-spacing:2px;clip-path:polygon(6px 0,100% 0,calc(100% - 6px) 100%,0 100%);transition:filter .2s}
+.bnext:hover{filter:brightness(1.1)}.bnext.show{display:inline-block}
+/* TRANSCRIPT */
+.tx{background:#020812;border:1px solid #0f172a;padding:12px;font-size:.76rem;line-height:2;margin:9px 0;max-height:210px;overflow-y:auto;border-left:3px solid #1e293b}
+.tb{color:#60a5fa;font-weight:700}.tc{color:#a3e635;font-weight:700}.tk{color:#94a3b8}
+.terr{background:#7f1d1d55;border-bottom:2px dashed #ef4444;color:#fca5a5!important;cursor:pointer;padding:0 2px;border-radius:2px;transition:all .2s}
+.terr:hover{background:#7f1d1daa}
+.terr.fnd{background:#14532d44;border-bottom:2px solid #22c55e;color:#86efac!important;cursor:default}
+/* DRAG */
+.dz{min-height:44px;background:#020812;border:1px dashed #1e293b;padding:6px;margin:5px 0;display:flex;flex-wrap:wrap;gap:5px;align-items:flex-start;transition:border-color .2s}
+.dz.hl{border-color:#f59e0b88;background:#f59e0b08}
+.di{background:#1e293b;border:1px solid #334155;color:#cbd5e1;font-size:.72rem;padding:5px 10px;cursor:grab;user-select:none;transition:all .15s;border-radius:2px}
+.di:hover{border-color:#64748b}.di.dragging{opacity:.4}
+/* CLASSIFY */
+.cls-w{display:flex;gap:10px;margin:10px 0}
+.cls-c{flex:1;min-width:140px}
+.cls-c h4{font-size:.64rem;letter-spacing:2px;padding:5px 8px;text-align:center;margin-bottom:6px;text-transform:uppercase}
+.cls-v h4{color:#22c55e;background:#14532d18;border:1px solid #22c55e33}
+.cls-i h4{color:#ef4444;background:#7f1d1d18;border:1px solid #ef444433}
+.cls-d{min-height:76px;background:#020812;border:1px dashed #1e293b;padding:5px;transition:border-color .2s}
+.cls-d.hl{border-color:#f59e0b88}
+/* SPOTS */
+.spot{position:absolute;cursor:pointer;z-index:15;font-size:1.2rem;transition:all .2s;line-height:1;padding:4px}
+.spot:hover{filter:drop-shadow(0 0 8px #ef4444cc);transform:scale(1.25)}
+.spot.fnd{pointer-events:none;opacity:.12}
+.found-c{font-size:.76rem;color:#64748b;margin-top:8px}.found-c b{color:#f59e0b}
+/* ORDER */
+.ord-bank{display:flex;flex-wrap:wrap;gap:6px;padding:9px;background:#020812;border:1px solid #1e293b;margin-bottom:8px;min-height:42px}
+.ord-s{min-height:38px;background:#020812;border:1px dashed #1e293b;padding:4px 8px;margin:3px 0;display:flex;align-items:center;font-size:.7rem;color:#334155;transition:all .2s}
+.ord-s.filled{border-color:#f59e0b44;color:#cbd5e1;background:#f59e0b05}.ord-s.ok-s{border-color:#22c55e;background:#14532d18;color:#86efac}.ord-s.err-s{border-color:#ef4444;background:#7f1d1d18;color:#fca5a5}
+.tip-box{background:#f59e0b08;border-left:2px solid #f59e0b55;padding:7px 11px;margin:8px 0;font-size:.78rem;color:#94a3b8;line-height:1.65}.tip-box b{color:#f59e0b}
+/* ENIGMA */
+.enigma-w{background:#020812;border:1px solid #1e293b;padding:16px;margin:10px 0;text-align:center}
+.en-label{font-size:.6rem;color:#475569;letter-spacing:3px;margin-bottom:12px;text-transform:uppercase}
+.clue-grid{display:flex;gap:16px;flex-wrap:wrap;justify-content:center;margin:12px 0}
+.clue{background:#1e293b;border:1px solid #334155;padding:10px 14px;font-size:.8rem;color:#94a3b8;min-width:130px;text-align:center}
+.clue b{display:block;font-size:.65rem;color:#f59e0b;letter-spacing:2px;margin-bottom:4px;text-transform:uppercase}
+.ci-w{display:flex;gap:8px;align-items:center;justify-content:center;margin-top:14px}
+.ci{background:#020812;border:1px solid #334155;color:#f59e0b;font-family:'Courier New',monospace;font-size:1.4rem;padding:8px 14px;width:130px;letter-spacing:6px;text-align:center;outline:none;transition:border-color .2s}
+.ci:focus{border-color:#f59e0b}
+.bck{background:#1e293b;border:1px solid #334155;color:#64748b;font-family:'Courier New',monospace;font-size:.78rem;padding:8px 14px;cursor:pointer;transition:all .2s}
+.bck:hover{border-color:#f59e0b55;color:#94a3b8}
+/* FLASHCARD */
+.cc{background:#1e293b;border:1px solid #1e293b;padding:10px 13px;margin:5px 0;cursor:pointer;transition:border-color .2s}
+.cc:hover{border-color:#f59e0b33}
+.cq{font-size:.8rem;color:#94a3b8;line-height:1.5}
+.ca{font-size:.78rem;color:#f59e0b;margin-top:6px;display:none;padding-top:6px;border-top:1px solid #f59e0b22}
+.cc.rev .ca{display:block}
+/* INV PANEL */
+.inv-p{display:none;position:fixed;bottom:16px;right:16px;background:#0f172a;border:1px solid #f59e0b44;padding:14px;min-width:190px;z-index:150;box-shadow:0 4px 24px #00000066;animation:fi .2s ease}
+.inv-p.open{display:block}
+.inv-t{font-size:.6rem;color:#f59e0b;letter-spacing:3px;margin-bottom:8px;text-transform:uppercase}
+.inv-i{font-size:.71rem;color:#94a3b8;padding:3px 0;border-bottom:1px solid #1e293b;display:flex;align-items:center;gap:6px}
+.inv-i::before{content:"▸";color:#f59e0b44}
+.inv-0{font-size:.7rem;color:#2d3748;font-style:italic}
+/* END */
+#se{display:none;min-height:100vh;align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:40px}
+#se.active{display:flex}
+.et{font-size:2rem;font-weight:900;color:#f59e0b;text-shadow:0 0 30px #f59e0b88;margin-bottom:12px}
+.es{color:#64748b;font-size:.88rem;margin-bottom:24px;line-height:1.9;max-width:500px}
+.estats{background:#0f172a;border:1px solid #1e293b;padding:20px;margin-bottom:24px;min-width:260px}
+.sr{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #0f172a;font-size:.83rem}
+.sr:last-child{border-bottom:none}.sl{color:#475569}.sv{color:#f59e0b;font-weight:700}
+.reconhecimento{display:inline-block;background:#f59e0b15;border:1px solid #f59e0b44;color:#f59e0b;padding:8px 20px;font-size:.85rem;letter-spacing:2px;margin-bottom:20px}
+.badge{display:inline-block;font-size:2rem;margin-bottom:8px}
+.terr-h{cursor:pointer;border-bottom:1px dotted #94a3b8;color:inherit;transition:all .3s}.terr-h.revealed{color:#fca5a5;border-bottom:2px solid #ef4444;background:#ef444415}.tip-inline{display:inline-block;background:#fbbf2412;border:1px solid #fbbf2433;color:#fbbf24;font-size:.7rem;padding:3px 8px;margin-top:4px}.pol-btn{background:#1e293b;border:1px solid #334155;color:#e2e8f0;padding:7px 10px;border-radius:6px;cursor:pointer;font-size:.72rem;text-align:left;transition:all .15s;}
+.pol-btn:hover{background:#1e1b4b;border-color:#6366f1;}
+.csa-line:hover{outline:2px solid #f59e0b;background:#1c1917!important;}
+.tl-ev{background:#1e293b;border:1px solid #334155;color:#e2e8f0;padding:7px 10px;border-radius:6px;cursor:pointer;font-size:.72rem;transition:all .15s;}
+.tl-ev:hover:not(.tl-picked){border-color:#f59e0b;background:#1c1917;}
+.tl-ev.tl-picked{opacity:.35;cursor:default;}
+.tl-slot{background:#0f172a;border:1px solid #1e3a5f;color:#e2e8f0;padding:6px 10px;border-radius:4px;font-size:.72rem;}
+.ev-card{background:#1e293b;border:2px solid #334155;border-radius:8px;padding:10px;cursor:pointer;transition:all .15s;user-select:none;}
+.ev-card:hover{border-color:#f59e0b;background:#1c1917;}
+.ev-card.ev-selected{border-color:#6366f1;background:#1e1b4b;box-shadow:0 0 0 2px #6366f155;}
+.ev-icon{font-size:1.4rem;margin-bottom:4px;}
+.ev-title{font-size:.75rem;font-weight:700;color:#e2e8f0;margin-bottom:3px;}
+.ev-body{font-size:.67rem;color:#94a3b8;line-height:1.4;}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.rc-msg{background:#1e293b;border:1px solid #334155;border-radius:6px;padding:7px 10px;font-size:.72rem;cursor:pointer;transition:all .15s;line-height:1.5;}
+.rc-msg:hover:not(.rc-picked){border-color:#f59e0b;background:#1c1917;}
+.rc-msg.rc-picked{opacity:.3;cursor:default;pointer-events:none;}
+.rc-who{font-size:.65rem;font-weight:700;margin-right:5px;}
+.rc-who.csa{color:#a78bfa;}.rc-who.cli{color:#60a5fa;}
+.rc-slot{background:#0f172a;border:1px solid #1e3a5f;border-radius:4px;padding:6px 10px;font-size:.72rem;}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- TELA INICIAL -->
+<div id="si">
+  <div class="lt">🕵️ OPERAÇÃO AHT</div>
+  <div class="ls">CASO ARQUIVADO</div>
+  <div class="it">
+    A Central de CS da Amazon ficou <em>comprometida</em>.<br>
+    Métricas caindo, transcripts suspeitos, SICs em branco.<br><br>
+    Você é o <em>Detetive de Atendimento</em> convocado para investigar.<br>
+    Resolva as <em>15 fases</em> e descubra o que está errado — antes que o BTB exploda.
+  </div>
+  <button class="bmain" onclick="startGame()">▶ INICIAR INVESTIGAÇÃO</button>
+  <div class="ver">v1.0 · AHT TRAINING · reconhecimento 35min</div>
+</div>
+
+<!-- HUD -->
+<div id="hud">
+  <div class="hi">
+    <span class="hf">FASE <b id="hfn">1</b>/15</span>
+    <span class="ht" id="htit">—</span>
+    <span id="hlives" style="font-size:1rem;letter-spacing:1px">⭐⭐⭐</span>
+    <span class="hinv" onclick="toggleInv()">🗂 INVENTÁRIO</span>
+    <span class="hf">⏱ <b id="htimer">00:00</b></span>
+  </div>
+  <div class="pb-w"><div class="pb" id="hpb" style="width:0%"></div></div>
+</div>
+
+<!-- FASES -->
+<div id="fases">
+
+<!-- ═══════════════════════════════════════
+     FASE 1 — MESA ABANDONADA (clique e encontre)
+═══════════════════════════════════════ -->
+<div class="fase" id="f1">
+  <div class="fase-card">
+    <span class="sb">FASE 01</span><span class="diff">⭐ INICIANTE</span>
+    <div class="stit">Mesa Abandonada</div>
+    <div class="sdesc">O CSA saiu sem preencher o SIC. A mesa está bagunçada. Encontre os <b style="color:#f59e0b">3 itens</b> que indicam qual SIC deveria ter sido usado — depois escolha o correto.</div>
+    <div class="room" id="r1">
+      <div class="rg"></div>
+      <span class="room-lbl">ESTAÇÃO DE TRABALHO #07</span>
+      <!-- objetos clicáveis -->
+      <div class="obj" id="o1a" style="left:8%;top:55%" onclick="clickObj('o1a','f1','Rastreamento no chat','O cliente enviou o código de rastreio. Isso indica que o contato era sobre localização de pedido.')">
+        <span class="oi">💬</span><span class="ol">CHAT LOG</span>
+      </div>
+      <div class="obj" id="o1b" style="left:32%;top:30%" onclick="clickObj('o1b','f1','Produto listado: Smart TV 55&quot;','O produto estava identificado na tela — TV de alto valor, categoria eletrônicos.')">
+        <span class="oi">🖥️</span><span class="ol">TELA AC3</span>
+      </div>
+      <div class="obj" id="o1c" style="left:62%;top:48%" onclick="clickObj('o1c','f1','Post-it: cliente perguntou &quot;cadê meu pedido?&quot;','Pergunta clássica de WISMO — Where Is My Order.')">
+        <span class="oi">📝</span><span class="ol">POST-IT</span>
+      </div>
+      <div class="obj" id="o1d" style="left:80%;top:60%" onclick="clickObj('o1d','f1','Caneca de café vazia','Só café. Não indica nada sobre o SIC.')">
+        <span class="oi">☕</span><span class="ol">CANECA</span>
+      </div>
+      <div class="obj" id="o1e" style="left:46%;top:65%" onclick="clickObj('o1e','f1','Livro: Guia de Políticas CS','Material de consulta. Não indica SIC específico.')">
+        <span class="oi">📚</span><span class="ol">GUIA</span>
+      </div>
+      <div class="found-c" id="fc1" style="position:absolute;bottom:8px;right:10px">Pistas encontradas: <b id="fc1n">0</b>/3</div>
+    </div>
+    <div class="tbox" id="f1q" style="display:none">
+      <div class="tlbl">EVIDÊNCIAS COLETADAS — QUAL O SIC CORRETO?</div>
+      <div class="tq">Com base nos itens encontrados na mesa, qual SIC o CSA deveria ter preenchido?</div>
+      <div class="opts">
+        <button class="opt" onclick="answer('f1','a')">A) Payment Related Issues</button>
+        <button class="opt" onclick="answer('f1','b')">B) Check Order Status / Tracking</button>
+        <button class="opt" onclick="answer('f1','c')">C) Return Request</button>
+        <button class="opt" onclick="answer('f1','d')">D) Account Issues</button>
+      </div>
+      <div class="fb ok" id="fb1ok">✅ <b>Correto, Detetive!</b> "Check Order Status / Tracking" é o SIC para contatos de WISMO — cliente querendo saber onde está o pedido. As 3 pistas apontavam exatamente para isso: chat de rastreio, TV na tela do AC3 e o post-it "cadê meu pedido?".<div class="ev">+ PISTA: SIC em branco é auditável e impacta qualidade</div></div>
+      <div class="fb err" id="fb1err">❌ Não foi dessa vez. Revise as pistas: o cliente perguntou "cadê meu pedido?" — isso é <b>Check Order Status / Tracking</b>. O SIC de pagamento seria para problemas com cobrança, não localização.</div>
+      <button class="bnext" id="bn1" onclick="nextFase(2)">PRÓXIMA FASE →</button>
+    </div>
+    <div class="tip-box" id="f1tip" style="display:none"><b>💡 POLÍTICA:</b> SIC deve ser preenchido no momento em que você identifica o motivo do contato — não só no encerramento. Contatos com SIC em branco são inválidos na auditoria.</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     FASE 2 — CHAT CONGELADO (spot the error)
+═══════════════════════════════════════ -->
+
+<div class="fase" id="f2">
+  <div class="fase-card">
+    <span class="sb">FASE 02</span><span class="diff">&#11088; INICIANTE</span>
+    <div class="stit">Chat Congelado</div>
+    <div class="sdesc">Este transcript foi flagado como BTB. Encontre o <b style="color:#f59e0b">erro cr&#237;tico</b> &#8212; clique na parte suspeita do texto.</div>
+    <div class="tx" id="tx2">
+      <span class="tb">&#129302; Bot:</span> <span class="tk">Ol&#225;! Seja bem-vindo(a) &#224; Amazon. Em que posso ajud&#225;-lo hoje?</span><br>
+      <span class="tc">&#128100; Cliente:</span> <span class="tk">Oi, cancelei meu pedido hoje cedo e quero saber quando recebo o dinheiro de volta</span><br>
+      <span class="tb">&#129489; CSA:</span> <span class="tk">Ol&#225;! Tudo bem? Deixa eu verificar aqui pra voc&#234;.</span><br>
+      <span class="tb">&#129489; CSA:</span> <span class="tk">Vi aqui que o cancelamento foi processado. O reembolso vai cair em <span class="terr" id="err2a" onclick="spotErr('err2a','f2',false)">5 a 12 dias &#250;teis</span> no seu cart&#227;o.</span><br>
+      <span class="tc">&#128100; Cliente:</span> <span class="tk">Nossa, &#233; muito tempo! Tem certeza?</span><br>
+      <span class="tb">&#129489; CSA:</span> <span class="tk">Sim, esse &#233; o prazo padr&#227;o. <span class="terr" id="err2b" onclick="spotErr('err2b','f2',true)">Qualquer d&#250;vida me avalie bem no final!</span></span><br>
+      <span class="tc">&#128100; Cliente:</span> <span class="tk">T&#225; bom ent&#227;o, obrigada</span><br>
+      <span class="tb">&#129489; CSA:</span> <span class="tk">Disponha! Tenha um &#243;timo dia.</span>
+    </div>
+    <div class="tlbl" style="margin-top:8px;font-size:.6rem;color:#475569;letter-spacing:2px">CLIQUE NA PARTE ERRADA DO TRANSCRIPT ACIMA</div>
+    <div class="fb ok" id="fb2ok" style="display:none;padding:11px;font-size:.82rem;line-height:1.7;background:#14532d15;border:1px solid #22c55e33;color:#86efac;border-left:3px solid #22c55e">
+      &#9989; <b>Exato!</b> Pedir avalia&#231;&#227;o ao cliente &#233; um erro de CCX grave &#8212; gera avalia&#231;&#245;es for&#231;adas e pode reverter o impacto positivo do atendimento.<br><br>
+      <b>&#128204; Tamb&#233;m aten&#231;&#227;o ao prazo de reembolso:</b> ele varia por forma de pagamento:<br>
+      &#8226; <b>Pix:</b> 1 dia &#250;til<br>
+      &#8226; <b>Boleto banc&#225;rio:</b> 3 dias &#250;teis (mediante dados banc&#225;rios)<br>
+      &#8226; <b>Cart&#227;o de d&#233;bito:</b> 5 dias &#250;teis<br>
+      &#8226; <b>Cart&#227;o de cr&#233;dito:</b> 1 a 2 faturas (processamento interno imediato)<br>
+      &#8226; <b>Vale-presente Amazon:</b> at&#233; 3 horas<br>
+      &#8226; <b>Pontos Livelo:</b> 48 horas
+    </div>
+    <div class="fb err" id="fb2err" style="display:none;padding:11px;font-size:.82rem;line-height:1.7;background:#7f1d1d15;border:1px solid #ef444433;color:#fca5a5;border-left:3px solid #ef4444">
+      &#10060; Este trecho tamb&#233;m precisa de aten&#231;&#227;o (o prazo correto varia por forma de pagamento), mas n&#227;o &#233; o erro <b>cr&#237;tico</b> deste transcript. Procure algo que viola diretamente a orienta&#231;&#227;o de CCX. Tente novamente!
+    </div>
+    <button class="bnext" id="bn2" onclick="nextFase(3)" style="display:none;margin-top:12px;background:linear-gradient(135deg,#f59e0b,#d97706);color:#000;font-family:'Courier New',monospace;font-size:.82rem;font-weight:900;padding:9px 22px;border:none;cursor:pointer;letter-spacing:2px;clip-path:polygon(6px 0,100% 0,calc(100% - 6px) 100%,0 100%)">PR&#211;XIMA FASE &#8594;</button>
+  </div>
+</div>
+<div class="fase" id="f3">
+  <div class="fase-card">
+    <span class="sb">FASE 03</span><span class="diff">⭐ INICIANTE</span>
+    <div class="stit">Timer do ACW</div>
+    <div class="sdesc">O ACW está contando. Monte a <b style="color:#f59e0b">sequência correta de encerramento</b> — arraste os blocos para as posições na ordem certa.</div>
+    <div class="tlbl">BANCO DE AÇÕES (arraste para a sequência)</div>
+    <div class="ord-bank" id="ob3" ondragover="event.preventDefault()" ondrop="returnToBank(event,'ob3')">
+      <div class="di" draggable="true" id="d3a" ondragstart="dragStart(event)" ondragend="dragEnd(event)">Confirmar que o cliente ficou satisfeito</div>
+      <div class="di" draggable="true" id="d3b" ondragstart="dragStart(event)" ondragend="dragEnd(event)">Registrar SIC no AC3</div>
+      <div class="di" draggable="true" id="d3c" ondragstart="dragStart(event)" ondragend="dragEnd(event)">Agradecer e encerrar o chat</div>
+      <div class="di" draggable="true" id="d3d" ondragstart="dragStart(event)" ondragend="dragEnd(event)">Anotar resumo no ACW</div>
+      <div class="di" draggable="true" id="d3e" ondragstart="dragStart(event)" ondragend="dragEnd(event)">Resolver o problema do cliente</div>
+    </div>
+    <div class="tlbl">SEQUÊNCIA CORRETA</div>
+    <div class="ord-s" id="os3_1" data-pos="1" ondragover="dragOver(event)" ondrop="dropInSlot(event,'os3_1','f3')">1. Arraste aqui</div>
+    <div class="ord-s" id="os3_2" data-pos="2" ondragover="dragOver(event)" ondrop="dropInSlot(event,'os3_2','f3')">2. Arraste aqui</div>
+    <div class="ord-s" id="os3_3" data-pos="3" ondragover="dragOver(event)" ondrop="dropInSlot(event,'os3_3','f3')">3. Arraste aqui</div>
+    <div class="ord-s" id="os3_4" data-pos="4" ondragover="dragOver(event)" ondrop="dropInSlot(event,'os3_4','f3')">4. Arraste aqui</div>
+    <div class="ord-s" id="os3_5" data-pos="5" ondragover="dragOver(event)" ondrop="dropInSlot(event,'os3_5','f3')">5. Arraste aqui</div>
+    <button class="bck" id="bv3" onclick="validateOrder('f3')" style="margin-top:10px;display:none">✔ VERIFICAR SEQUÊNCIA</button>
+    <div class="fb ok" id="fb3ok">✅ <b>Sequência perfeita!</b> A ordem correta é: resolver → confirmar satisfação → registrar SIC → anotar ACW → encerrar. SIC antes do ACW garante que o motivo do contato seja registrado com precisão.<div class="ev">+ PISTA: ACW ideal ≤ 60 segundos — organize antes de encerrar o chat</div></div>
+    <div class="fb err" id="fb3err">❌ A sequência ainda está errada. Lembre: primeiro resolva o problema, depois confirme com o cliente, registre o SIC, anote o ACW e só então encerre.</div>
+    <button class="bnext" id="bn3" onclick="nextFase(4)">PRÓXIMA FASE →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     FASE 4 — GAVETA TRANCADA (enigma numérico)
+═══════════════════════════════════════ -->
+<div class="fase" id="f4">
+  <div class="fase-card">
+    <span class="sb">FASE 04</span><span class="diff">&#11088;&#11088; INTERMEDI&Aacute;RIO</span>
+    <div class="stit">Gaveta Trancada</div>
+    <div class="sdesc">Senha de 4 d&iacute;gitos. As pistas est&atilde;o <b style="color:#f59e0b">espalhadas pela sala</b> &mdash; nem toda pista &eacute; o que parece.</div>
+    <div class="room" id="r4" style="min-height:240px">
+      <div class="rg"></div>
+      <span class="room-lbl">SALA DE AUDITORIA</span>
+      <div class="obj" id="o4a" style="left:7%;top:35%" onclick="clickObj(&#39;o4a&#39;,&#39;f4&#39;,&#39;Quadro de metas&#39;,&#39;METAS: AHT &lt; 8,70 min | BTB &lt; 3% | DUR &lt; 18% | HRR &lt; 1.25. Um desses n&uacute;meros &eacute; exatamente um d&iacute;gito da senha.&#39;)">
+        <span class="oi">&#128203;</span><span class="ol">QUADRO</span></div>
+      <div class="obj" id="o4b" style="left:35%;top:50%" onclick="clickObj(&#39;o4b&#39;,&#39;f4&#39;,&#39;Agenda da semana&#39;,&#39;Reuni&otilde;es marcadas: W29, W30, W31, W32. Anota&ccedil;&atilde;o: &quot;W31 = melhor AHT do m&ecirc;s.&quot; Semanas s&atilde;o identificadas por n&uacute;meros.&#39;)">
+        <span class="oi">&#128197;</span><span class="ol">AGENDA</span></div>
+      <div class="obj" id="o4c" style="left:63%;top:32%" onclick="clickObj(&#39;o4c&#39;,&#39;f4&#39;,&#39;Cart&atilde;o do OM (verso)&#39;,&#39;Escrito &agrave; m&atilde;o: &quot;Somos o 6&ordm; time no ranking de AHT entre os 10 TMs. Vamos subir!&quot;&#39;)">
+        <span class="oi">&#128188;</span><span class="ol">CART&Atilde;O</span></div>
+      <div class="obj" id="o4d" style="left:80%;top:55%" onclick="clickObj(&#39;o4d&#39;,&#39;f4&#39;,&#39;Post-it na gaveta&#39;,&#39;Escrito em c&oacute;digo: &quot;senha = [meta BTB] [ranking] [semana ouro] [AHT meta &mdash; parte inteira]&quot;. Agora &eacute; com voc&ecirc;!&#39;)">
+        <span class="oi">&#128274;</span><span class="ol">GAVETA</span></div>
+    </div>
+    <div class="enigma-w" id="en4">
+      <div class="en-label">DECODIFICAR SENHA</div>
+      <div class="clue-grid">
+        <div class="clue"><b>?</b>&nbsp;Quadro: qual meta &eacute; s&oacute; 1 d&iacute;gito?</div>
+        <div class="clue"><b>?</b>&nbsp;Cart&atilde;o revela uma posi&ccedil;&atilde;o.</div>
+        <div class="clue"><b>?</b>&nbsp;A semana &quot;ouro&quot; do AHT</div>
+        <div class="clue"><b>?</b>&nbsp;AHT meta &mdash; apenas a parte inteira.</div>
+      </div>
+      <div class="ci-w">
+        <input class="ci" id="ci4" maxlength="4" placeholder="____" oninput="this.value=this.value.replace(/\D/g,&#39;&#39;)">
+        <button class="bck" onclick="checkCode(&#39;f4&#39;,&#39;3618&#39;,&#39;ci4&#39;)">DESBLOQUEAR</button>
+      </div>
+      <div class="fb ok" id="fb4ok" style="margin-top:10px;padding:11px;font-size:.82rem;line-height:1.7;background:#14532d15;border:1px solid #22c55e33;color:#86efac;border-left:3px solid #22c55e">&#9989; <b>Gaveta aberta! Senha 3618:</b><br>&#8226; <b>3</b> = meta BTB (&lt;3%) &mdash; quadro de metas<br>&#8226; <b>6</b> = 6&ordm; no ranking AHT entre TMs &mdash; verso do cart&atilde;o<br>&#8226; <b>1</b> = semana W31 teve o melhor AHT &mdash; agenda<br>&#8226; <b>8</b> = AHT meta 8,70 min &rarr; parte inteira = 8 &mdash; quadro<div class="ev">+ Dentro da gaveta: ACW elevado &eacute; o principal driver de AHT. Cada segundo conta.</div></div>
+      <div class="fb err" id="fb4err" style="margin-top:10px;padding:11px;font-size:.82rem;line-height:1.7;background:#7f1d1d15;border:1px solid #ef444433;color:#fca5a5;border-left:3px solid #ef4444">&#10060; Senha incorreta. Explore <b>todos</b> os objetos &mdash; h&aacute; 4 pistas diferentes. Cada d&iacute;gito vem de um objeto.</div>
+    </div>
+    <button class="bnext" id="bn4" onclick="nextFase(5)" style="display:none;margin-top:12px;background:linear-gradient(135deg,#f59e0b,#d97706);color:#000;font-family:Courier New,monospace;font-size:.82rem;font-weight:900;padding:9px 22px;border:none;cursor:pointer;letter-spacing:2px;clip-path:polygon(6px 0,100% 0,calc(100% - 6px) 100%,0 100%)">PR&Oacute;XIMA FASE &rarr;</button>
+  </div>
+</div>
+
+<div class="fase" id="f5">
+  <div class="fase-card">
+    <span class="sb">FASE 05</span><span class="diff">⭐⭐ INTERMEDIÁRIO</span>
+    <div class="stit">Os 3 Erros</div>
+    <div class="sdesc">Este transcript foi marcado como BTB em <b>3 dimensões</b> diferentes. Encontre e clique nos <b style="color:#f59e0b">3 trechos com erro</b>.</div>
+    <div class="tx" id="tx5">
+      <span class="tb">🤖 Bot:</span> <span class="tk">Olá! Em que posso ajudá-lo?</span><br>
+      <span class="tc">👤 Cliente:</span> <span class="tk">Quero devolver um produto defeituoso que comprei há 40 dias</span><br>
+      <span class="tb">🧑 CSA:</span> <span class="tk">Oi, tudo bem? Vou verificar.</span><br>
+      <span class="tb">🧑 CSA:</span> <span class="tk"><span class="terr-h" id="err5a" onclick="spotErr('err5a','f5-a',true)">Infelizmente o prazo de devolução de 30 dias já passou</span>, então não consigo processar a devolução.</span><br>
+      <span class="tc">👤 Cliente:</span> <span class="tk">Mas é defeituoso! Tenho direito pelo CDC!</span><br>
+      <span class="tb">🧑 CSA:</span> <span class="tk"><span class="terr-h" id="err5b" onclick="spotErr('err5b','f5-b',true)">Entendo sua frustração. Mas infelizmente não conseguimos intervir com produtos de terceiros.</span></span><br>
+      <span class="tc">👤 Cliente:</span> <span class="tk">Vocês são responsáveis! É Lei!</span><br>
+      <span class="tb">🧑 CSA:</span> <span class="tk">Vou verificar se consigo fazer uma exceção.</span><br>
+      <span class="tb">🧑 CSA:</span> <span class="tk">Consegui! Vou processar o reembolso agora. <span class="terr-h" id="err5c" onclick="spotErr('err5c','f5-c',true)">Se ficar satisfeito, por favor me avalie bem!</span></span><br>
+      <span class="tc">👤 Cliente:</span> <span class="tk">Ok, obrigado</span>
+    </div>
+    <div class="found-c" id="fc5">Erros encontrados: <b id="fc5n">0</b>/3</div>
+    <div class="fb ok" id="fb5ok" style="margin-top:10px;padding:11px;font-size:.82rem;line-height:1.7;background:#14532d15;border:1px solid #22c55e33;color:#86efac;border-left:3px solid #22c55e">
+      ✅ <b>Caso resolvido!</b> Os 3 erros:<br>
+      1️⃣ <b>Prazo incorreto</b> — produtos com defeito têm garantia legal de 90 dias (CDC Art.26), não 30.<br>
+      2️⃣ <b>Responsabilidade negada</b> — Amazon tem responsabilidade solidária no marketplace.<br>
+      3️⃣ <b>Pedido de avaliação</b> — nunca solicite avaliação ao cliente; construa um fechamento memorável.<div class="ev">+ PISTA: Esses 3 padrões aparecem em 40% dos BTBs auditados na W32</div></div>
+    <button class="bnext" id="bn5" onclick="nextFase(6)">PRÓXIMA FASE →</button>
+  </div>
+</div>
+
+
+
+<!-- FASE 6 -->
+<div class="fase" id="f6">
+  <div class="fase-card">
+    <span class="sb">FASE 06</span><span class="diff">&#11088;&#11088;&#11088; AVANCADO</span>
+    <div class="stit">A Ligacao Comprometida</div>
+    <div class="sdesc">O CSA cometeu <b style="color:#f59e0b">3 erros graves</b> nesta ligacao. Clique nos trechos sublinhados em vermelho.</div>
+    <div class="tlbl">TRANSCRIPT DA LIGACAO &mdash; CLIQUE NOS 3 ERROS</div>
+    <div class="tx" id="tx6">
+      <span class="tb">&#129489; CSA:</span> <span class="tk">Boa tarde, Amazon, meu nome e Joao.</span><br>
+      <span class="tc">&#128100; Cliente:</span> <span class="tk">Quero cancelar minha assinatura Prime. Paguei R\$19,90 mas nao usei nenhum beneficio.</span><br>
+      <span class="tb">&#129489; CSA:</span> <span class="tk"><span class="terr" id="e6a" onclick="spotErr('e6a','f6',true)">Como nao foi usado nenhum beneficio, nao consigo reembolsar. A politica nao permite.</span></span><br>
+      <span class="tc">&#128100; Cliente:</span> <span class="tk">Mas eu nem sabia que ia renovar automaticamente!</span><br>
+      <span class="tb">&#129489; CSA:</span> <span class="tk"><span class="terr" id="e6b" onclick="spotErr('e6b','f6',false)">Preciso que confirme CPF, data de nascimento, endereco completo e numero do cartao.</span></span><br>
+      <span class="tc">&#128100; Cliente:</span> <span class="tk">Voce pode me ajudar com o reembolso?</span><br>
+      <span class="tb">&#129489; CSA:</span> <span class="tk">Vou processar agora. <span class="terr" id="e6c" onclick="spotErr('e6c','f6',false)">Me da uma avaliacao 5 estrelas no final, ta? Ajuda muito a gente.</span></span>
+    </div>
+    <div class="found-c" id="fc6">Erros encontrados: <b id="fc6n">0</b>/3</div>
+    <div class="fb ok" id="fb6ok" style="margin-top:10px;padding:11px;font-size:.82rem;line-height:1.7">
+      &#9989; <b>Ligacao decifrada!</b><br>1&#65039;&#8419; <b>Negou reembolso sem verificar elegibilidade</b> &mdash; renovacoes automaticas nao utilizadas podem ter reembolso.<br>2&#65039;&#8419; <b>KYC excessivo</b> &mdash; numero do cartao e endereco nao sao necessarios para verificar conta Prime.<br>3&#65039;&#8419; <b>Pediu avaliacao positiva</b> &mdash; viola CCX policy; nunca solicite avaliacao.<br><span class="tip-inline">&#128161; Estes 3 erros sao os mais frequentes em auditorias de ligacao</span>
+    </div>
+    <button class="bnext" id="bn6" onclick="nextFase(7)" style="display:none">PROXIMA FASE &rarr;</button>
+  </div>
+</div>
+
+<!-- FASE 7 -->
+<!-- FASE 7 - TERMINAL -->
+<div class="fase" id="f7"><div class="fase-card"><span class="sb">FASE 07</span><span class="diff">&#11088;&#11088; INTERMEDIARIO</span><div class="stit">&#128187; Terminal SIGMA-7</div><div class="sdesc">Uma denuncia anonima chegou: <b style="color:#f59e0b">&ldquo;Um CSA do turno esta com DUR acima de 20% e ocultando SICs em branco.&rdquo;</b><br>Use o terminal para investigar e <b style="color:#f59e0b">acusar o culpado</b>.</div><div style="background:#020617;border:1px solid #1e3a5f;border-radius:8px;padding:10px;margin:10px 0;font-family:monospace"><div id="tlog" style="font-size:.72rem;color:#4ade80;min-height:60px;max-height:180px;overflow-y:auto;margin-bottom:8px">SIGMA-7 v1.0 &mdash; Sistema de Analise de Metricas<br>Digite <b style="color:#f59e0b">ajuda</b> para ver os comandos disponiveis.<br></div><div style="display:flex;gap:6px"><span style="color:#6366f1;font-family:monospace">&gt;</span><input id="tcmd" type="text" placeholder="digite um comando..." style="flex:1;background:#0f172a;border:1px solid #334155;border-radius:4px;padding:5px 8px;color:#e2e8f0;font-family:monospace;font-size:.78rem" onkeydown="if(event.key==='Enter')runCmd()"><button onclick="runCmd()" style="background:#6366f1;border:none;color:#fff;padding:5px 12px;border-radius:4px;cursor:pointer;font-size:.75rem">EXEC</button></div></div><div class="fb ok" id="fb7ok">&#9989; <b>Correto!</b> CSA-B: DUR 24% (meta &lt;15%) + 4 SICs em branco. Trio AHT alto + HRR alto + DUR alto = gap de conhecimento e autonomia.<br><span class="tip-inline">&#128161; Cada DART acionado desnecessariamente = +9 min no AHT medio do time</span></div><div class="fb err" id="fb7err">&#10060; Revise os dados. Use <b>listar</b> para ver as metricas e <b>filtrar DUR &gt; 15</b> para isolar o suspeito.</div><button class="bnext" id="bn7" onclick="nextFase(8)" style="display:none;margin-top:12px">PROXIMA FASE &rarr;</button></div></div>
+
+<!-- FASE 8 -->
+<div class="fase" id="f8">
+  <div class="fase-card">
+    <span class="sb">FASE 08</span><span class="diff">&#11088;&#11088;&#11088; AVANCADO</span>
+    <div class="stit">A Pasta Criptografada</div>
+    <div class="sdesc">Cliente furioso cita <b style="color:#f59e0b">CDC Art. 35</b> e ameaca o Procon. Leia o e-mail e escolha a resposta correta do CSA.</div>
+    <div class="tlbl">E-MAIL DO CLIENTE</div>
+    <div class="tx">
+      <span class="tc">&#128100; Cliente:</span> <span class="tk">Recebi um produto ERRADO. Pedi HD externo 2TB e veio 500GB. O CSA anterior negou a troca dizendo que o produto foi entregue conforme o pedido. Informo que o Art. 35 do CDC garante meu direito de EXIGIR o produto correto, abatimento ou reembolso. Se nao resolverem em 24h, aciono o Procon.</span>
+    </div>
+    <div class="tlbl" style="margin-top:10px">QUAL A RESPOSTA CORRETA DO CSA?</div>
+    <div class="opts" id="f8opts">
+      <button class="opt" onclick="ansF8(this,false)">A) Infelizmente nao podemos fazer nada pois o item foi entregue conforme o pedido registrado.</button>
+      <button class="opt" onclick="ansF8(this,false)">B) O senhor pode acionar quem quiser, nossa politica e clara e nao ha o que fazer.</button>
+      <button class="opt" onclick="ansF8(this,true)">C) Peco desculpas pelo ocorrido. Vou acionar a devolucao e reenvio do produto correto &mdash; o Art. 35 do CDC garante sua escolha entre receber o produto certo, abatimento ou reembolso integral.</button>
+      <button class="opt" onclick="ansF8(this,false)">D) Vou transferir para o setor juridico responsavel por reclamacoes do Procon.</button>
+    </div>
+    <div class="fb ok" id="fb8ok">&#9989; <b>Correto!</b> O Art. 35 do CDC obriga o fornecedor a cumprir a oferta. Amazon tem responsabilidade solidaria mesmo em itens de terceiros. Reconheca o erro, ofereça as 3 opcoes do Art. 35, resolva de forma autonoma sem transferir.<br><span class="tip-inline">&#128161; Nunca diga nao podemos intervir quando o CDC for citado &mdash; Amazon e responsavel solidaria</span></div>
+    <div class="fb err" id="fb8err">&#10060; A opcao C e a unica que reconhece o erro, aplica o Art. 35 e resolve sem transferir ou negar.<br><span class="tip-inline">&#128161; Negar resolucao contra o CDC = risco de escalada grave de CCX/compliance</span></div>
+    <button class="bnext" id="bn8" onclick="nextFase(9)" style="display:none;margin-top:12px">PROXIMA FASE &rarr;</button>
+  </div>
+</div>
+<!-- FASE 9 --><div class="fase" id="f9"><div class="fase-card"><span class="sb">FASE 09</span><span class="diff">&#11088;&#11088; INTERMEDIARIO</span><div class="stit">O Contador Regressivo</div><div class="sdesc">Cliente alega atraso. Selecione as <b style="color:#f59e0b">2 acoes corretas</b>.</div><div class="opts" id="f9opts"><button class="opt" onclick="ansMulti(9,this,true,'Ok')">A) Verificar rastreamento antes de prometer</button><button class="opt" onclick="ansMulti(9,this,false,'Ok')">B) Prometer reenvio imediato</button><button class="opt" onclick="ansMulti(9,this,true,'Ok')">C) Comunicar prazo e oferecer cancelar ou aguardar</button><button class="opt" onclick="ansMulti(9,this,false,'Ok')">D) Transferir para AMZL</button></div><div class="fb ok" id="fb9ok">&#9989; Correto! Rastreie antes de agir. AMZL so para dano/furto/acidente.<br><span class="tip-inline">&#128161; Nunca prometa reenvio sem confirmar elegibilidade</span></div><div class="fb err" id="fb9err">&#10060; Verifique rastreamento. AMZL nao resolve atraso. Nunca prometa reenvio.</div><button class="bnext" id="bn9" onclick="nextFase(10)" style="display:none;margin-top:12px">PROXIMA FASE &rarr;</button></div></div>
+<!-- FASE 10 - CONTRADICAO -->
+<div class="fase" id="f10"><div class="fase-card"><span class="sb">FASE 10</span><span class="diff">&#11088;&#11088;&#11088; AVANCADO</span>
+<div class="stit">&#9878; Protocolo de Contradicao</div>
+<div class="sdesc">Selecione uma <b style="color:#6366f1">politica</b> no painel, depois clique na <b style="color:#f59e0b">frase do CSA</b> que a viola. Encontre as <b style="color:#f59e0b">2 contradicoes</b>.</div>
+<div style="display:flex;gap:10px;margin:10px 0;flex-wrap:wrap">
+  <div style="flex:0 0 auto;min-width:180px">
+    <div class="tlbl">POLITICAS DISPONÍVEIS</div>
+    <div style="display:flex;flex-direction:column;gap:6px;margin-top:6px">
+      <button class="pol-btn" id="pol1" onclick="selPol(1)">&#128196; Empatia e Acolhimento</button>
+      <button class="pol-btn" id="pol2" onclick="selPol(2)">&#128196; Investigar antes de concluir</button>
+      <button class="pol-btn" id="pol3" onclick="selPol(3)">&#128196; Oferecer solucao concreta</button>
+      <button class="pol-btn" id="pol4" onclick="selPol(4)">&#128196; Nao intimidar o cliente</button>
+    </div>
+    <div id="polsel" style="margin-top:8px;font-size:.7rem;color:#6366f1;min-height:16px"></div>
+  </div>
+  <div style="flex:1;min-width:200px">
+    <div class="tlbl">TRANSCRIPT</div>
+    <div style="margin-top:6px;display:flex;flex-direction:column;gap:4px">
+      <div class="tx-line" style="background:#0f172a;padding:6px 8px;border-radius:4px;font-size:.72rem"><span style="color:#60a5fa">&#128100; Cliente:</span> Meu pedido foi cancelado sem aviso. Preciso do produto urgente.</div>
+      <div class="tx-line csa-line" id="tl1" onclick="checkContra(1)" style="background:#0f172a;padding:6px 8px;border-radius:4px;font-size:.72rem;cursor:pointer"><span style="color:#a78bfa">&#129302; CSA:</span> <span id="tl1txt">Cancelamentos acontecem. Faca um novo pedido normalmente.</span></div>
+      <div class="tx-line" style="background:#0f172a;padding:6px 8px;border-radius:4px;font-size:.72rem"><span style="color:#60a5fa">&#128100; Cliente:</span> Mas o preco subiu! Era R$120 agora R$180.</div>
+      <div class="tx-line csa-line" id="tl2" onclick="checkContra(2)" style="background:#0f172a;padding:6px 8px;border-radius:4px;font-size:.72rem;cursor:pointer"><span style="color:#a78bfa">&#129302; CSA:</span> <span id="tl2txt">Nao temos controle sobre precos. Mais alguma coisa?</span></div>
+      <div class="tx-line" style="background:#0f172a;padding:6px 8px;border-radius:4px;font-size:.72rem"><span style="color:#60a5fa">&#128100; Cliente:</span> Absurdo! Vou ao Procon!</div>
+      <div class="tx-line csa-line" id="tl3" onclick="checkContra(3)" style="background:#0f172a;padding:6px 8px;border-radius:4px;font-size:.72rem;cursor:pointer"><span style="color:#a78bfa">&#129302; CSA:</span> <span id="tl3txt">Fique a vontade, seguimos nossa politica.</span></div>
+    </div>
+  </div>
+</div>
+<div id="c10prog" style="font-size:.72rem;color:#94a3b8;margin-top:4px">Contradicoes provadas: <span id="c10n">0</span>/2</div>
+<div class="fb ok" id="fb10ok">&#9989; <b>Contradicoes provadas!</b> (1) CSA ignorou empatia e nao investigou o cancelamento. (2) Encerrou desafiando o cliente em vez de oferecer solucao.<br><span class="tip-inline">&#128161; Cancelamento automatico pode ser erro de sistema &mdash; sempre investigue antes de concluir</span></div>
+<div class="fb err" id="fb10err">&#10060; Politica errada para essa frase, ou frase errada para essa politica. Tente outra combinacao.</div>
+<button class="bnext" id="bn10" onclick="nextFase(11)" style="display:none;margin-top:12px">PROXIMA FASE &rarr;</button>
+</div></div>
+
+<!-- FASE 11 --><div class="fase" id="f11"><div class="fase-card"><span class="sb">FASE 11</span><span class="diff">&#11088;&#11088;&#11088; AVANCADO</span><div class="stit">A Senha do Cofre</div><div class="sdesc">Qual a <b style="color:#f59e0b">ordem correta</b> das etapas para resolver um <b style="color:#f59e0b">produto nao recebido (DNR)</b>?</div><div class="opts" id="f11opts"><button class="opt" onclick="ansF11(this,false)">A) Reembolsar &rarr; Verificar rastreamento &rarr; Checar TRACES &rarr; Comunicar</button><button class="opt" onclick="ansF11(this,true)">B) Verificar rastreamento &rarr; Checar TRACES &rarr; Acionar AC3 &rarr; Reembolso ou reenvio</button><button class="opt" onclick="ansF11(this,false)">C) Transferir para AMZL &rarr; Aguardar retorno &rarr; Reembolsar</button><button class="opt" onclick="ansF11(this,false)">D) Abrir DART &rarr; Pedir documentos &rarr; Aguardar 30 dias</button></div><div class="fb ok" id="fb11ok">&#9989; <b>Correto!</b> DNR: rastreamento &rarr; TRACES &rarr; AC3 &rarr; reembolso ou reenvio. Nunca reembolse antes de verificar.<br><span class="tip-inline">&#128161; TRACES vencida = elegivel para CAP. Sem TRACES vencida = aguardar ou reenvio primeiro.</span></div><div class="fb err" id="fb11err">&#10060; A sequencia correta e: rastreamento &rarr; TRACES &rarr; AC3 &rarr; resolucao. Nunca pule etapas.</div><button class="bnext" id="bn11" onclick="nextFase(12)" style="display:none;margin-top:12px">PROXIMA FASE &rarr;</button></div></div>
+<!-- FASE 12 - TIMELINE -->
+<div class="fase" id="f12"><div class="fase-card"><span class="sb">FASE 12</span><span class="diff">&#11088;&#11088;&#11088; AVANCADO</span><div class="stit">&#128336; Anomalia na Linha do Tempo</div><div class="sdesc">O supervisor encontrou uma <b style="color:#f87171">irregularidade</b>. Os eventos estao fora de ordem. Clique nos blocos na <b style="color:#4ade80">ordem cronologica correta</b> para revelar onde esta a anomalia.</div><div style="font-size:.68rem;color:#94a3b8;margin:4px 0 8px">Dica: qual etapa deve acontecer ANTES do reembolso?</div><div id="tlpool" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px"><div class="tl-ev" id="ev1" data-c="1" onclick="tlClick(this)">14:02 &mdash; Cliente abre contato: produto nao recebido</div><div class="tl-ev" id="ev3" data-c="5" onclick="tlClick(this)">14:05 &mdash; Reembolso emitido pelo CSA</div><div class="tl-ev" id="ev5" data-c="4" onclick="tlClick(this)">14:07 &mdash; CSA aciona AC3 para investigacao</div><div class="tl-ev" id="ev2" data-c="2" onclick="tlClick(this)">14:04 &mdash; CSA verifica rastreamento: consta entregue</div><div class="tl-ev" id="ev4" data-c="3" onclick="tlClick(this)">14:06 &mdash; CSA verifica TRACES: ainda nao vencida</div><div class="tl-ev" id="ev6" data-c="6" onclick="tlClick(this)">14:09 &mdash; CSA encerra sem registrar SIC</div></div><div class="tlbl">ORDEM SELECIONADA</div><div id="tlslots" style="display:flex;flex-direction:column;gap:4px;margin-top:6px;min-height:36px"><div id="tlhint" style="font-size:.66rem;color:#475569;font-style:italic">Clique nos eventos acima...</div></div><div style="margin-top:8px;display:flex;gap:8px"><button onclick="tlReset()" style="background:#1e293b;border:1px solid #334155;color:#94a3b8;padding:5px 12px;border-radius:4px;cursor:pointer;font-size:.72rem">&#8635; Reiniciar</button><button onclick="tlCheck()" id="tlcheck" style="background:#6366f1;border:none;color:#fff;padding:5px 14px;border-radius:4px;cursor:pointer;font-size:.72rem;display:none">VERIFICAR &rarr;</button></div><div class="fb ok" id="fb12ok">&#9989; <b>Anomalia encontrada!</b> Reembolso em 14:05 foi emitido ANTES da verificacao do TRACES (14:06) e do AC3 (14:07). Sequencia correta: rastrear &rarr; TRACES &rarr; AC3 &rarr; reembolso.<br><span class="tip-inline">&#128161; Reembolso antes do TRACES = concessao invalida. Pode gerar MAP.</span></div><div class="fb err" id="fb12err">&#10060; Ordem incorreta. Pense: o que o CSA precisa confirmar ANTES de emitir o reembolso?</div><button class="bnext" id="bn12" onclick="nextFase(13)" style="display:none;margin-top:12px">PROXIMA FASE &rarr;</button></div></div>
+
+<!-- FASE 13 - RECONSTITUICAO DO CHAT -->
+<div class="fase" id="f13"><div class="fase-card"><span class="sb">FASE 13</span><span class="diff">&#11088;&#11088;&#11088; AVANCADO</span><div class="stit">&#128172; Reconstituicao do Atendimento</div><div class="sdesc">As mensagens deste atendimento foram <b style="color:#f87171">misturadas</b>. Monte o chat na <b style="color:#4ade80">ordem correta</b> clicando nas falas em sequencia. Um atendimento bem estruturado segue: Abertura &rarr; Diagnostico &rarr; Resolucao &rarr; Confirmacao &rarr; Encerramento.</div><div style="display:flex;gap:10px;margin:10px 0;flex-wrap:wrap"><div style="flex:1;min-width:180px"><div class="tlbl">MENSAGENS DISPONIVEIS</div><div id="rc-pool" style="display:flex;flex-direction:column;gap:5px;margin-top:6px"><div class="rc-msg" data-id="m3" data-order="3" onclick="rcPick(this)"><span class="rc-who csa">&#129302; CSA</span> Vou verificar seu pedido agora. Pode me informar o numero?</div><div class="rc-msg" data-id="m1" data-order="1" onclick="rcPick(this)"><span class="rc-who cli">&#128100; Cliente</span> Boa tarde! Meu pedido chegou com o produto errado.</div><div class="rc-msg" data-id="m6" data-order="6" onclick="rcPick(this)"><span class="rc-who csa">&#129302; CSA</span> Entendimento confirmado. Vou acionar o reenvio do produto correto. Ha mais alguma coisa?</div><div class="rc-msg" data-id="m2" data-order="2" onclick="rcPick(this)"><span class="rc-who csa">&#129302; CSA</span> Boa tarde! Fico feliz em ajudar. Sinto muito pelo transtorno.</div><div class="rc-msg" data-id="m5" data-order="5" onclick="rcPick(this)"><span class="rc-who cli">&#128100; Cliente</span> #1234567. Pedi HD 2TB mas veio HD 500GB.</div><div class="rc-msg" data-id="m4" data-order="4" onclick="rcPick(this)"><span class="rc-who csa">&#129302; CSA</span> Confirmado o erro de separacao. Produto enviado: HD 500GB. Correto seria: HD 2TB.</div></div></div><div style="flex:1;min-width:180px"><div class="tlbl">ATENDIMENTO MONTADO <span id="rc-prog" style="color:#f59e0b">0/6</span></div><div id="rc-built" style="display:flex;flex-direction:column;gap:5px;margin-top:6px;min-height:60px"><div id="rc-hint" style="font-size:.66rem;color:#475569;font-style:italic;padding:8px 0">Clique nas mensagens ao lado...</div></div></div></div><div style="display:flex;gap:8px;margin-top:4px"><button onclick="rcReset()" style="background:#1e293b;border:1px solid #334155;color:#94a3b8;padding:5px 12px;border-radius:4px;cursor:pointer;font-size:.72rem">&#8635; Reiniciar</button><button id="rc-check" onclick="rcCheck()" style="background:#6366f1;border:none;color:#fff;padding:5px 14px;border-radius:4px;cursor:pointer;font-size:.72rem;display:none">VERIFICAR ATENDIMENTO</button></div><div class="fb ok" id="fb13ok">&#9989; <b>Atendimento perfeito!</b> Estrutura correta: (1) Saudacao + empatia &rarr; (2) Abertura do cliente &rarr; (3) CSA pede dados &rarr; (4) Cliente informa &rarr; (5) CSA diagnostica &rarr; (6) CSA resolve + confirma.<br><span class="tip-inline">&#128161; Abertura empática antes de pedir dados = BTB mais alto</span></div><div class="fb err" id="fb13err">&#10060; Sequencia incorreta. Pense: o CSA deve se apresentar e ter empatia ANTES de pedir o numero do pedido?</div><button class="bnext" id="bn13" onclick="nextFase(14)" style="display:none;margin-top:12px">PROXIMA FASE &rarr;</button></div></div>
+
+<!-- FASE 14 - COMBINACAO DE EVIDENCIAS -->
+<div class="fase" id="f14"><div class="fase-card"><span class="sb">FASE 14</span><span class="diff">&#11088;&#11088;&#11088;&#11088; EXPERT</span><div class="stit">&#128203; Cruzamento de Evidencias</div><div class="sdesc">Voce tem <b style="color:#f59e0b">4 pistas</b> sobre um recontato suspeito. Selecione as <b style="color:#4ade80">2 pistas certas</b> e clique em <b style="color:#6366f1">CRUZAR</b> para gerar a evidencia que prova a falha do CSA.</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0"><div class="ev-card" id="ev-a" onclick="selEv('a',this)"><div class="ev-icon">&#128203;</div><div class="ev-title">Historico de Contatos</div><div class="ev-body">3 contatos em 7 dias. Mesmo problema: produto nao recebido.</div></div><div class="ev-card" id="ev-b" onclick="selEv('b',this)"><div class="ev-icon">&#128336;</div><div class="ev-title">Log de Promessa</div><div class="ev-body">CSA anterior prometeu reenvio em 3 dias sem verificar TRACES.</div></div><div class="ev-card" id="ev-c" onclick="selEv('c',this)"><div class="ev-icon">&#127758;</div><div class="ev-title">Regiao de Entrega</div><div class="ev-body">Endereco em zona rural. Carrier: Correios PAC.</div></div><div class="ev-card" id="ev-d" onclick="selEv('d',this)"><div class="ev-icon">&#128241;</div><div class="ev-title">Canal de Origem</div><div class="ev-body">Todos os 3 contatos vieram pelo app mobile, mesmo dispositivo.</div></div></div><div style="display:flex;align-items:center;gap:10px;margin-top:4px"><div style="font-size:.72rem;color:#94a3b8">Selecionadas: <span id="evcount">0</span>/2</div><button id="evbtn" onclick="cruzarEv()" style="background:#6366f1;border:none;color:#fff;padding:6px 16px;border-radius:4px;cursor:pointer;font-size:.76rem;opacity:.4;pointer-events:none">&#9889; CRUZAR EVIDENCIAS</button></div><div id="ev-result" style="display:none;background:#020617;border:1px solid #1e3a5f;border-radius:8px;padding:12px;margin-top:10px;font-size:.74rem"><div style="color:#f59e0b;font-weight:700;margin-bottom:6px">&#9889; EVIDENCIA GERADA</div><div id="ev-result-txt" style="color:#e2e8f0"></div></div><div class="fb ok" id="fb14ok">&#9989; <b>Cruzamento correto!</b> Historico (3 recontatos) + Promessa sem TRACES = falha dupla confirmada. Acao: ler historico &rarr; reconhecer falha &rarr; reembolso imediato &rarr; registrar feedback de qualidade. Cada recontato e um BTB em aberto.<br><span class="tip-inline">&#128161; Resolver na hora e a unica defesa real do CCX em recontatos</span></div><div class="fb err" id="fb14err">&#10060; Essas duas pistas nao provam a falha do CSA. Pense: o que causou o recontato? Qual foi a promessa invalida?</div><button class="bnext" id="bn14" onclick="nextFase(15)" style="display:none;margin-top:12px">PROXIMA FASE &rarr;</button></div></div>
+
+<!-- FASE 15 --><div class="fase" id="f15"><div class="fase-card"><span class="sb">FASE 15</span><span class="diff">&#11088;&#11088;&#11088;&#11088;&#11088; MESTRE</span><div class="stit">&#127942; Operacao Completa</div><div class="sdesc">Fase final. Aplique CDC, resolva com autonomia e evite escalada.</div><div class="tx"><span class="tc">&#128100; Cliente:</span> <span class="tk">Comprei um celular ha 8 meses. Parou de funcionar. Vendedor parceiro diz que garantia e so de 6 meses. Mas o CDC garante 90 dias de garantia legal ALEM da contratual. Quero reparo ou substituicao. Se nao resolverem, processo na justica.</span></div><div class="opts" id="f15opts"><button class="opt" onclick="ansF15(this,false)">A) Garantia do vendedor e de 6 meses &mdash; sem cobertura Amazon</button><button class="opt" onclick="ansF15(this,false)">B) Transferir para o vendedor parceiro resolver diretamente</button><button class="opt" onclick="ansF15(this,false)">C) Abrir DART e aguardar investigacao de 30 dias</button><button class="opt" onclick="ansF15(this,true)">D) Reconhecer CDC Art. 26 (90 dias garantia legal para duraveis), acionar garantia legal, oferecer reparo ou substituicao e registrar o caso</button></div><div class="fb ok" id="fb15ok">&#9989; <b>Operacao Completa!</b> CDC Art. 26: produtos duraveis tem 90 dias de garantia legal a partir do vicio &mdash; independente da contratual. Amazon e responsavel solidaria. Resolucao autonoma, sem transferir ao vendedor.<br><span class="tip-inline">&#128161; Garantia legal CDC = obrigacao da Amazon independente do vendedor parceiro</span></div><div class="fb err" id="fb15err">&#10060; CDC Art. 26 garante 90 dias de garantia legal para duraveis &mdash; adicional a qualquer garantia contratual. Amazon nao pode delegar ao vendedor parceiro.</div><button class="bnext" id="bn15" onclick="showEnd()" style="display:none;margin-top:12px">&#127942; VER RESULTADO FINAL &rarr;</button></div></div>
+</div><!-- /fases -->
+
+<!-- TELA FINAL v2 -->
+<div id="se">
+<div id="se-badge" style="font-size:3.5rem;margin-bottom:8px"></div>
+<div class="et" id="se-rank"></div>
+<div class="es" id="se-msg"></div>
+<div class="estats">
+<div class="sr"><span class="sl">Fases concluidas</span><span class="sv" id="se_f">-</span></div>
+<div class="sr"><span class="sl">Acertos diretos</span><span class="sv" id="se_a">-</span></div>
+<div class="sr"><span class="sl">Precisao</span><span class="sv" id="se_p">-</span></div>
+<div class="sr"><span class="sl">Estrelas restantes</span><span class="sv" id="se_s">-</span></div>
+<div class="sr"><span class="sl">Tempo total</span><span class="sv" id="se_t">-</span></div>
+</div>
+<div id="se-reconhecimento" style="margin:14px 0;padding:12px 20px;border-radius:8px;font-size:1rem;font-weight:800"></div>
+<div id="se-breakdown" style="font-size:.72rem;color:#94a3b8;margin-bottom:12px;line-height:1.8"></div>
+<button class="bmain" onclick="location.reload()">&#9654; JOGAR NOVAMENTE</button>
+</div>
+
+<!-- POPUP -->
+<div class="pop-ov" id="pov" onclick="if(event.target===this)closePop()">
+  <div class="pop">
+    <button class="pop-x" onclick="closePop()">✕</button>
+    <h3 id="ph">—</h3>
+    <p id="pp">—</p>
+    <div class="ev" id="pev" style="display:none"></div>
+  </div>
+</div>
+
+<!-- INVENTÁRIO -->
+<div class="inv-p" id="invp">
+  <div class="inv-t">🗂 INVENTÁRIO</div>
+  <div id="inv-list"><div class="inv-0">Nenhuma pista coletada ainda.</div></div>
+</div>
+
+</div><!-- /app -->
+
+<script>
+// ── STATE ─────────────────────────────────────
+var state = {
+  fase: 0,
+  startTime: null,
+  timerInt: null,
+  inv: [],
+  lives: 3,
+  score: { direct: 0, correct: 0, total: 0 },
+  f1clues: 0,
+  f5errs: 0,
+  f5found: { 'f5-a': false, 'f5-b': false, 'f5-c': false },
+  f3order: { os3_1: null, os3_2: null, os3_3: null, os3_4: null, os3_5: null },
+  f4done: false,
+  dragItem: null,
+  answered: {}
+};
+
+var TITLES = {
+  1:'Mesa Abandonada',2:'Chat Congelado',3:'Timer do ACW',
+  4:'Gaveta Trancada',5:'Os 3 Erros',6:'Fases 6-15 em breve...'
+};
+var STARS = {1:'⭐',2:'⭐',3:'⭐',4:'⭐⭐',5:'⭐⭐'};
+var F3_CORRECT = ['d3e','d3a','d3b','d3d','d3c'];
+
+// ── INIT ──────────────────────────────────────
+function loseLife(){if(state.lives<=0)return;state.lives--;var el=document.getElementById("hlives");if(!el)return;var t="";for(var i=0;i<state.lives;i++)t+="⭐";for(var j=state.lives;j<3;j++)t+="✩";el.textContent=t;el.style.transform="scale(1.3)";setTimeout(function(){el.style.transform="scale(1)";},300);}
+function startGame() {
+  document.getElementById('si').style.display = 'none';
+  document.getElementById('hud').style.display = 'block';
+  state.startTime = Date.now();
+  state.timerInt = setInterval(updateTimer, 1000);
+  goFase(1);
+}
+
+function goFase(n) {
+  document.querySelectorAll('.fase').forEach(function(f){ f.classList.remove('active'); });
+  var el = document.getElementById('f' + n);
+  if(el) { el.classList.add('active'); }
+  state.fase = n;
+  document.getElementById('hfn').textContent = n;
+  document.getElementById('htit').textContent = TITLES[n] || '—';
+  document.getElementById('hstr').textContent = STARS[n] || '⭐⭐⭐';
+  document.getElementById('hpb').style.width = Math.round((n/15)*100) + '%';
+  window.scrollTo({top:0, behavior:'smooth'});
+  // fase 3 init
+  if(n === 3) initF3();
+}
+
+function nextFase(n) {
+  if(n > 15) {
+    // Para fases 6-15 ainda não implementadas nesta versão
+    showEnd();
+    return;
+  }
+  goFase(n);
+}
+
+// ── TIMER ─────────────────────────────────────
+function updateTimer() {
+  var s = Math.floor((Date.now() - state.startTime) / 1000);
+  var m = Math.floor(s/60);
+  var ss = s % 60;
+  document.getElementById('htimer').textContent =
+    (m<10?'0':'')+m+':'+(ss<10?'0':'')+ss;
+}
+
+// ── POPUP ─────────────────────────────────────
+function clickObj(id, faseId, title, desc) {
+  // marca como encontrado
+  var el = document.getElementById(id);
+  if(!el) return; if(el.classList.contains('found')) { openPop(title, desc); return; }
+  el.classList.add('found');
+  // adiciona ao inventário
+  addInv(title);
+  openPop(title, desc);
+  // lógica específica por fase
+  if(faseId === 'f1') {
+    var relevant = ['o1a','o1b','o1c'];
+    if(relevant.indexOf(id) !== -1) {
+      state.f1clues++;
+      document.getElementById('fc1n').textContent = state.f1clues;
+      if(state.f1clues >= 3) {
+        setTimeout(function(){
+          document.getElementById('f1q').style.display = 'block';
+          document.getElementById('f1tip').style.display = 'block';
+        }, 600);
+      }
+    }
+  }
+}
+
+function openPop(title, desc) {
+  document.getElementById('ph').textContent = title;
+  document.getElementById('pp').textContent = desc;
+  document.getElementById('pov').classList.add('open');
+}
+function closePop() { document.getElementById('pov').classList.remove('open'); }
+
+// ── INVENTORY ─────────────────────────────────
+function addInv(item) {
+  if(state.inv.indexOf(item) !== -1) return;
+  state.inv.push(item);
+  renderInv();
+}
+function renderInv() {
+  var list = document.getElementById('inv-list');
+  if(!state.inv.length) {
+    list.innerHTML = '<div class="inv-0">Nenhuma pista coletada ainda.</div>';
+    return;
+  }
+  list.innerHTML = state.inv.map(function(i){
+    return '<div class="inv-i">' + i + '</div>';
+  }).join('');
+}
+function toggleInv() {
+  document.getElementById('invp').classList.toggle('open');
+}
+
+// ── ANSWER (múltipla escolha) ─────────────────
+function answer(faseId, opt) {
+  if(state.answered[faseId]) return;
+  state.answered[faseId] = true;
+  var correct = { f1: 'b' };
+  var isOk = opt === correct[faseId];
+  var opts = document.querySelectorAll('#'+faseId+' .opt');
+  var letters = ['a','b','c','d'];
+  opts.forEach(function(btn, i){
+    btn.disabled = true;
+    if(letters[i] === correct[faseId]) btn.classList.add('correct');
+    else if(letters[i] === opt && !isOk) btn.classList.add('wrong');
+  });
+  if(isOk) {
+    state.score.direct++;
+    show('fb1ok'); show('bn1');
+  } else {
+    show('fb1err'); show('bn1');
+  }
+  state.score.total++;
+}
+
+// ── SPOT THE ERROR ────────────────────────────
+function spotErr(errId, tag, isCorrect) {
+  var el = document.getElementById(errId);
+  if(!el) return;
+  // fase 2
+  if(errId.startsWith('err2')) {
+    if(isCorrect) {
+      el.classList.add('fnd');
+      el.style.cursor = 'default';
+      show('fb2ok');
+      show('bn2');
+    } else {
+      show('fb2err');
+      setTimeout(function(){ hide('fb2err'); }, 2200);
+    }
+    return;
+  }
+  // fase 6
+  if(errId.startsWith('e6')) {
+    if(!state.f6found) state.f6found = {};
+    if(state.f6found[errId]) return;
+    state.f6found[errId] = true;
+    el.classList.add('fnd');
+    el.style.cursor = 'default';
+    if(!state.f6errs) state.f6errs = 0;
+    state.f6errs++;
+    document.getElementById('fc6n').textContent = state.f6errs;
+    if(state.f6errs >= 3) { show('fb6ok'); show('bn6'); }
+    return;
+  }
+  // fase 5
+  if(errId.startsWith('err5')) {
+    if(state.f5found[tag]) return;
+    state.f5found[tag] = true;
+    el.classList.add('fnd');
+    el.style.cursor = 'default';
+    state.f5errs++;
+    document.getElementById('fc5n').textContent = state.f5errs;
+    if(state.f5errs >= 3) {
+      show('fb5ok');
+      show('bn5');
+    }
+  }
+}
+
+// ── DRAG & DROP (fase 3) ──────────────────────
+function initF3() {
+  // reset
+  var bank = document.getElementById('ob3');
+  ['d3a','d3b','d3c','d3d','d3e'].forEach(function(id){
+    var el = document.getElementById(id);
+    if(el && el.parentNode !== bank) bank.appendChild(el);
+  });
+  for(var k in state.f3order) state.f3order[k] = null;
+  ['os3_1','os3_2','os3_3','os3_4','os3_5'].forEach(function(sid){
+    var sl = document.getElementById(sid);
+    sl.classList.remove('filled','ok-s','err-s');
+    sl.textContent = sl.dataset.pos + '. Arraste aqui';
+  });
+  hide('bv3'); hide('fb3ok'); hide('fb3err'); hide('bn3');
+}
+function dragStart(e) {
+  state.dragItem = e.target.id;
+  e.target.classList.add('dragging');
+  e.dataTransfer.setData('text/plain', e.target.id);
+}
+function dragEnd(e) { e.target.classList.remove('dragging'); }
+function dragOver(e) {
+  e.preventDefault();
+  e.currentTarget.classList.add('hl');
+}
+function dropInSlot(e, slotId, faseId) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('hl');
+  var itemId = e.dataTransfer.getData('text/plain');
+  var item = document.getElementById(itemId);
+  if(!item) return;
+  var slot = document.getElementById(slotId);
+  // se slot já tem item, manda de volta pro banco
+  var existing = slot.dataset.item;
+  if(existing) {
+    var exEl = document.getElementById(existing);
+    if(exEl) document.getElementById('ob3').appendChild(exEl);
+  }
+  // coloca item no slot
+  slot.dataset.item = itemId;
+  slot.textContent = '';
+  slot.appendChild(item);
+  slot.classList.add('filled');
+  state.f3order[slotId] = itemId;
+  // checa se todos preenchidos
+  var allFilled = Object.values(state.f3order).every(function(v){ return v !== null; });
+  if(allFilled) show('bv3');
+}
+function returnToBank(e, bankId) {
+  e.preventDefault();
+  // drag to bank — retorna item
+}
+function validateOrder(faseId) {
+  if(faseId !== 'f3') return;
+  var order = ['os3_1','os3_2','os3_3','os3_4','os3_5'].map(function(sid){
+    return state.f3order[sid];
+  });
+  var isOk = JSON.stringify(order) === JSON.stringify(F3_CORRECT);
+  ['os3_1','os3_2','os3_3','os3_4','os3_5'].forEach(function(sid, i){
+    var sl = document.getElementById(sid);
+    sl.classList.remove('ok-s','err-s');
+    sl.classList.add(order[i] === F3_CORRECT[i] ? 'ok-s' : 'err-s');
+  });
+  if(isOk) {
+    state.score.direct++;
+    show('fb3ok'); show('bn3'); hide('fb3err');
+  } else {
+    show('fb3err'); hide('fb3ok'); hide('bn3');
+  }
+  state.score.total++;
+}
+
+// ── ENIGMA (fase 4) ───────────────────────────
+function checkCode(faseId, correct, inputId) {
+  var val = document.getElementById(inputId).value.trim();
+  if(val === correct) {
+    show('fb4ok'); hide('fb4err'); show('bn4');
+    document.getElementById(inputId).disabled = true;
+    state.score.direct++;
+    state.f4done = true;
+  } else {
+    show('fb4err'); hide('fb4ok');
+    document.getElementById(inputId).classList.add('wrong');
+    setTimeout(function(){
+      document.getElementById(inputId).classList.remove('wrong');
+      document.getElementById(inputId).value = '';
+      hide('fb4err');
+    }, 1800);
+  }
+  state.score.total++;
+}
+
+// ── END SCREEN ────────────────────────────────
+function showEnd(){
+  document.querySelectorAll(".fase").forEach(function(f){f.classList.remove("active");});
+  clearInterval(state.timerInt);
+  var elapsed=Math.floor((Date.now()-state.startTime)/1000);
+  var m=Math.floor(elapsed/60);var ss=elapsed%60;
+  var correct=state.score.correct||state.score.direct||0;
+  var total=state.score.total||15;
+  var pct=total>0?Math.round(correct/total*100):0;
+  var lives=state.lives!==undefined?state.lives:3;
+  var timeBonus=elapsed<900?"&#9889; Concluido em menos de 15 min!":"";
+  var rank,badge,msg,reconhecimentoMin,reconhecimentoColor;
+  if(pct>=85&&lives>=2){rank="DETETIVE ELITE";badge="&#129351;";reconhecimentoMin=15;reconhecimentoColor="#4ade80";msg="Precisao cirurgica. Voce identificou falhas que a maioria ignora. Relatorio enviado ao OM.";}
+  else if(pct>=70){rank="INVESTIGADOR SENIOR";badge="&#129352;";reconhecimentoMin=10;reconhecimentoColor="#fbbf24";msg="Bom trabalho. Algumas lacunas ainda abertas, mas o caso foi resolvido.";}
+  else if(pct>=50){rank="AGENTE JUNIOR";badge="&#129353;";reconhecimentoMin=5;reconhecimentoColor="#f87171";msg="Caso parcialmente resolvido. Revise as politicas e tente novamente.";}
+  else{rank="TRAINEE EM CAMPO";badge="&#128269;";reconhecimentoMin=0;reconhecimentoColor="#475569";msg="O caso ficou em aberto. Estude os feedbacks e volte mais forte.";}
+  document.getElementById("se-badge").innerHTML=badge;
+  document.getElementById("se-rank").textContent=rank;
+  document.getElementById("se-msg").textContent=msg;
+  document.getElementById("se_f").textContent="15/15";
+  document.getElementById("se_a").textContent=correct+"/"+total;
+  document.getElementById("se_p").textContent=pct+"%";
+  document.getElementById("se_s").textContent=("&#11088;").repeat(lives)+("&#10025;").repeat(3-lives);
+  document.getElementById("se_t").textContent=(m<10?"0":"")+m+":"+(ss<10?"0":"")+ss+(timeBonus?" "+timeBonus:"");
+  var reconhecimentoEl=document.getElementById("se-reconhecimento");reconhecimentoEl.style.background=reconhecimentoColor==="#4ade80"?"#14532d":reconhecimentoColor==="#fbbf24"?"#713f12":reconhecimentoColor==="#f87171"?"#7f1d1d":"#1e293b";reconhecimentoEl.style.color=reconhecimentoColor;reconhecimentoEl.innerHTML=reconhecimentoMin>0?"&#127381; reconhecimento DESBLOQUEADO: <b>"+reconhecimentoMin+" MINUTOS</b> &mdash; envie screenshot ao TM via Chime":"&#128533; Nenhum reconhecimento desta vez. Revise os feedbacks e tente novamente.";
+  document.getElementById("se-breakdown").innerHTML="Precisao "+pct+"% &nbsp;|&nbsp; &#11088; "+lives+"/3 estrelas &nbsp;|&nbsp; "+correct+" acertos de "+total+" fases";
+  document.getElementById("se").classList.add("active");
+}
+
+
+function show(id) {
+  var el = document.getElementById(id);
+  if(el) { el.style.display = ''; el.classList.add('show'); }
+}
+function hide(id) {
+  var el = document.getElementById(id);
+  if(el) { el.style.display = 'none'; el.classList.remove('show'); }
+}
+// F9 - multi select
+var f9hits=0;var f9done={};function ansMulti(fase,el,ok,tip){if(f9done[el.textContent.substring(0,1)])return;f9done[el.textContent.substring(0,1)]=true;if(ok){el.classList.add('ok');f9hits++;}else{el.classList.add('err');}el.disabled=true;if(f9hits>=2){show('fb9ok');show('bn9');}}
+// F10 - CONTRADICAO engine
+var c10sel=null;var c10done={};var c10hits=0;
+// mapa: [polId, lineId] = valido
+var c10map={"1-1":true,"2-1":true,"4-3":true,"3-2":false,"1-2":false,"1-3":false};
+// solucoes aceitas: pol1->tl1 (falta empatia/investigacao) e pol4->tl3 (intimidacao)
+var c10solutions=[[1,1],[4,3]];
+function selPol(n){c10sel=n;document.querySelectorAll(".pol-btn").forEach(function(b){b.style.outline="none";b.style.background="";});
+var btn=document.getElementById("pol"+n);btn.style.outline="2px solid #6366f1";btn.style.background="#1e1b4b";
+var labels=["","Empatia e Acolhimento selecionada","Investigar antes de concluir selecionada","Oferecer solucao concreta selecionada","Nao intimidar o cliente selecionada"];
+document.getElementById("polsel").textContent=labels[n]+" — clique na frase violada";}
+function checkContra(lineId){if(!c10sel){show("fb10err");setTimeout(function(){hide("fb10err");},1500);return;}
+var key=c10sel+"-"+lineId;if(c10done[key])return;
+var isMatch=c10solutions.some(function(s){return s[0]===c10sel&&s[1]===lineId;});
+if(isMatch){c10done[key]=true;c10hits++;
+var lineEl=document.getElementById("tl"+lineId);
+lineEl.style.background="#14532d";lineEl.style.outline="2px solid #4ade80";lineEl.style.cursor="default";lineEl.onclick=null;
+var polBtn=document.getElementById("pol"+c10sel);polBtn.style.background="#14532d";polBtn.style.outline="2px solid #4ade80";polBtn.disabled=true;
+document.getElementById("c10n").textContent=c10hits;
+c10sel=null;document.getElementById("polsel").textContent="";
+if(c10hits>=2){state.score.correct++;state.score.total++;show("fb10ok");show("bn10");}
+}else{
+var lineEl=document.getElementById("tl"+lineId);
+lineEl.style.outline="2px solid #ef4444";
+setTimeout(function(){lineEl.style.outline="none";},800);
+show("fb10err");setTimeout(function(){hide("fb10err");},1800);}}
+
+// F11
+function ansF11(btn,ok){document.getElementById('f11opts').querySelectorAll('.opt').forEach(function(b){b.disabled=true;});btn.classList.add(ok?'ok':'err');show(ok?'fb11ok':'fb11err');if(ok){state.score.correct++;show('bn11');}else{loseLife();}state.score.total++;}
+// F12 - TIMELINE engine
+var tlOrder=[];var tlDone=false;
+var tlCorrect=[1,2,3,4,5,6];
+function tlClick(el){if(tlDone)return;if(el.classList.contains("tl-picked"))return;el.classList.add("tl-picked");var hint=document.getElementById("tlhint");if(hint)hint.style.display="none";var slot=document.createElement("div");slot.className="tl-slot";slot.setAttribute("data-c",el.getAttribute("data-c"));slot.innerHTML="<span style=color:#94a3b8;margin-right:6px;font-size:.7rem>"+(tlOrder.length+1)+".</span>"+el.innerHTML;document.getElementById("tlslots").appendChild(slot);tlOrder.push(parseInt(el.getAttribute("data-c")));el.onclick=null;el.style.opacity="0.35";el.style.cursor="default";if(tlOrder.length===6){document.getElementById("tlcheck").style.display="inline-block";}}
+function tlCheck(){if(tlDone)return;tlDone=true;var ok=tlOrder.every(function(v,i){return v===tlCorrect[i];});if(ok){state.score.correct++;state.score.total++;var slots=document.getElementById("tlslots").querySelectorAll(".tl-slot");slots.forEach(function(sl,i){var c=parseInt(sl.getAttribute("data-c"));sl.style.borderLeft="3px solid "+(c===5?"#ef4444":"#4ade80");sl.style.paddingLeft="8px";if(c===5){sl.innerHTML+=" <b style=color:#ef4444>&#9888; ANOMALIA</b>";}});show("fb12ok");show("bn12");}else{tlDone=false;show("fb12err");setTimeout(function(){hide("fb12err");},2000);}}
+function tlReset(){tlOrder=[];tlDone=false;document.getElementById("tlcheck").style.display="none";var slots=document.getElementById("tlslots");slots.innerHTML="<div id=tlhint style=font-size:.66rem;color:#475569;font-style:italic>Clique nos eventos acima...</div>";document.querySelectorAll(".tl-ev").forEach(function(el){el.classList.remove("tl-picked");el.style.opacity="1";el.style.cursor="pointer";el.onclick=function(){tlClick(this);};});hide("fb12ok");hide("fb12err");}
+
+// F13 - RECONSTITUICAO DO CHAT
+var rcOrder=[];var rcDone=false;
+function rcPick(el){if(rcDone)return;if(el.classList.contains("rc-picked"))return;el.classList.add("rc-picked");var hint=document.getElementById("rc-hint");if(hint)hint.style.display="none";var slot=document.createElement("div");slot.className="rc-msg rc-slot";slot.innerHTML="<span style=font-size:.6rem;color:#475569;margin-right:5px>"+(rcOrder.length+1)+".</span>"+el.innerHTML;document.getElementById("rc-built").appendChild(slot);rcOrder.push(parseInt(el.getAttribute("data-order")));document.getElementById("rc-prog").textContent=rcOrder.length+"/6";if(rcOrder.length===6){document.getElementById("rc-check").style.display="inline-block";}}
+function rcCheck(){if(rcDone)return;var correct=[1,2,3,5,4,6];var ok=rcOrder.every(function(v,i){return v===correct[i];});if(ok){rcDone=true;state.score.correct++;state.score.total++;var slots=document.getElementById("rc-built").querySelectorAll(".rc-slot");slots.forEach(function(sl){sl.style.borderLeft="3px solid #4ade80";sl.style.paddingLeft="8px";});show("fb13ok");show("bn13");}else{rcDone=false;var slots=document.getElementById("rc-built").querySelectorAll(".rc-slot");slots.forEach(function(sl,i){sl.style.borderLeft=rcOrder[i]===correct[i]?"3px solid #4ade80":"3px solid #ef4444";sl.style.paddingLeft="8px";});show("fb13err");setTimeout(function(){hide("fb13err");},2200);}}
+function rcReset(){rcOrder=[];rcDone=false;document.getElementById("rc-check").style.display="none";document.getElementById("rc-prog").textContent="0/6";var built=document.getElementById("rc-built");built.innerHTML="<div id=rc-hint style=font-size:.66rem;color:#475569;font-style:italic;padding:8px 0>Clique nas mensagens ao lado...</div>";document.querySelectorAll(".rc-msg:not(.rc-slot)").forEach(function(el){el.classList.remove("rc-picked");});hide("fb13ok");hide("fb13err");}
+
+// F14 - COMBINACAO DE EVIDENCIAS
+var evSel={};var evDone=false;
+function selEv(id,el){if(evDone)return;if(evSel[id]){delete evSel[id];el.classList.remove("ev-selected");}else{if(Object.keys(evSel).length>=2)return;evSel[id]=true;el.classList.add("ev-selected");}var n=Object.keys(evSel).length;document.getElementById("evcount").textContent=n;var btn=document.getElementById("evbtn");btn.style.opacity=n===2?"1":".4";btn.style.pointerEvents=n===2?"auto":"none";}
+function cruzarEv(){if(evDone)return;var keys=Object.keys(evSel).sort();var combo=keys[0]+"-"+keys[1];var ok=(combo==="a-b");var res=document.getElementById("ev-result");res.style.display="block";var msgs={"a-b":"&#9889; <b style=color:#4ade80>FALHA DUPLA CONFIRMADA:</b> Historico (3 recontatos) + Promessa invalida sem TRACES = CSA anterior causou o ciclo. Acao: ler historico &rarr; reconhecer falha &rarr; reembolso imediato &rarr; feedback.","a-c":"Zona rural pode causar atraso mas nao explica a promessa invalida. Tente outra combinacao.","a-d":"Canal confirma cliente real mas nao identifica a falha do CSA. Tente outra combinacao.","b-c":"Atraso logistico nao e culpa do CSA. O problema e a promessa sem TRACES.","b-d":"Canal de origem nao tem relacao com a promessa invalida. Foque na causa do recontato.","c-d":"Nenhuma das duas prova a falha do CSA. Foque no historico e na promessa."};document.getElementById("ev-result-txt").innerHTML=msgs[combo]||"Sem resultado conclusivo.";if(ok){evDone=true;document.querySelectorAll(".ev-card").forEach(function(c){c.onclick=null;});state.score.correct++;state.score.total++;show("fb14ok");show("bn14");}else{show("fb14err");setTimeout(function(){hide("fb14err");},2000);evSel={};document.querySelectorAll(".ev-card").forEach(function(c){c.classList.remove("ev-selected");});document.getElementById("evcount").textContent="0";var btn=document.getElementById("evbtn");btn.style.opacity=".4";btn.style.pointerEvents="none";}}
+
+// F15
+function ansF15(btn,ok){document.getElementById('f15opts').querySelectorAll('.opt').forEach(function(b){b.disabled=true;});btn.classList.add(ok?'ok':'err');show(ok?'fb15ok':'fb15err');if(ok){state.score.correct++;show('bn15');}else{loseLife();}state.score.total++;}
+// F7+F8
+// TERMINAL SIGMA-7 engine
+var tDB=[{n:"CSA-A",aht:8.2,hrr:1.18,btb:3.1,sic:0,dur:6},{n:"CSA-B",aht:13.8,hrr:1.42,btb:9.7,sic:4,dur:24},{n:"CSA-C",aht:9.1,hrr:1.27,btb:4.2,sic:1,dur:8},{n:"CSA-D",aht:10.4,hrr:1.21,btb:5.0,sic:0,dur:19}];
+var tState={listed:false,filtered:false,inspected:null,accused:false};
+function tlog(msg){var el=document.getElementById("tlog");el.innerHTML+=msg+"<br>";el.scrollTop=el.scrollHeight;}
+function tRow(r,hi){var c=hi?"color:#f59e0b":"color:#e2e8f0";return "<span style="+c+">"+r.n+" &nbsp;AHT:"+r.aht+" HRR:"+r.hrr+" BTB:"+r.btb+"% SIC-blank:"+r.sic+" DUR:"+r.dur+"%</span>";}
+function runCmd(){var raw=document.getElementById("tcmd").value.trim().toLowerCase();document.getElementById("tcmd").value="";if(!raw)return;tlog("<span style=color:#6366f1>&gt; "+raw+"</span>");
+if(raw==="ajuda"||raw==="help"){tlog("Comandos: <b style=color:#f59e0b>listar</b> | <b style=color:#f59e0b>filtrar DUR &gt; 15</b> | <b style=color:#f59e0b>filtrar SIC &gt; 0</b> | <b style=color:#f59e0b>inspecionar [CSA-X]</b> | <b style=color:#f59e0b>acusar [CSA-X]</b>");return;}
+if(raw==="listar"||raw==="ls"){tState.listed=true;tlog("<span style=color:#94a3b8>--- METRICAS DO TURNO (meta AHT&le;8.7 | HRR&le;1.25 | DUR&le;15%) ---</span>");tDB.forEach(function(r){tlog(tRow(r,false));});return;}
+if(raw.startsWith("filtrar")){var parts=raw.split(" ");var metric=parts[1];var val=parseFloat(parts[3]);if(isNaN(val)){tlog("<span style=color:#f87171>Sintaxe: filtrar [metrica] &gt; [valor]</span>");return;}tState.filtered=true;var res=tDB.filter(function(r){return r[metric]>val;});if(res.length===0){tlog("<span style=color:#94a3b8>Nenhum resultado.</span>");}else{tlog("<span style=color:#94a3b8>--- FILTRO: "+metric.toUpperCase()+" &gt; "+val+" ---</span>");res.forEach(function(r){tlog(tRow(r,true));});}return;}
+if(raw.startsWith("inspecionar")){var name=raw.split(" ")[1];if(!name){tlog("<span style=color:#f87171>Uso: inspecionar [CSA-X]</span>");return;}var r=tDB.find(function(x){return x.n.toLowerCase()===name;});if(!r){tlog("<span style=color:#f87171>CSA nao encontrado. Opcoes: CSA-A CSA-B CSA-C CSA-D</span>");return;}tState.inspected=r.n;tlog("<span style=color:#4ade80>DOSSIE "+r.n.toUpperCase()+":</span>");tlog(" AHT: "+r.aht+" min (meta &le;8.7)");tlog(" HRR: "+r.hrr+" (meta &le;1.25)");tlog(" BTB: "+r.btb+"% (meta &le;6%)");tlog(" SIC em branco: "+r.sic+" contatos");tlog(" DUR: "+r.dur+"% (meta &le;15%)");tlog(" Status: "+((r.dur>15&&r.sic>0)?"<b style=color:#f87171>SUSPEITO CONFIRMADO</b>":"<span style=color:#4ade80>dentro do perfil</span>")+"</span>");return;}
+if(raw.startsWith("acusar")){if(tState.accused){tlog("<span style=color:#94a3b8>Acusacao ja registrada.</span>");return;}var name=raw.split(" ")[1];if(!name){tlog("<span style=color:#f87171>Uso: acusar [CSA-X]</span>");return;}tState.accused=true;if(name==="csa-b"){tlog("<span style=color:#4ade80>&#9989; ACUSACAO REGISTRADA: CSA-B. DUR 24% + 4 SICs em branco. Caso encerrado.</span>");state.score.correct++;state.score.total++;show("fb7ok");show("bn7");}else{tlog("<span style=color:#f87171>&#10060; Acusacao incorreta. Use listar e filtrar para revisar os dados.</span>");tState.accused=false;state.score.total++;}return;}
+tlog("<span style=color:#94a3b8>Comando desconhecido. Digite <b style=color:#f59e0b>ajuda</b>.</span>");}
+
+function ansF8(btn,ok){
+  document.getElementById('f8opts').querySelectorAll('.opt').forEach(function(b){b.disabled=true;});
+  btn.classList.add(ok?'ok':'err');
+  show(ok?'fb8ok':'fb8err');if(!ok)loseLife();
+  if(ok){state.score.correct++;} state.score.total++;
+  if(ok){document.getElementById('bn8').style.display='block';}
+}
+</script>
+</body>
+</html>

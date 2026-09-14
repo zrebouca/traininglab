@@ -1,0 +1,262 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jogo do Time â€” Como Reduzir o AHT</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#0f172a;color:#e2e8f0;font-family:system-ui,-apple-system,'Segoe UI',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px}
+  .container{width:100%;max-width:680px}
+  .screen{display:none}.screen.active{display:block}
+  .start-card{background:#1e293b;border:1px solid #334155;border-radius:18px;padding:36px 32px;text-align:center}
+  .start-card h1{font-size:1.7rem;font-weight:800;color:#e2e8f0;margin-bottom:8px}
+  .start-card .sub{color:#94a3b8;font-size:0.95rem;margin-bottom:22px;line-height:1.65}
+  .channels{display:flex;gap:10px;justify-content:center;margin-bottom:18px;flex-wrap:wrap}
+  .channel-pill{background:#0f172a;border:1px solid #334155;border-radius:12px;padding:10px 18px;font-size:0.85rem;color:#94a3b8;text-align:center}
+  .channel-pill span{display:block;color:#e2e8f0;font-weight:700;font-size:1.1rem}
+  .badge-reconhecimento{background:#0f172a;border:1px solid #6366f1;border-radius:12px;padding:14px 20px;margin:18px 0;color:#a5b4fc;font-size:0.9rem;line-height:1.6}
+  .badge-reconhecimento strong{color:#6366f1}
+  .stats-row{display:flex;gap:10px;justify-content:center;margin-bottom:22px;flex-wrap:wrap}
+  .stat-pill{background:#0f172a;border:1px solid #334155;border-radius:10px;padding:8px 16px;font-size:0.83rem;color:#94a3b8}
+  .stat-pill span{color:#e2e8f0;font-weight:700}
+  .btn-start{background:#6366f1;color:#fff;border:none;border-radius:12px;padding:14px 36px;font-size:1.05rem;font-weight:700;cursor:pointer;transition:background .2s;width:100%}
+  .btn-start:hover{background:#4f46e5}
+  .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+  .topbar-title{font-size:0.82rem;color:#64748b;font-weight:600;letter-spacing:.04em;text-transform:uppercase}
+  .hud{display:flex;gap:12px}
+  .hud-item{background:#1e293b;border:1px solid #334155;border-radius:10px;padding:5px 13px;font-size:0.86rem;font-weight:700}
+  .hud-item.score{color:#a5b4fc}
+  .hud-item.streak{color:#f59e0b}
+  .progress-wrap{background:#1e293b;border-radius:8px;height:6px;margin-bottom:18px;overflow:hidden}
+  .progress-bar{background:#6366f1;height:6px;border-radius:8px;transition:width .4s}
+  .question-card{background:#1e293b;border:1px solid #334155;border-radius:18px;padding:26px 24px}
+  .q-tag{display:inline-block;background:#6366f122;color:#818cf8;border-radius:20px;padding:4px 14px;font-size:0.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px}
+  .q-counter{font-size:0.8rem;color:#64748b;margin-bottom:6px}
+  .q-text{font-size:1.03rem;color:#e2e8f0;font-weight:600;line-height:1.55;margin-bottom:20px}
+  .options{display:flex;flex-direction:column;gap:10px}
+  .opt-btn{background:#0f172a;border:2px solid #334155;border-radius:12px;padding:12px 16px;color:#cbd5e1;font-size:0.93rem;text-align:left;cursor:pointer;transition:all .18s;font-family:inherit}
+  .opt-btn:hover:not(:disabled){border-color:#6366f1;color:#e2e8f0}
+  .opt-btn.correct{background:#10b98122;border-color:#10b981;color:#10b981;font-weight:700}
+  .opt-btn.wrong{background:#ef444422;border-color:#ef4444;color:#ef4444}
+  .opt-btn.reveal{background:#10b98111;border-color:#10b98166;color:#6ee7b7}
+  .feedback{margin-top:16px;background:#0f172a;border:1px solid #334155;border-radius:12px;padding:13px 15px;font-size:0.86rem;color:#94a3b8;line-height:1.6;display:none}
+  .feedback.show{display:block}
+  .feedback .verdict{font-weight:800;margin-bottom:5px;font-size:0.93rem}
+  .feedback .verdict.ok{color:#10b981}
+  .feedback .verdict.err{color:#ef4444}
+  .streak-banner{background:#f59e0b22;border:1px solid #f59e0b66;border-radius:10px;padding:7px 13px;color:#fbbf24;font-size:0.83rem;font-weight:700;margin-top:10px;display:none;text-align:center}
+  .btn-next{background:#6366f1;color:#fff;border:none;border-radius:12px;padding:11px 26px;font-size:0.93rem;font-weight:700;cursor:pointer;margin-top:14px;display:none;width:100%}
+  .btn-next:hover{background:#4f46e5}
+  .resume-banner{background:#6366f122;border:1px solid #6366f166;border-radius:10px;padding:9px 14px;color:#a5b4fc;font-size:0.83rem;margin-bottom:14px;display:none;text-align:center}
+  .end-card{background:#1e293b;border:1px solid #334155;border-radius:18px;padding:36px 32px;text-align:center}
+  .end-emoji{font-size:3rem;margin-bottom:10px}
+  .end-title{font-size:1.45rem;font-weight:800;margin-bottom:6px}
+  .badge-label{display:inline-block;border-radius:20px;padding:5px 20px;font-size:0.86rem;font-weight:800;letter-spacing:.06em;margin-bottom:18px}
+  .badge-expert{background:#10b98122;color:#10b981;border:1px solid #10b981}
+  .badge-inter{background:#f59e0b22;color:#f59e0b;border:1px solid #f59e0b}
+  .badge-init{background:#ef444422;color:#ef4444;border:1px solid #ef4444}
+  .score-row{display:flex;gap:12px;justify-content:center;margin:16px 0;flex-wrap:wrap}
+  .score-box{background:#0f172a;border:1px solid #334155;border-radius:12px;padding:13px 20px}
+  .score-box .val{font-size:1.5rem;font-weight:800;color:#a5b4fc}
+  .score-box .lbl{font-size:0.75rem;color:#64748b;margin-top:2px}
+  .reconhecimento-end{background:#0f172a;border:1px solid #6366f1;border-radius:12px;padding:14px 18px;margin:18px 0;color:#a5b4fc;font-size:0.88rem;line-height:1.6}
+  .reconhecimento-end strong{color:#6366f1}
+  .lock-note{color:#475569;font-size:0.78rem;margin-top:14px}
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="screen active" id="startScreen">
+    <div class="start-card">
+      <div style="font-size:2.2rem;margin-bottom:10px">âš¡</div>
+      <h1>Como Reduzir o AHT</h1>
+      <p class="sub">Dicas prÃ¡ticas para atender mais rÃ¡pido <strong style="color:#e2e8f0">sem abrir mÃ£o da qualidade</strong> â€” vÃ¡lidas para Chat e Fone. Cada pergunta Ã© um cenÃ¡rio real do dia a dia.</p>
+      <div class="channels">
+        <div class="channel-pill"><span>ðŸ’¬</span>Chat MU</div>
+        <div class="channel-pill"><span>ðŸ“ž</span>Fone</div>
+        <div class="channel-pill"><span>35</span>perguntas</div>
+      </div>
+      <div class="stats-row">
+        <div class="stat-pill">Dificuldade: <span>IntermediÃ¡rio</span></div>
+        <div class="stat-pill">Estilo: <span>Verdadeiro / Falso</span></div>
+        <div class="stat-pill">BÃ´nus: <span>+3 por sequÃªncia</span></div>
+      </div>
+      <div class="badge-reconhecimento">
+        ðŸŽ Quanto mais vocÃª acerta, mais reconhecimento vocÃª ganha!<br>
+        <span style="font-size:0.83rem;color:#fbbf24">ðŸ† EXPERT (â‰¥80%) â†’ <strong style="color:#6366f1">15 min</strong> &nbsp;|&nbsp; ðŸŽ¯ INTERMEDIÃRIO (â‰¥50%) â†’ <strong style="color:#6366f1">10 min</strong> &nbsp;|&nbsp; ðŸ“š INICIANTE (&lt;50%) â†’ <strong style="color:#6366f1">5 min</strong></span><br>
+        <span style="font-size:0.83rem;color:#64748b">Manda o print da tela final no privado para registrar. ðŸ“¸</span>
+      </div>
+      <button class="btn-start" onclick="startGame()">ComeÃ§ar Jogo ðŸš€</button>
+    </div>
+  </div>
+
+  <div class="screen" id="gameScreen">
+    <div class="topbar">
+      <span class="topbar-title">AHT â€” CHAT &amp; FONE</span>
+      <div class="hud">
+        <div class="hud-item score">â­ <span id="scoreVal">0</span></div>
+        <div class="hud-item streak">ðŸ”¥ <span id="streakVal">0</span></div>
+      </div>
+    </div>
+    <div class="progress-wrap"><div class="progress-bar" id="progressBar"></div></div>
+    <div class="resume-banner" id="resumeBanner">â†©ï¸ Continuando de onde vocÃª parou!</div>
+    <div class="question-card">
+      <div class="q-tag" id="qTag"></div>
+      <div class="q-counter" id="qCounter"></div>
+      <div class="q-text" id="qText"></div>
+      <div class="options" id="optionsWrap"></div>
+      <div class="streak-banner" id="streakBanner"></div>
+      <div class="feedback" id="feedbackBox">
+        <div class="verdict" id="verdictText"></div>
+        <div id="explainText"></div>
+      </div>
+      <button class="btn-next" id="btnNext" onclick="nextQuestion()">PrÃ³xima â†’</button>
+    </div>
+  </div>
+
+  <div class="screen" id="endScreen">
+    <div class="end-card">
+      <div class="end-emoji" id="endEmoji"></div>
+      <div class="end-title" id="endTitle"></div>
+      <div class="badge-label" id="badgeLabel"></div>
+      <div class="score-row">
+        <div class="score-box"><div class="val" id="finalScore"></div><div class="lbl">pontos</div></div>
+        <div class="score-box"><div class="val" id="finalStreak"></div><div class="lbl">melhor sequÃªncia</div></div>
+        <div class="score-box"><div class="val" id="finalPct"></div><div class="lbl">aproveitamento</div></div>
+      </div>
+      <div class="reconhecimento-end" id="reconhecimentoEnd">
+        ðŸŽ VocÃª garantiu <strong id="reconhecimentoMinutes">?</strong> de reconhecimento!<br>
+        <span style="font-size:0.83rem;color:#64748b">Manda o print desta tela no privado para registrar. ðŸ“¸</span>
+      </div>
+      <div class="lock-note">ðŸ”’ Este jogo registra apenas uma tentativa por dispositivo.</div>
+    </div>
+  </div>
+
+</div>
+<script>
+const SAVE_KEY='ahtTimeCsOps_v1_state';
+const questions=[
+  {tag:"HISTÃ“RICO",text:"Ler o histÃ³rico do contato antes de comeÃ§ar a falar Ã© perda de tempo e aumenta o AHT.",options:["Verdadeiro","Falso"],correct:1,trap:true,explain:"âŒ Pegadinha! Ler o histÃ³rico Ã© um dos maiores redutores de AHT que existem. Sem ele, vocÃª faz perguntas que o cliente jÃ¡ respondeu, toma aÃ§Ãµes erradas e gera retrabalho. 1 minuto de leitura economiza 5 de correÃ§Ã£o."},
+  {tag:"HISTÃ“RICO",text:"Em um contato de retomada, resumir o que jÃ¡ foi tratado antes de fazer qualquer pergunta reduz o AHT.",options:["Verdadeiro","Falso"],correct:0,trap:false,explain:"âœ… Correto! Um resumo rÃ¡pido â€” 'Vi que vocÃª tem [problema X] e o atendimento anterior [aÃ§Ã£o Y]. Correto?' â€” alinha em segundos e evita que o cliente repita tudo do zero."},
+  {tag:"HISTÃ“RICO",text:"Perguntar ao cliente 'qual Ã© o seu problema?' em um contato de retomada Ã© a forma mais rÃ¡pida de retomar o atendimento.",options:["Verdadeiro","Falso"],correct:1,trap:true,explain:"âŒ Pegadinha! Ã‰ exatamente o oposto â€” pedir para o cliente explicar de novo o que jÃ¡ estÃ¡ no histÃ³rico Ã© a forma mais lenta e frustrante de retomar. Leia o histÃ³rico, confirme com uma frase e continue."},
+  {tag:"ABERTURA",text:"Uma abertura enxuta no Chat â€” nome + disponibilidade em uma linha â€” Ã© tÃ£o eficaz quanto uma longa e reduz o tempo ocioso no inÃ­cio do contato.",options:["Verdadeiro","Falso"],correct:0,trap:false,explain:"âœ… Correto! Aberturas longas com frases decorativas aumentam o tempo antes de chegar no problema real. No Chat: 'OlÃ¡! Sou [nome], como posso ajudar?' â€” direto, cordial, e jÃ¡ abre espaÃ§o para o cliente."},
+  {tag:"ABERTURA",text:"No Fone, fazer uma abertura padronizada longa antes de ouvir o cliente demonstra profissionalismo e nÃ£o impacta o AHT.",options:["Verdadeiro","Falso"],correct:1,trap:true,explain:"âŒ Pegadinha! No Fone, cada segundo conta no AHT. A abertura deve ser rÃ¡pida e funcional â€” nome, empresa, disponibilidade. O cliente estÃ¡ esperando para falar, nÃ£o para ouvir."},
+  {tag:"ABERTURA",text:"No Chat, quando a abertura do template sai mascarada, reescrever manualmente de forma enxuta Ã© mais eficiente do que tentar recuperar o template.",options:["Verdadeiro","Falso"],correct:0,trap:false,explain:"âœ… Correto! Perder tempo tentando recuperar um template que nÃ£o funcionou aumenta o AHT sem necessidade. Uma linha limpa â€” 'OlÃ¡! Como posso ajudar?' â€” resolve em segundos."},
+  {tag:"DIAGNÃ“STICO",text:"Fazer uma pergunta aberta e ampla no inÃ­cio â€” 'me conta tudo sobre o seu problema' â€” Ã© a forma mais eficiente de entender o caso.",options:["Verdadeiro","Falso"],correct:1,trap:true,explain:"âŒ Pegadinha! Perguntas abertas demais geram respostas longas e pouco objetivas. Perguntas direcionadas sÃ£o mais eficientes: 'O produto chegou com defeito ou nÃ£o chegou?' jÃ¡ filtra o caminho a seguir."},
+  {tag:"DIAGNÃ“STICO",text:"Confirmar o produto e o motivo do contato logo no inÃ­cio â€” antes de qualquer verificaÃ§Ã£o â€” reduz o risco de investigar o caso errado.",options:["Verdadeiro","Falso"],correct:0,trap:false,explain:"âœ… Correto! Verificar o produto errado e recomeÃ§ar Ã© um dos maiores geradores de AHT desnecessÃ¡rio. 10 segundos de confirmaÃ§Ã£o no inÃ­cio economizam minutos de retrabalho."},
+  {tag:"DIAGNÃ“STICO",text:"No Fone, Ã© mais eficiente pedir ao cliente que 'aguarde' logo que ele termina de falar para ir verificar no sistema.",options:["Verdadeiro","Falso"],correct:1,trap:false,explain:"âŒ Errado. No Fone, o ideal Ã© fazer perguntas de qualificaÃ§Ã£o enquanto vocÃª navega no sistema em paralelo. 'Aguarde' logo de inÃ­cio, sem jÃ¡ estar verificando nada, Ã© tempo morto puro."},
+  {tag:"DIAGNÃ“STICO",text:"Identificar todos os problemas do cliente logo no inÃ­cio â€” antes de resolver o primeiro â€” permite planejar a sequÃªncia e reduz o AHT total.",options:["Verdadeiro","Falso"],correct:0,trap:false,explain:"âœ… Correto! Se vocÃª resolve o primeiro problema e descobre um segundo, o contato reinicia. Identificar tudo primeiro permite tratar em sequÃªncia eficiente, sem interrupÃ§Ãµes no final."},
+  {tag:"VERIFICAÃ‡ÃƒO",text:"No Chat, vocÃª deve esperar o cliente terminar de digitar completamente antes de comeÃ§ar a verificar o caso no sistema.",options:["Verdadeiro","Falso"],correct:1,trap:true,explain:"âŒ Pegadinha! Enquanto o cliente digita, vocÃª jÃ¡ pode navegar pelo histÃ³rico, identificar o pedido e entender o contexto. VerificaÃ§Ã£o paralela Ã© um dos maiores redutores de AHT no Chat."},
+  {tag:"VERIFICAÃ‡ÃƒO",text:"No Fone, navegar no sistema enquanto o cliente explica o problema â€” sem interrompÃª-lo â€” Ã© uma prÃ¡tica eficiente que reduz o AHT.",options:["Verdadeiro","Falso"],correct:0,trap:false,explain:"âœ… Correto! Ouvir e navegar em paralelo Ã© uma competÃªncia central no Fone. Chegar Ã  conta do cliente e localizar o pedido enquanto ele fala reduz o tempo de verificaÃ§Ã£o depois."},
+  {tag:"VERIFICAÃ‡ÃƒO",text:"Enviar uma atualizaÃ§Ã£o rÃ¡pida ao cliente durante uma verificaÃ§Ã£o longa no Chat ('Ainda verificando, jÃ¡ volto!') Ã© desnecessÃ¡rio e apenas adiciona mensagens.",options:["Verdadeiro","Falso"],correct:1,trap:true,explain:"âŒ Pegadinha! Sem atualizaÃ§Ã£o, o chat fica inativo e Ã© pausado â€” o que adiciona um novo associate, novo histÃ³rico a ler, nova retomada. Uma atualizaÃ§Ã£o de 5 palavras evita esse ciclo e protege o AHT."},
+  {tag:"VERIFICAÃ‡ÃƒO",text:"Verificar a conta do cliente antes de fazer perguntas â€” quando o histÃ³rico jÃ¡ indica o produto e o pedido â€” reduz o nÃºmero de idas e vindas.",options:["Verdadeiro","Falso"],correct:0,trap:false,explain:"âœ… Correto! Quando o bot jÃ¡ identificou o produto, vocÃª pode ir direto Ã  verificaÃ§Ã£o e confirmar com o cliente em uma frase â€” em vez de perguntar primeiro e verificar depois. Isso corta uma rodada completa de mensagens."},
+  {tag:"PAUSA CHAT",text:"Pausar o chat para buscar informaÃ§Ãµes que poderiam ser verificadas durante o prÃ³prio atendimento aumenta o AHT desnecessariamente.",options:["Verdadeiro","Falso"],correct:0,trap:false,explain:"âœ… Correto! A pausa deve ser usada apenas para aÃ§Ãµes que precisam de tempo fora do chat. Pausa desnecessÃ¡ria = novo associate, nova retomada, cliente frustrado."},
+  {tag:"PAUSA CHAT",text:"Avisar o cliente antes de pausar ('o chat pode ficar sem resposta por atÃ© 2 min, mas continua com vocÃª') reduz contatos de retorno.",options:["Verdadeiro","Falso"],correct:0,trap:false,explain:"âœ… Correto! Clientes nÃ£o avisados que veem o chat pausado muitas vezes encerram e reabrem um novo contato â€” gerando dois AHTs onde era um. Avisar Ã© grÃ¡tis e economiza tempo."},
+  {tag:"PAUSA CHAT",text:"Uma retomada eficiente comeÃ§a com: 'OlÃ¡! Vi no histÃ³rico que vocÃª tem [problema X]. Vou continuar de onde paramos.'",options:["Verdadeiro","Falso"],correct:0,trap:false,explain:"âœ… Correto! Essa frase faz trÃªs coisas em uma: reabre o contato, demonstra que vocÃª leu o histÃ³rico, transmite continuidade. O cliente nÃ£o precisa reexplicar nada."},
+  {tag:"PAUSA CHAT",text:"Pausar o chat logo apÃ³s receber o problema do cliente para 'pensar na soluÃ§Ã£o' Ã© recomendado.",options:["Verdadeiro","Falso"],correct:1,trap:true,explain:"âŒ Pegadinha! Pausa logo no inÃ­cio sem nem tentar verificar Ã© tempo morto. O sistema estÃ¡ aberto â€” use-o. A pausa Ã© para escaladas ou aguardar resposta externa â€” nÃ£o para pensar."},
+  {tag:"FONE",text:"No Fone, cobrir o microfone com a mÃ£o para consultar informaÃ§Ãµes Ã© uma prÃ¡tica aceitÃ¡vel.",options:["Verdadeiro","Falso"],correct:1,trap:true,explain:"âŒ Pegadinha! Cobrir o microfone Ã© inadequado â€” ruÃ­dos passam, o cliente ouve fragmentos, a percepÃ§Ã£o de profissionalismo cai. O correto Ã© usar o hold/mute do sistema, que tambÃ©m aparece corretamente nos relatÃ³rios."},
+  {tag:"FONE",text:"Comunicar ao cliente antes de colocÃ¡-lo em espera ('vou colocar em espera por alguns instantes, pode ser?') reduz o impacto negativo do hold.",options:["Verdadeiro","Falso"],correct:0,trap:false,explain:"âœ… Correto! Clientes avisados antes do hold aceitam melhor a espera. Clientes colocados em hold sem aviso ficam ansiosos, desligam e ligam de novo â€” gerando dois AHTs onde era um."},
+  {tag:"FONE",text:"No Fone, fazer perguntas de qualificaÃ§Ã£o enquanto navega no sistema em paralelo Ã© um hÃ¡bito eficiente.",options:["Verdadeiro","Falso"],correct:0,trap:false,explain:"âœ… Correto! 'Enquanto verifico aqui, vocÃª pode me dizer o mÃ©todo de pagamento?' â€” mantÃ©m o cliente engajado E avanÃ§a a verificaÃ§Ã£o ao mesmo tempo. Ã‰ um dos hÃ¡bitos mais eficientes no Fone."},
+  {tag:"FONE",text:"Usar o tempo de hold para navegar no sistema e jÃ¡ ter a resposta pronta ao retornar reduz o AHT total da ligaÃ§Ã£o.",options:["Verdadeiro","Falso"],correct:0,trap:false,explain:"âœ… Correto! O hold existe para isso â€” verificaÃ§Ã£o que precisa de concentraÃ§Ã£o ou consulta externa. Retornar jÃ¡ com a informaÃ§Ã£o pronta elimina mais uma rodada de 'vou verificar'."},
+  {tag:"EFICIÃŠNCIA",text:"Fazer perguntas cujas respostas jÃ¡ estÃ£o visÃ­veis no sistema (pedido, produto, valor) Ã© uma prÃ¡tica eficiente para confirmar dados.",options:["Verdadeiro","Falso"],correct:1,trap:true,explain:"âŒ Pegadinha! Perguntar o que vocÃª jÃ¡ pode ver no sistema Ã© tempo desperdiÃ§ado. Confirme apenas o que nÃ£o estÃ¡ claro ou que precisa de validaÃ§Ã£o de seguranÃ§a. O restante vocÃª verifica diretamente."},
+  {tag:"EFICIÃŠNCIA",text:"Pedir o nÃºmero do pedido antes de tentar localizar pelo histÃ³rico da conta Ã© sempre necessÃ¡rio.",options:["Verdadeiro","Falso"],correct:1,trap:true,explain:"âŒ Pegadinha! Quando o cliente jÃ¡ passou data, produto e valor, tente localizar pelo histÃ³rico primeiro. SÃ³ peÃ§a o nÃºmero se nÃ£o encontrar. Pedir o que o cliente jÃ¡ deu aumenta o AHT e passa a impressÃ£o de descaso."},
+  {tag:"EFICIÃŠNCIA",text:"Confirmar o entendimento do problema com o cliente em uma frase antes de verificar evita investigar o caso errado e reduz o AHT.",options:["Verdadeiro","Falso"],correct:0,trap:false,explain:"âœ… Correto! 'EntÃ£o vocÃª quer a substituiÃ§Ã£o do item X que chegou com defeito, correto?' â€” 5 segundos que evitam investigar o pedido errado ou propor a soluÃ§Ã£o errada."},
+  {tag:"EFICIÃŠNCIA",text:"No Chat, responder em blocos longos com mÃºltiplas informaÃ§Ãµes de uma vez Ã© mais eficiente do que dividir em mensagens menores.",options:["Verdadeiro","Falso"],correct:1,trap:true,explain:"âŒ Pegadinha! Blocos longos demoram mais para o cliente ler, geram dÃºvidas sobre partes especÃ­ficas e aumentam o back-and-forth. Mensagens curtas e objetivas â€” uma ideia por vez â€” sÃ£o mais rÃ¡pidas de processar."},
+  {tag:"ENCERRAMENTO",text:"Encerrar o contato sem perguntar se o cliente tem mais alguma dÃºvida Ã© mais eficiente e reduz o AHT.",options:["Verdadeiro","Falso"],correct:1,trap:true,explain:"âŒ Pegadinha! Encerrar sem verificar pode gerar um segundo contato com uma pergunta que poderia ter sido resolvida ali mesmo. Um segundo contato = dois AHTs. 'Mais alguma coisa?' Ã© rÃ¡pido e economiza no longo prazo."},
+  {tag:"ENCERRAMENTO",text:"Um encerramento direto e especÃ­fico â€” citando o que foi resolvido e o prÃ³ximo passo â€” Ã© mais eficiente do que um longo e genÃ©rico.",options:["Verdadeiro","Falso"],correct:0,trap:false,explain:"âœ… Correto! 'Sua substituiÃ§Ã£o foi processada â€” e-mail de instruÃ§Ã£o em atÃ© 4h. Mais alguma coisa?' â€” claro, rÃ¡pido, completo. Encerramentos genÃ©ricos com frases decorativas aumentam o AHT sem agregar valor."},
+  {tag:"ENCERRAMENTO",text:"No Fone, confirmar com o cliente o que foi resolvido antes de encerrar a ligaÃ§Ã£o reduz o risco de ele ligar de novo com a mesma dÃºvida.",options:["Verdadeiro","Falso"],correct:0,trap:false,explain:"âœ… Correto! 'EntÃ£o, confirmando: o reembolso foi processado e vocÃª recebe em atÃ© 12 dias Ãºteis. Tem mais alguma coisa?' â€” essa confirmaÃ§Ã£o final fecha o ciclo e evita o callback."},
+  {tag:"AUTONOMIA",text:"Escalar para outro setor para situaÃ§Ãµes que vocÃª jÃ¡ tem autorizaÃ§Ã£o para resolver aumenta o AHT sem necessidade.",options:["Verdadeiro","Falso"],correct:0,trap:false,explain:"âœ… Correto! Escaladas desnecessÃ¡rias adicionam tempo de espera e riscos de perda de contato. Conhecer bem seus limites de autorizaÃ§Ã£o Ã© uma das formas mais diretas de reduzir AHT."},
+  {tag:"AUTONOMIA",text:"Quando vocÃª tem dÃºvida sobre uma aÃ§Ã£o, escalar imediatamente Ã© sempre a opÃ§Ã£o mais segura.",options:["Verdadeiro","Falso"],correct:1,trap:true,explain:"âŒ Pegadinha! Antes de escalar, verifique no CS Assistant ou no fluxo do AC3. A maioria das dÃºvidas tem resposta no sistema â€” escalar antes de verificar Ã© um gerador de AHT evitÃ¡vel."},
+  {tag:"AUTONOMIA",text:"Conhecer bem os fluxos do AC3 e as polÃ­ticas de reembolso e substituiÃ§Ã£o permite resolver mais contatos sem precisar consultar outro setor.",options:["Verdadeiro","Falso"],correct:0,trap:false,explain:"âœ… Correto! Conhecimento tÃ©cnico sÃ³lido Ã© o maior redutor de AHT individual que existe. Cada polÃ­tica que vocÃª conhece de cor Ã© uma consulta a menos, um hold a menos por ligaÃ§Ã£o."},
+  {tag:"FONE SILÃŠNCIO",text:"No Fone, ficar em silÃªncio enquanto verifica algo no sistema â€” sem avisar o cliente â€” Ã© adequado.",options:["Verdadeiro","Falso"],correct:1,trap:false,explain:"âŒ Errado. SilÃªncio no Fone sem aviso gera ansiedade imediata â€” o cliente nÃ£o sabe se vocÃª desligou ou ainda estÃ¡ lÃ¡. Sempre comunique: 'Estou verificando aqui, pode aguardar um instante?' â€” isso mantÃ©m o cliente tranquilo."},
+  {tag:"FONE SILÃŠNCIO",text:"Usar frases de espera ativa no Fone â€” 'estou abrindo o pedido aqui, jÃ¡ te confirmo' â€” reduz a percepÃ§Ã£o de demora e as interrupÃ§Ãµes do cliente.",options:["Verdadeiro","Falso"],correct:0,trap:false,explain:"âœ… Correto! Frases de espera ativa comunicam que vocÃª estÃ¡ trabalhando. Isso reduz as interrupÃ§Ãµes ('alÃ´? estÃ¡ aÃ­?'), que adicionam tempo desnecessÃ¡rio Ã  ligaÃ§Ã£o."},
+  {tag:"MINDSET",text:"AHT alto Ã© sempre sinal de que o associate estÃ¡ tomando muito tempo â€” nunca que o caso era genuinamente complexo.",options:["Verdadeiro","Falso"],correct:1,trap:true,explain:"âŒ Pegadinha! Casos complexos naturalmente tÃªm AHT maior â€” e isso Ã© esperado. O objetivo Ã© eliminar o tempo perdido em ineficiÃªncias: retrabalho, perguntas desnecessÃ¡rias, holds evitÃ¡veis. NÃ£o cortar atalhos na qualidade."},
+  {tag:"MINDSET",text:"Resolver um problema completamente em um Ãºnico contato â€” mesmo que leve um pouco mais de tempo â€” tende a reduzir o AHT mÃ©dio ao longo do tempo.",options:["Verdadeiro","Falso"],correct:0,trap:false,explain:"âœ… Correto! Um contato bem resolvido evita o callback â€” que seria mais um AHT somado ao primeiro. Resolver pela metade para economizar 2 minutos agora pode gerar um contato de 10 minutos depois. Qualidade e eficiÃªncia andam juntas."},
+  {tag:"MINDSET",text:"A melhor forma de reduzir o AHT Ã© encerrar contatos mais rÃ¡pido, mesmo que o problema nÃ£o esteja completamente resolvido.",options:["Verdadeiro","Falso"],correct:1,trap:true,explain:"âŒ Pegadinha! Essa Ã© a forma mais garantida de aumentar o AHT mÃ©dio â€” porque gera callbacks. O foco correto Ã© eliminar ineficiÃªncias dentro do contato. NÃ£o cortar o atendimento pela metade."}
+];
+
+let state={idx:0,score:0,streak:0,maxStreak:0,completed:false,finalScore:0,answered:false,selected:-1};
+function saveState(){localStorage.setItem(SAVE_KEY,JSON.stringify(state));}
+function loadState(){const s=localStorage.getItem(SAVE_KEY);if(s)state=JSON.parse(s);}
+function startGame(){
+  loadState();
+  document.getElementById('startScreen').classList.remove('active');
+  document.getElementById('gameScreen').classList.add('active');
+  if(state.completed){showEnd();return;}
+  if(state.idx>0)document.getElementById('resumeBanner').style.display='block';
+  renderQuestion();
+}
+function renderQuestion(){
+  const q=questions[state.idx];
+  document.getElementById('progressBar').style.width=((state.idx/questions.length)*100)+'%';
+  document.getElementById('scoreVal').textContent=state.score;
+  document.getElementById('streakVal').textContent=state.streak;
+  document.getElementById('qTag').textContent=q.tag;
+  document.getElementById('qCounter').textContent='Pergunta '+(state.idx+1)+' de '+questions.length;
+  document.getElementById('qText').textContent=q.text;
+  const wrap=document.getElementById('optionsWrap');
+  wrap.innerHTML='';
+  q.options.forEach((o,i)=>{const btn=document.createElement('button');btn.className='opt-btn';btn.textContent=o;btn.onclick=()=>answer(i);wrap.appendChild(btn);});
+  document.getElementById('feedbackBox').classList.remove('show');
+  document.getElementById('btnNext').style.display='none';
+  document.getElementById('streakBanner').style.display='none';
+  if(state.answered)restoreAnswered();
+}
+function restoreAnswered(){
+  const q=questions[state.idx];const btns=document.querySelectorAll('.opt-btn');btns.forEach(b=>b.disabled=true);
+  if(state.selected===q.correct)btns[state.selected].classList.add('correct');
+  else{btns[state.selected].classList.add('wrong');btns[q.correct].classList.add('reveal');}
+  showFeedback(state.selected===q.correct,q);document.getElementById('btnNext').style.display='block';
+}
+function answer(i){
+  if(state.answered)return;state.answered=true;state.selected=i;
+  const q=questions[state.idx];const btns=document.querySelectorAll('.opt-btn');btns.forEach(b=>b.disabled=true);
+  const correct=i===q.correct;
+  if(correct){
+    btns[i].classList.add('correct');const pts=q.trap?15:10;state.streak++;
+    if(state.streak>state.maxStreak)state.maxStreak=state.streak;
+    const bonus=state.streak>=2?Math.min((state.streak-1)*3,15):0;state.score+=pts+bonus;
+    if(state.streak>=2){const sb=document.getElementById('streakBanner');sb.textContent='ðŸ”¥ SequÃªncia de '+state.streak+'! +'+bonus+' bÃ´nus';sb.style.display='block';}
+  }else{btns[i].classList.add('wrong');btns[q.correct].classList.add('reveal');state.streak=0;}
+  saveState();showFeedback(correct,q);
+  document.getElementById('scoreVal').textContent=state.score;
+  document.getElementById('streakVal').textContent=state.streak;
+  document.getElementById('btnNext').style.display='block';
+}
+function showFeedback(correct,q){
+  const fb=document.getElementById('feedbackBox');
+  document.getElementById('verdictText').className='verdict '+(correct?'ok':'err');
+  document.getElementById('verdictText').textContent=correct?'âœ… Correto!':'âŒ NÃ£o foi dessa vez';
+  document.getElementById('explainText').innerHTML=q.explain;
+  fb.classList.add('show');
+}
+function nextQuestion(){
+  state.idx++;state.answered=false;state.selected=-1;
+  if(state.idx>=questions.length){finishGame();return;}
+  saveState();renderQuestion();
+}
+function finishGame(){state.completed=true;state.finalScore=state.score;saveState();showEnd();}
+function showEnd(){
+  document.getElementById('gameScreen').classList.remove('active');
+  document.getElementById('endScreen').classList.add('active');
+  const max=questions.length*15;const pct=Math.round((state.finalScore/max)*100);
+  document.getElementById('finalScore').textContent=state.finalScore;
+  document.getElementById('finalStreak').textContent=state.maxStreak;
+  document.getElementById('finalPct').textContent=pct+'%';
+  let emoji,title,badge,cls;
+  let reconhecimento;
+  if(pct>=80){emoji='ðŸ†';title='Expert em EficiÃªncia!';badge='EXPERT';cls='badge-expert';reconhecimento='15 minutos';}
+  else if(pct>=50){emoji='ðŸŽ¯';title='Bom trabalho!';badge='INTERMEDIÃRIO';cls='badge-inter';reconhecimento='10 minutos';}
+  else{emoji='ðŸ“š';title='Continue praticando!';badge='INICIANTE';cls='badge-init';reconhecimento='5 minutos';}
+  document.getElementById('endEmoji').textContent=emoji;
+  document.getElementById('endTitle').textContent=title;
+  const bl=document.getElementById('badgeLabel');bl.textContent=badge;bl.className='badge-label '+cls;
+  document.getElementById('reconhecimentoMinutes').textContent=reconhecimento;
+}
+loadState();
+if(state.completed){document.getElementById('startScreen').classList.remove('active');document.getElementById('endScreen').classList.add('active');showEnd();}
+</script>
+</body>
+</html>

@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Qualidade no Encerramento -- CCX CS BR</title>
+<style>
+:root{--bg:#0d1b2a;--card:#1a2744;--teal:#22d3ee;--teal2:#67e8f9;--g:#4ade80;--r:#f87171;--t:#e2e8f0;--m:#94a3b8;--b:#2d3f6b}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--t);font-family:Segoe UI,sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px}
+.wrap{max-width:580px;width:100%}
+.card{background:var(--card);border:1px solid var(--b);border-radius:16px;padding:28px 24px}
+h1{font-size:1.45rem;font-weight:900;color:#fff;margin-bottom:8px}
+h1 span{color:var(--teal)}
+.sub{font-size:.87rem;color:var(--m);margin-bottom:20px;line-height:1.6}
+.pill{display:block;background:#22d3ee22;border:1px solid #22d3ee55;color:var(--teal);border-radius:20px;padding:5px 16px;font-size:.78rem;font-weight:700;text-align:center;width:fit-content;margin:0 auto 16px}
+.srow{display:flex;gap:10px;justify-content:center;margin-bottom:20px;flex-wrap:wrap}
+.sp{background:var(--bg);border:1px solid var(--b);border-radius:10px;padding:6px 14px;font-size:.8rem;color:var(--m)}
+.btn{display:block;width:100%;background:var(--teal);color:#0d1b2a;border:none;border-radius:12px;padding:14px;font-size:1rem;font-weight:800;cursor:pointer;transition:.15s}
+.btn:hover{background:var(--teal2)}
+.hud{display:flex;justify-content:space-between;margin-bottom:12px}
+.hc{background:var(--bg);border:1px solid var(--b);border-radius:10px;padding:5px 12px;font-size:.85rem;font-weight:700}
+.hs{color:#a78bfa}.hk{color:var(--teal)}
+.prog{height:6px;background:var(--bg);border-radius:6px;margin-bottom:16px;overflow:hidden}
+.pf{height:100%;background:linear-gradient(90deg,var(--teal),var(--teal2));transition:width .4s;border-radius:6px}
+.qtag{display:inline-block;background:#22d3ee22;color:var(--teal);border:1px solid #22d3ee44;border-radius:20px;padding:3px 12px;font-size:.7rem;font-weight:700;margin-bottom:12px}
+.qtext{font-size:1.03rem;font-weight:700;color:#fff;margin-bottom:16px;line-height:1.45}
+.opts{display:flex;flex-direction:column;gap:8px}
+.opt{background:var(--bg);border:2px solid var(--b);border-radius:12px;padding:12px 16px;font-size:.9rem;color:#cbd5e1;cursor:pointer;text-align:left;transition:.15s;font-family:inherit}
+.opt:hover:not([disabled]){border-color:var(--teal)}
+.opt.correct{border-color:var(--g);background:#4ade8018;color:var(--g);font-weight:700}
+.opt.wrong{border-color:var(--r);background:#f8717118;color:var(--r)}
+.opt.dim{opacity:.5;cursor:default}
+.fb{margin-top:12px;padding:12px 14px;border-radius:12px;font-size:.83rem;line-height:1.6;display:none}
+.fb.ok{background:#4ade8015;border-left:3px solid var(--g);color:#bbf7d0}
+.fb.bad{background:#f8717115;border-left:3px solid var(--r);color:#fecaca}
+.trap{background:var(--teal);color:#0d1b2a;border-radius:20px;padding:1px 8px;font-size:.65rem;font-weight:800;margin-right:4px}
+.nxt{display:none;margin-top:12px;width:100%;background:var(--card);border:2px solid var(--teal);border-radius:12px;padding:12px;color:var(--teal);font-size:.9rem;font-weight:700;cursor:pointer;font-family:inherit}
+.nxt:hover{background:#22d3ee22}
+.end-em{font-size:3rem;text-align:center;margin-bottom:8px}
+.escb{font-size:2.4rem;font-weight:900;color:#fff;text-align:center;margin:8px 0}
+.badge{display:block;padding:5px 20px;border-radius:20px;font-size:.85rem;font-weight:800;text-align:center;width:fit-content;margin:0 auto}
+.be{background:#4ade8022;color:var(--g);border:1px solid var(--g)}
+.bi{background:#22d3ee22;color:var(--teal);border:1px solid var(--teal)}
+.bn{background:#f8717122;color:var(--r);border:1px solid var(--r)}
+.scards{display:flex;gap:10px;justify-content:center;margin:14px 0;flex-wrap:wrap}
+.sc{background:var(--bg);border:1px solid var(--b);border-radius:12px;padding:12px 16px;text-align:center;min-width:80px}
+.scv{font-size:1.4rem;font-weight:900;color:#a78bfa}
+.scl{font-size:.65rem;color:var(--m);margin-top:2px}
+.rec{background:#22d3ee18;border:1px solid #22d3ee55;border-radius:12px;padding:12px 14px;font-size:.83rem;color:var(--teal2);margin:12px 0;line-height:1.6}
+.lk{font-size:.75rem;color:#475569;margin-top:10px;text-align:center}
+.hidden{display:none}
+</style></head><body><div class="wrap">
+<div id="intro" class="card">
+<div style="font-size:2.8rem;text-align:center;margin-bottom:8px">ð</div>
+<h1>Â¡Operacao <span>Encerramento</span>!</h1>
+<p class="sub">Os audits W33-W34-W35 revelaram padroes sistematicos de falha. Encerramento prematuro, falta de empatia, KYC como bloqueador, CDC mal aplicado. Voce sabe identificar o certo do errado?</p>
+<div class="pill">32 questoes â¢ CCX Qualidade â¢ Ago/2026</div>
+<div class="srow"><span class="sp">32 perguntas</span><span class="sp">V/F + multipla escolha</span><span class="sp">Ranking interno</span></div>
+<button class="btn" onclick="startGame()">â¡ Iniciar Investigacao</button>
+</div>
+<div id="game" class="hidden">
+<div class="hud"><div class="hc hs">â­ <span id="sc">0</span></div><span style="font-size:.78rem;color:#64748b" id="qn"></span><div class="hc hk">ð¥ <span id="sk">0</span></div></div>
+<div class="prog"><div class="pf" id="pf"></div></div>
+<div class="card">
+<div class="qtag" id="qtag"></div>
+<div class="qtext" id="qt"></div>
+<div class="opts" id="opts"></div>
+<div class="fb" id="fb"></div>
+<button class="nxt" id="nxt" onclick="next()">Proxima â</button>
+</div>
+</div>
+<div id="end" class="hidden"><div class="card">
+<div class="end-em" id="ee"></div><h1 id="et"></h1><div class="badge" id="bdg"></div>
+<div class="escb"><span id="fs">0</span> pts</div>
+<div class="scards"><div class="sc"><div class="scv" id="ac"></div><div class="scl">acertos</div></div><div class="sc"><div class="scv" id="ms"></div><div class="scl">melhor seq.</div></div><div class="sc"><div class="scv" id="pc"></div><div class="scl">aproveit.</div></div></div>
+<div class="rec" id="rec"></div>
+<div class="lk">ð Uma tentativa por dispositivo. Manda o print no privado!</div>
+</div></div>
+</div>
+<script>
+const KEY='encerramentoW35_v1_2026';
+const Q=[
+{tag:'ENCERRAMENTO',t:'Encerrar sem confirmar resolucao e aceitavel quando a informacao foi fornecida.',opts:['Verdadeiro','Falso'],c:1,x:'Gap #1 W33-W35: encerramento sem confirmacao. Sempre perguntar antes de fechar.',trap:false},
+{tag:'ENCERRAMENTO',t:'Encerramento de qualidade = (1) confirmacao de resolucao + (2) proximo passo + (3) abertura para duvidas.',opts:['Verdadeiro','Falso'],c:0,x:'Correto. Esses 3 elementos garantem que o cliente sai com clareza e satisfacao.',trap:false},
+{tag:'EMPATIA',t:'Empatia generica (Lamento pelo transtorno) tem o mesmo impacto de empatia especifica.',opts:['Verdadeiro','Falso'],c:1,x:'TRAP! Empatia especifica menciona produto/situacao real. Clientes percebem a diferenca.',trap:true},
+{tag:'KYC BLOQUEADOR',t:'Encerrar o contato assim que o KYC for enviado ao cliente e correto.',opts:['Verdadeiro','Falso'],c:1,x:'TRAP! KYC e so um passo. Apos KYC, retornar ao problema original e resolver.',trap:true},
+{tag:'KYC BLOQUEADOR',t:'KYC pode ser usado para encerrar um contato sem resolver o problema do cliente.',opts:['Verdadeiro','Falso'],c:1,x:'Falso. KYC como bloqueador e Gap #2 da equipe W33-W35. Nunca encerrar sem resolver o motivo original.',trap:false},
+{tag:'CDC',t:'O CSA pode dizer que a Amazon nao consegue intervir em disputas com vendedores parceiros.',opts:['Verdadeiro','Falso'],c:1,x:'GRAVE! Amazon tem responsabilidade (CDC Art. 7o). Nunca dizer somos so plataforma ou nao conseguimos intervir.',trap:false},
+{tag:'CDC',t:'Art. 49 CDC (arrependimento) e valido por 7 dias corridos apos recebimento.',opts:['Verdadeiro','Falso'],c:0,x:'Correto. Art. 49 = 7 dias corridos. Apos isso entra a politica de 30 dias da Amazon.',trap:false},
+{tag:'TOM',t:'Tom celebratorio ao encerrar contato onde produto ainda nao foi entregue e adequado.',opts:['Verdadeiro','Falso'],c:1,x:'TRAP! Tom celebratorio em problema nao resolvido = desconexao critica. Gap W35 Contato 25.',trap:true},
+{tag:'PEDIR AVALIACAO',t:'Dizer Vou pedir pra voce dar uma olhadinha ate o final e solicitar avaliacao indiretamente.',opts:['Verdadeiro','Falso'],c:0,x:'TRAP! Solicitacao indireta e tao inadequada quanto a direta. Viola orientacao do time.',trap:true},
+{tag:'RECONTATO',t:'Ler historico de contatos anteriores antes de abordar o cliente em um recontato e opcional.',opts:['Verdadeiro','Falso'],c:1,x:'Falso. Ler historico ANTES e obrigatorio. Ignorar = descaso. Gap de historico ignorado W35.',trap:false},
+{tag:'DIAGNOSTICO',t:'O CSA pode processar o cancelamento sem confirmar o motivo com o cliente.',opts:['Verdadeiro','Falso'],c:1,x:'TRAP! Gap de diagnostico W34. Sempre confirmar o motivo antes de agir.',trap:true},
+{tag:'SIC',t:'SIC deve ser preenchido no final do contato, apos todas as acoes concluidas.',opts:['Verdadeiro','Falso'],c:1,x:'TRAP! SIC no MOMENTO da identificacao do motivo -- antes de transferir, pausar ou encerrar.',trap:true},
+{tag:'CONTA BLOQUEADA',t:'Cliente recebeu SMS de tentativas excedidas no KYC. CSA deve continuar enviando links KYC padrao?',opts:['Verdadeiro','Falso'],c:1,x:'Falso. Tentativas excedidas = estado diferente de pending KYC. Escalar via canal interno. Link padrao nao funciona.',trap:false},
+{tag:'CUPOM',t:'Limite minimo para cupons promocionais Amazon BR e atualmente R$40,00.',opts:['Verdadeiro','Falso'],c:1,x:'TRAP! Atualizado para R$60,00 em 27/02/2026. R$40 nao e mais vigente.',trap:true},
+{tag:'VALE-PRESENTE',t:'CS BR pode auxiliar o cliente na compra de um novo vale-presente.',opts:['Verdadeiro','Falso'],c:1,x:'Falso. CS BR NAO vende vale-presente. Apenas processa RESGATES e reembolsos em vale-presente.',trap:false},
+{tag:'PIX RESTRICAO',t:'CSA deve usar a expressao abuso de conta ao explicar restricoes no Pix ao cliente.',opts:['Verdadeiro','Falso'],c:1,x:'TRAP! Nunca usar abuso de conta. Framing correto: restricao temporaria no Pix, nao e grave, voce pode usar cartao de credito.',trap:true},
+{tag:'REEMBOLSO PIX',t:'Reembolso via Pix pode ser enviado para qualquer chave informada pelo cliente.',opts:['Verdadeiro','Falso'],c:1,x:'Falso. Pix de reembolso so para chave do CPF do TITULAR do pedido. Nunca para terceiros.',trap:false},
+{tag:'ENCERRAMENTO PREMATURO',t:'Cliente nao respondeu por 2 minutos. CSA pode encerrar o contato.',opts:['Verdadeiro','Falso'],c:1,x:'TRAP! Silencio nao e confirmacao. Sempre perguntar: Posso encerrar? Ha mais algo que eu possa ajudar?',trap:true},
+{tag:'CLOSURE DECLARADO',t:'Dizer Fico muito feliz em ter resolvido quando o problema ainda esta em andamento e erro de encerramento.',opts:['Verdadeiro','Falso'],c:0,x:'Correto. Closure contradicts resolution state = gap W34. Nunca declarar resolucao quando o problema esta aberto.',trap:false},
+{tag:'REEMBOLSO PIX',t:'Prazo do reembolso via Pix (apos validacao do CPF titular) e de ate 3 dias uteis.',opts:['Verdadeiro','Falso'],c:0,x:'Correto. Pix reembolso: ate 3 dias uteis. Informar o prazo correto evita recontato.',trap:false},
+{tag:'CARTAO REEMBOLSO',t:'Reembolso em cartao de credito pode levar de 1 a 2 faturas para aparecer.',opts:['Verdadeiro','Falso'],c:0,x:'Correto. Cartao de credito: ate 1-2 faturas (~10 dias uteis). Alinhar expectativa correta evita recontato.',trap:false},
+{tag:'EMPATIA ALIMENTO',t:'Processar corretamente o reembolso de alimento atrasado sem reconhecer o impacto na familia e um atendimento completo.',opts:['Verdadeiro','Falso'],c:1,x:'Falso. Eficiencia procedural nao substitui empatia em cenarios graves. Alimento para familia exige reconhecimento explicito.',trap:false},
+{tag:'PLATAFORMA',t:'Para produtos de marketplace, a Amazon e apenas intermediaria e pode redirecionar o cliente diretamente para o vendedor.',opts:['Verdadeiro','Falso'],c:1,x:'Falso. Amazon tem responsabilidade solidaria (CDC Art. 7o). Nunca redirecionar sem tentar resolver primeiro.',trap:true},
+{tag:'ABANDONO ESTRUTURAL',t:'Um contato que chegou com 5+ transferencias e sem demanda identificada deve ser tratado como contato novo.',opts:['Verdadeiro','Falso'],c:1,x:'TRAP! Contato com multiplas transferencias sem demanda = abandono estrutural. CSA DEVE identificar a demanda antes de qualquer acao.',trap:true},
+];
+let st={i:0,sc:0,sk:0,ms:0,cor:0,done:false,fs:0};
+function load(){try{const s=localStorage.getItem(KEY);if(s)Object.assign(st,JSON.parse(s));}catch(e){}}
+function save(){localStorage.setItem(KEY,JSON.stringify(st));}
+function show(id){['intro','game','end'].forEach(x=>{const el=document.getElementById(x);if(el){el.className=(el.className.split('hidden').join('')).trim()+(x!==id?' hidden':''   ).trim();}});}
+function startGame(){load();if(st.done){buildEnd();show('end');return;}show('game');render();}
+function render(){
+  const q=Q[st.i];
+  document.getElementById('qn').textContent='Q '+(st.i+1)+'/'+Q.length;
+  document.getElementById('sc').textContent=st.sc;
+  document.getElementById('sk').textContent=st.sk;
+  document.getElementById('pf').style.width=(st.i/Q.length*100)+'%';
+  document.getElementById('qtag').textContent=q.tag+(q.trap?' ð¯':''  );
+  document.getElementById('qt').textContent=q.t;
+  const od=document.getElementById('opts');od.innerHTML='';
+  q.opts.forEach((o,i)=>{const b=document.createElement('button');b.className='opt';b.textContent=o;b.onclick=()=>answer(i);od.appendChild(b);});
+  document.getElementById('fb').style.display='none';
+  document.getElementById('nxt').style.display='none';
+}
+function answer(sel){
+  const q=Q[st.i];
+  const btns=document.querySelectorAll('.opt');btns.forEach(b=>b.disabled=true);
+  const ok=sel===q.c;
+  btns[sel].className='opt '+(ok?'correct':'wrong');
+  if(!ok)btns[q.c].className='opt correct';else btns.forEach((b,j)=>{if(j!==sel)b.className='opt dim';});
+  if(ok){const pts=q.trap?15:10;st.sk++;if(st.sk>st.ms)st.ms=st.sk;const bon=st.sk>=2?Math.min((st.sk-1)*3,15):0;st.sc+=pts+bon;st.cor++;}
+  else st.sk=0;
+  document.getElementById('sc').textContent=st.sc;
+  document.getElementById('sk').textContent=st.sk;
+  const fb=document.getElementById('fb');
+  fb.className='fb '+(ok?'ok':'bad');
+  fb.innerHTML=(q.trap?'<span class="trap">PEGADINHA</span>':''  )+(ok?'&#x2705; ':'&#x274c; ')+q.x;
+  fb.style.display='block';
+  document.getElementById('nxt').style.display='block';
+  save();
+}
+function next(){st.i++;if(st.i>=Q.length){st.done=true;st.fs=st.sc;save();buildEnd();show('end');}else{save();render();}}
+function buildEnd(){
+  const pct=Math.round(st.cor/Q.length*100);
+  let em,tit,cls;
+  if(pct>=80){em='&#x1F3C6;';tit='Especialista em Qualidade!';cls='be';}
+  else if(pct>=55){em='&#x1F3AF;';tit='Bom progresso!';cls='bi';}
+  else{em='&#x1F4DA;';tit='Continue praticando!';cls='bn';}
+  document.getElementById('ee').innerHTML=em;
+  document.getElementById('et').textContent=tit;
+  const b=document.getElementById('bdg');b.textContent=pct>=80?'EXPERT':pct>=55?'AVANCADO':'INICIANTE';b.className='badge '+cls;
+  document.getElementById('fs').textContent=st.fs;
+  document.getElementById('ac').textContent=st.cor+'/'+Q.length;
+  document.getElementById('ms').textContent=st.ms;
+  document.getElementById('pc').textContent=pct+'%';
+  let rec=pct>=80?'Dominio total dos padroes de qualidade CCX. Compartilhe esse conhecimento com a equipe.':
+  pct>=55?'Bom desempenho! Revise KYC bloqueador e encerramento prematuro -- sao os gaps mais frequentes.':
+  'Foco nos gaps principais: (1) sempre confirmar resolucao, (2) nunca usar KYC como bloqueio, (3) empatia especifica.';
+  document.getElementById('rec').textContent=rec;
+}
+load();if(st.done){buildEnd();show('end');}
+</script></body></html>

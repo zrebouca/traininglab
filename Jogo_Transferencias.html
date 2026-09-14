@@ -1,0 +1,292 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Transfere ou NÃ£o? â€” O Jogo</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#0f172a;color:#e2e8f0;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.wrap{max-width:680px;width:100%}
+.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+.title{font-size:1.3rem;font-weight:800;color:#fff}
+.title span{color:#6366f1}
+.hud{display:flex;gap:10px}
+.pill{background:#1e293b;border:1px solid #334155;border-radius:20px;padding:6px 14px;font-size:0.8rem;font-weight:700}
+.pill.score{color:#10b981}
+.pill.streak{color:#f59e0b}
+.progress-track{height:8px;background:#1e293b;border-radius:8px;overflow:hidden;margin-bottom:24px}
+.progress-fill{height:100%;background:linear-gradient(90deg,#6366f1,#818cf8);border-radius:8px;transition:width .4s ease}
+.card{background:#1e293b;border-radius:18px;padding:28px;border:1px solid #334155;position:relative;overflow:hidden}
+.q-tag{display:inline-block;background:#6366f122;color:#818cf8;font-size:0.7rem;font-weight:800;padding:4px 12px;border-radius:20px;margin-bottom:14px;text-transform:uppercase;letter-spacing:.03em}
+.q-text{font-size:1.15rem;font-weight:600;color:#fff;margin-bottom:22px;line-height:1.5}
+.options{display:flex;flex-direction:column;gap:10px}
+.opt{background:#0f172a;border:2px solid #334155;border-radius:12px;padding:14px 18px;font-size:0.95rem;font-weight:600;color:#e2e8f0;cursor:pointer;transition:all .15s;text-align:left}
+.opt:hover:not(.disabled){border-color:#6366f1;background:#1e2947}
+.opt.correct{border-color:#10b981;background:#10b98122;color:#10b981}
+.opt.wrong{border-color:#ef4444;background:#ef444422;color:#ef4444}
+.opt.disabled{cursor:default;opacity:.6}
+.feedback{margin-top:18px;padding:16px 18px;border-radius:12px;font-size:0.88rem;line-height:1.55;display:none}
+.feedback.show{display:block}
+.feedback.ok{background:#10b98115;border-left:4px solid #10b981;color:#d1fae5}
+.feedback.bad{background:#ef444415;border-left:4px solid #ef4444;color:#fee2e2}
+.feedback .trap{display:inline-block;background:#f59e0b;color:#0f172a;font-weight:800;font-size:0.7rem;padding:3px 10px;border-radius:20px;margin-bottom:8px}
+.next-btn{margin-top:18px;width:100%;background:#6366f1;color:#fff;border:none;border-radius:12px;padding:14px;font-size:0.95rem;font-weight:700;cursor:pointer;display:none}
+.next-btn.show{display:block}
+.next-btn:hover{background:#4f46e5}
+.start-screen,.end-screen{text-align:center;padding:20px}
+.start-screen h1,.end-screen h1{font-size:1.8rem;font-weight:800;color:#fff;margin-bottom:12px}
+.start-screen p,.end-screen p{color:#94a3b8;font-size:0.95rem;margin-bottom:20px;line-height:1.6}
+.start-btn{background:#6366f1;color:#fff;border:none;border-radius:12px;padding:16px 36px;font-size:1rem;font-weight:800;cursor:pointer}
+.start-btn:hover{background:#4f46e5}
+.emoji-big{font-size:3.5rem;margin-bottom:16px}
+.result-badge{display:inline-block;font-size:1.1rem;font-weight:800;padding:10px 24px;border-radius:20px;margin-bottom:16px}
+.hidden{display:none}
+.reconhecimento-banner{background:linear-gradient(135deg,#f59e0b22,#facc1522);border:2px dashed #f59e0b;border-radius:14px;padding:16px 18px;margin-bottom:20px;text-align:left}
+.reconhecimento-banner .reconhecimento-title{font-size:0.9rem;font-weight:800;color:#facc15;margin-bottom:6px}
+.reconhecimento-banner .reconhecimento-text{font-size:0.8rem;color:#fde68a;line-height:1.55}
+.resume-banner{background:#6366f122;border:1px solid #6366f1;border-radius:12px;padding:12px 16px;margin-bottom:16px;font-size:0.8rem;color:#c7d2fe;text-align:center}
+.locked-note{font-size:0.78rem;color:#64748b;margin-top:14px;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div id="startScreen" class="card start-screen hidden">
+    <div class="emoji-big">ðŸŽ®</div>
+    <h1>Transfere ou NÃ£o?</h1>
+    <div class="reconhecimento-banner">
+      <div class="reconhecimento-title">ðŸ† Vale prÃªmio!</div>
+      <div class="reconhecimento-text">Depois de terminar, manda um print da sua tela final no privado pra concorrer a <strong>35 minutos de reconhecimento</strong>! Essa versÃ£o enviada por e-mail vale sÃ³ <strong>1 tentativa por pessoa</strong> â€” capricha na primeira rodada ðŸ˜‰</div>
+    </div>
+    <p>Teste seus conhecimentos sobre as regras oficiais de transferÃªncia e sobre os critÃ©rios de pausa no meio do atendimento â€” CAP, AMZL, contas, entretenimento, comÃ©rcio, internacional e muito mais.<br>
+    48 perguntas Â· Tem pegadinha ðŸ˜ Â· Baseado nos guias oficiais atualizados em 2026.</p>
+    <button class="start-btn" onclick="startGame()">ComeÃ§ar Jogo</button>
+  </div>
+
+  <div id="gameScreen" class="hidden">
+    <div class="topbar">
+      <div class="title">Transfere ou <span>NÃ£o?</span></div>
+      <div class="hud">
+        <div class="pill score" id="scorePill">â­ 0</div>
+        <div class="pill streak" id="streakPill">ðŸ”¥ 0</div>
+      </div>
+    </div>
+    <div id="resumeBanner" class="resume-banner hidden">â†©ï¸ Continuando de onde vocÃª parou!</div>
+    <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+    <div class="card">
+      <div class="q-tag" id="qTag">PERGUNTA 1/48</div>
+      <div class="q-text" id="qText"></div>
+      <div class="options" id="options"></div>
+      <div class="feedback" id="feedback"></div>
+      <button class="next-btn" id="nextBtn" onclick="nextQuestion()">PrÃ³xima â†’</button>
+    </div>
+  </div>
+
+  <div id="endScreen" class="card end-screen hidden">
+    <div id="resultEmoji" class="emoji-big"></div>
+    <h1 id="resultTitle"></h1>
+    <div id="resultBadge" class="result-badge"></div>
+    <p id="resultText"></p>
+    <p id="maxStreakLine" style="color:#f59e0b;font-weight:700;font-size:0.9rem;margin-bottom:16px;"></p>
+    <div class="reconhecimento-banner">
+      <div class="reconhecimento-title">ðŸ† Concorra a 35 min de reconhecimento!</div>
+      <div class="reconhecimento-text">Manda um print <strong>desta tela</strong> no privado para participar da disputa. Boa sorte!</div>
+    </div>
+    <div class="locked-note" id="lockedNote">Essa versÃ£o do jogo (enviada por e-mail) vale apenas 1 tentativa por pessoa â€” sua resposta jÃ¡ foi registrada.</div>
+  </div>
+
+</div>
+
+<script>
+const questions = [{"tag": "CAP", "text": "Cliente pede reembolso, o fluxo AC3 pede transferÃªncia para CAP, mas a data FRD/TRACES do pedido ainda NÃƒO passou. VocÃª transfere?", "options": ["Sim, transfiro para CAP", "NÃ£o, sigo o atendimento normal"], "correct": 1, "trap": true, "explain": "Mesmo que o AC3 sugira CAP, se a data TRACES nÃ£o passou, NÃƒO se transfere. A regra Ã© clara: TRACES vencido Ã© condiÃ§Ã£o obrigatÃ³ria."}, {"tag": "CAP", "text": "O reembolso do cliente jÃ¡ foi processado, mas ele insiste em uma concessÃ£o extra. Qual a aÃ§Ã£o certa?", "options": ["Transferir para a CAP para reavaliar", "Informar o prazo de reembolso, sem transferir"], "correct": 1, "trap": true, "explain": "Se o reembolso jÃ¡ foi processado, vocÃª apenas informa o prazo ao cliente â€” nÃ£o se transfere para CAP."}, {"tag": "CAP", "text": "Cliente pergunta sobre problema na assinatura Prime e o sistema sugere CAP. VocÃª transfere?", "options": ["Sim, o sistema sugeriu", "NÃ£o, nÃ£o Ã© sobre concessÃ£o"], "correct": 1, "trap": true, "explain": "CAP Ã© sÃ³ para concessÃµes. Assinaturas, mudanÃ§as de conta e pagamento NÃƒO devem ir para CAP, mesmo se sugerido."}, {"tag": "CAP", "text": "Antes de transferir um contato vÃ¡lido para a CAP, o que vocÃª deve registrar nas observaÃ§Ãµes?", "options": ["Apenas o motivo do contato", "NÃºmero do pedido, ASIN, motivo da concessÃ£o e explicaÃ§Ã£o do problema"], "correct": 1, "trap": false, "explain": "O guia exige registrar: nÃºmero do pedido, ASIN, motivo da concessÃ£o (DNR, produto extraviado, devoluÃ§Ãµes) e por que estÃ¡ transferindo."}, {"tag": "CAP", "text": "Ao transferir um contato vÃ¡lido para CAP, como vocÃª deve se referir Ã  equipe com o cliente?", "options": ["\"Vou te passar para a Equipe de PrevenÃ§Ã£o de Abuso de ConcessÃµes\"", "\"Vou conectar vocÃª com outra equipe que pode ajudar melhor\""], "correct": 1, "trap": true, "explain": "NUNCA use o nome da equipe de CAP com o cliente. Diga sempre que ele serÃ¡ conectado a uma equipe que pode ajudar melhor."}, {"tag": "AMZL", "text": "Um motorista da AMZL bateu o carro do cliente durante a entrega. VocÃª transfere para SDS AMZL Report Delivery Issue?", "options": ["Sim, transfiro", "NÃ£o, resolvo direto"], "correct": 0, "trap": false, "explain": "Dano Ã  propriedade do cliente (veÃ­culo) causado pela entrega Ã© um dos poucos casos que DEVEM ser transferidos para AMZL/SDS."}, {"tag": "AMZL", "text": "Cliente liga dizendo que o pacote estÃ¡ atrasado em trÃ¢nsito hÃ¡ 3 dias. Transferir para AMZL?", "options": ["Sim, transfiro para AMZL", "NÃ£o, trato como 'Onde estÃ¡ meu pedido?'"], "correct": 1, "trap": true, "explain": "Atraso em trÃ¢nsito NÃƒO Ã© motivo de transferÃªncia. O time AMZL nÃ£o tem recursos para agilizar envios atrasados."}, {"tag": "AMZL", "text": "O item chegou danificado e com defeito de fÃ¡brica. Transferir para AMZL/SDS?", "options": ["Sim, transfiro", "NÃ£o, sigo o fluxo de Andon/SubstituiÃ§Ã£o"], "correct": 1, "trap": true, "explain": "Item danificado/com defeito NÃƒO Ã© caso de AMZL â€” Ã© fluxo de PolÃ­tica do Andon (danificado, com defeito ou errado)."}, {"tag": "AMZL", "text": "O cÃ£o do vizinho foi ferido pelo motorista de entrega durante a rota. Ã‰ um caso de transferÃªncia para AMZL/SDS?", "options": ["Sim, transfiro", "NÃ£o, nÃ£o Ã© caso de transferÃªncia"], "correct": 0, "trap": false, "explain": "Morte, ferimento ou fuga de animal de estimaÃ§Ã£o relacionado Ã  entrega Ã© um dos casos que DEVEM ir para AMZL/SDS."}, {"tag": "AMZL", "text": "Cliente alega que o motorista da AMZL roubou uma encomenda, mas nÃ£o tem provas concretas. Ainda Ã© caso de transferÃªncia?", "options": ["Sim â€” o guia transfere mesmo sem provas", "NÃ£o, sÃ³ transfere com provas"], "correct": 0, "trap": true, "explain": "O guia Ã© explÃ­cito: alegaÃ§Ã£o de roubo de propriedade pelo motorista Ã© transferida COM OU SEM provas."}, {"tag": "AMZL", "text": "Cliente quer cancelar/devolver um pedido que jÃ¡ foi enviado pela AMZL. Isso Ã© caso de transferÃªncia para AMZL/SDS?", "options": ["Sim, transfiro", "NÃ£o â€” sigo o fluxo de Interromper e devolver o pedido"], "correct": 1, "trap": true, "explain": "Cancelamento/devoluÃ§Ã£o relacionado Ã  entrega segue o fluxo prÃ³prio de 'Interromper e devolver o pedido' (aÃ§Ã£o irreversÃ­vel), nÃ£o Ã© caso de AMZL."}, {"tag": "LIMITE", "text": "AnotaÃ§Ã£o no pedido diz: 'Cui is exceeding QL due to strong rel cid... buying same asin exceeding QL'. Qual o encaminhamento correto?", "options": ["Transferir para a CAP", "Enviar e-mail para qla@amazon.com.br"], "correct": 1, "trap": true, "explain": "Limite de compra excedido (QLA) Ã© um fluxo PRÃ“PRIO, separado da CAP â€” o encaminhamento correto Ã© e-mail para qla@amazon.com.br."}, {"tag": "CONTA", "text": "A conta do cliente estÃ¡ suspensa, mas SEM nenhum SYSKA indicando transferÃªncia. VocÃª transfere para Conta Suspensa?", "options": ["Sim, toda conta suspensa transfere", "NÃ£o â€” sÃ³ transfere COM SYSKA indicando"], "correct": 1, "trap": true, "explain": "Conta suspensa sÃ³ Ã© transferida quando hÃ¡ um SYSKA explÃ­cito indicando a aÃ§Ã£o. Sem isso, nÃ£o se transfere."}, {"tag": "ECR", "text": "O pedido do cliente tem anotaÃ§Ãµes recentes de ECR. Qual o procedimento?", "options": ["Ignorar as anotaÃ§Ãµes e seguir normal", "Seguir o fluxo especÃ­fico de Transferir/ECR"], "correct": 1, "trap": false, "explain": "Contatos sobre pedidos/contas com anotaÃ§Ãµes recentes de ECR seguem o fluxo dedicado de Transferir/ECR."}, {"tag": "FIRE TV", "text": "Cliente pergunta sobre requisitos e restriÃ§Ãµes do Fire TV Stick â€” nÃ£o Ã© sobre configuraÃ§Ã£o inicial. Segue o mesmo fluxo?", "options": ["Sim, Ã© o mesmo fluxo de Dispositivos Fire TV", "NÃ£o, Ã© outro fluxo"], "correct": 0, "trap": false, "explain": "Uso, requisitos/restriÃ§Ãµes, registro e soluÃ§Ã£o de problemas do Fire TV Stick seguem o mesmo fluxo de TransferÃªncia/Dispositivos Fire TV."}, {"tag": "ALEXA", "text": "Cliente quer ajuda com um dispositivo Alexa/Echo que nÃ£o conecta ao wifi. Transferir para onde?", "options": ["TransferÃªncia / Dispositivos Alexa", "Resolver na fila Primary mesmo"], "correct": 0, "trap": false, "explain": "Alexa e Echo tÃªm fluxo de transferÃªncia dedicado para todos os contatos sobre o dispositivo."}, {"tag": "MUSIC", "text": "Cliente pergunta sobre o Amazon Music Unlimited, incluÃ­do no Prime Music. Para onde vai?", "options": ["TransferÃªncia / MÃºsica digital", "TransferÃªncia / Prime Video"], "correct": 0, "trap": true, "explain": "Prime Music e Amazon Music Unlimited seguem o fluxo de TransferÃªncia/MÃºsica digital â€” diferente do fluxo de Prime Video."}, {"tag": "GAMING", "text": "Cliente pergunta sobre os benefÃ­cios de jogos e Twitch do Prime Gaming. Para onde encaminhar?", "options": ["Amazon Prime / Prime Gaming", "AWS"], "correct": 0, "trap": false, "explain": "Prime Gaming tem fluxo prÃ³prio dentro de Amazon Prime â€” nada a ver com AWS."}, {"tag": "KDP", "text": "Um autor quer saber como publicar um LIVRO IMPRESSO (nÃ£o digital) na Amazon.com.br. VocÃª transfere para KDP?", "options": ["Sim, Ã© sobre publicaÃ§Ã£o", "NÃ£o â€” KDP Ã© sÃ³ para conteÃºdo digital Kindle"], "correct": 1, "trap": true, "explain": "NÃƒO transfira para KDP perguntas sobre vender/publicar livros IMPRESSOS. Use o fluxo de CatÃ¡logo/Autores e artistas."}, {"tag": "KDP", "text": "Autor tem dÃºvida sobre o Kindle Previewer (ferramenta de prÃ©-visualizaÃ§Ã£o de ebooks). Para onde encaminhar?", "options": ["Site do KDP (kdp.amazon.com/pt_BR/contact-us)", "TransferÃªncia/Kindle (dispositivo)"], "correct": 0, "trap": true, "explain": "DÃºvidas sobre Kindle Previewer/KindleGen sÃ£o sobre publicaÃ§Ã£o e seguem o site do KDP â€” diferente do suporte ao dispositivo Kindle."}, {"tag": "LIVROS", "text": "Cliente encontra um erro ortogrÃ¡fico na pÃ¡gina de detalhes de um livro impresso. O que o agente faz?", "options": ["Resolve direto, Ã© sÃ³ um texto", "Escala para o supervisor abrir tÃ­quete especÃ­fico por ASIN"], "correct": 1, "trap": true, "explain": "Agentes escalam para supervisor, que usa o Decider para abrir um tÃ­quete especÃ­fico por ASIN â€” nunca prometa resposta ao cliente."}, {"tag": "COBRANÃ‡A", "text": "Cliente identifica uma cobranÃ§a duplicada no cartÃ£o. Para onde vai?", "options": ["Transferir / CobranÃ§as e APEX", "CAP"], "correct": 0, "trap": false, "explain": "Problemas de cobranÃ§a e pagamento seguem o fluxo prÃ³prio de CobranÃ§as e APEX, nÃ£o CAP."}, {"tag": "DADOS", "text": "Cliente pede para receber a gravaÃ§Ã£o de uma ligaÃ§Ã£o dele com a Amazon. Isso Ã© tratado como?", "options": ["Fluxo de Dados (script especÃ­fico)", "Ignorar o pedido"], "correct": 0, "trap": false, "explain": "SolicitaÃ§Ãµes de dados do cliente (gravaÃ§Ãµes, encerramento de conta, acesso a dados) seguem scripts e fluxo prÃ³prios de Dados."}, {"tag": "PAGAMENTOS", "text": "Cliente estrangeiro relata um problema com o Amazon Payments (processamento internacional). HÃ¡ suporte em portuguÃªs?", "options": ["Sim, atendemos normalmente em portuguÃªs", "NÃ£o â€” sÃ³ em inglÃªs, transferir por e-mail para amazonpayments@amazon.com"], "correct": 1, "trap": true, "explain": "NÃ£o oferecemos suporte em portuguÃªs para Amazon Payments â€” o encaminhamento correto Ã© por e-mail para amazonpayments@amazon.com."}, {"tag": "VALE-PRESENTE", "text": "Cliente liga pedindo para COMPRAR um vale-presente diretamente com vocÃª. O que fazer?", "options": ["Vender o vale-presente na hora", "Explicar que a equipe sÃ³ processa resgate e reembolso-em-vale-presente"], "correct": 1, "trap": true, "explain": "A equipe BR nÃ£o vende mais vale-presente â€” apenas resgate e reembolso-em-vale-presente (crÃ©dito) sÃ£o suportados."}, {"tag": "VENDEDORES", "text": "Um vendedor que jÃ¡ tem canal direto com a equipe de varejo (catÃ¡logo) liga pedindo para ser transferido para 'Vendedores Parceiros'. VocÃª transfere?", "options": ["Sim, todo vendedor vai para lÃ¡", "NÃ£o â€” ele jÃ¡ tem canal direto com o CatÃ¡logo"], "correct": 1, "trap": true, "explain": "NÃƒO transfira para Vendedores Parceiros contatos de fornecedores que jÃ¡ trabalham direto com a equipe de varejo."}, {"tag": "AMAZON NOW", "text": "Cliente com pedido feito pelo Amazon Now com problema na entrega. Como agir?", "options": ["Autenticar o cliente e transferir para o fluxo SDS (GSF Recipient)", "Resolver como pedido comum da Amazon.com.br"], "correct": 0, "trap": false, "explain": "Amazon Now segue fluxo prÃ³prio de autenticaÃ§Ã£o e transferÃªncia para SDS/GSF Recipient."}, {"tag": "APPSTORE", "text": "Desenvolvedor pergunta como colocar o aplicativo dele disponÃ­vel na Appstore. Qual o encaminhamento?", "options": ["E-mail para appstore@amazon.com.br", "Resolver direto explicando o processo de publicaÃ§Ã£o"], "correct": 0, "trap": false, "explain": "Perguntas de desenvolvedores sobre a Appstore seguem o fluxo de e-mail para appstore@amazon.com.br (ou telefone/chat BR Appstore NÃ­vel 1 InglÃªs)."}, {"tag": "INTERNACIONAL", "text": "Cliente fez uma compra na Amazon.com (site americano) e tem dÃºvida sobre ela. Para onde vai?", "options": ["TransferÃªncia / Outros (site internacional)", "Resolver como compra da Amazon.com.br"], "correct": 0, "trap": false, "explain": "Compras em outros sites internacionais seguem o fluxo de TransferÃªncia/Outros â€” fora do escopo do BR."}, {"tag": "AUDIBLE", "text": "Cliente pergunta sobre um audiobook do Audible. HÃ¡ suporte em portuguÃªs?", "options": ["Sim, atendemos normalmente", "NÃ£o â€” encaminhar para o site do Audible em inglÃªs"], "correct": 1, "trap": true, "explain": "NÃ£o oferecemos suporte em portuguÃªs para Audible â€” o cliente Ã© encaminhado ao site em inglÃªs."}, {"tag": "CONTEÃšDO DIGITAL", "text": "Cliente pergunta sobre um conteÃºdo digital comprado em outro site da Amazon (nÃ£o o .com.br). HÃ¡ suporte?", "options": ["Sim, resolvemos direto", "NÃ£o â€” transferir para o site da Amazon onde o cliente estÃ¡ registrado"], "correct": 1, "trap": true, "explain": "NÃ£o oferecemos suporte para conteÃºdo digital de outros sites â€” o contato deve ser transferido para o site onde o cliente estÃ¡ registrado."}, {"tag": "COMUNIDADE", "text": "Cliente reclama que uma avaliaÃ§Ã£o dele foi removida injustamente do site. Para onde vai?", "options": ["Transferir / Comunidades", "Resolver com blurb padrÃ£o"], "correct": 0, "trap": false, "explain": "AvaliaÃ§Ãµes removidas/perdidas e abuso de avaliaÃ§Ãµes seguem o fluxo de Transferir/Comunidades."}, {"tag": "P&R", "text": "Cliente tem uma dÃºvida sobre como usar o recurso de Perguntas e Respostas do site. Para onde encaminhar?", "options": ["TransferÃªncia / Perguntas e respostas de clientes", "Fila Primary comum"], "correct": 0, "trap": false, "explain": "Todos os contatos sobre esse recurso seguem o fluxo dedicado de Perguntas e Respostas."}, {"tag": "MÃDIA", "text": "Um jornalista liga pedindo um posicionamento oficial da Amazon sobre uma reportagem. O que vocÃª faz?", "options": ["Responde diretamente ao jornalista", "NÃ£o responde â€” contata o supervisor imediatamente"], "correct": 1, "trap": true, "explain": "Qualquer contato de mÃ­dia/imprensa deve ser escalado ao supervisor â€” nunca responda diretamente por conta prÃ³pria."}, {"tag": "PROMOÃ‡Ã•ES", "text": "Cliente reclama de um preÃ§o de promoÃ§Ã£o que considera enganoso. Qual o fluxo correto?", "options": ["Consultar a polÃ­tica de promoÃ§Ãµes vigente; casos crÃ­ticos, escalar via DART", "Explicar que nÃ£o hÃ¡ nada a fazer"], "correct": 0, "trap": false, "explain": "Problemas de preÃ§os e promoÃ§Ãµes seguem as polÃ­ticas de Marketing & PromoÃ§Ãµes â€” casos crÃ­ticos podem ser escalados via DART."}, {"tag": "AWS", "text": "Cliente interessado em comprar serviÃ§os da AWS para a empresa dele. Para onde encaminhar?", "options": ["TransferÃªncia / Amazon Web Services", "CAP"], "correct": 0, "trap": false, "explain": "Perguntas e interesse de compra em serviÃ§os AWS seguem o fluxo dedicado de TransferÃªncia/Amazon Web Services."}, {"tag": "AWS", "text": "Cliente da AWS relata um problema de cobranÃ§a nos serviÃ§os de nuvem. Ã‰ o mesmo fluxo do Amazon Payments?", "options": ["Sim, Ã© o mesmo fluxo", "NÃ£o â€” AWS tem fluxo prÃ³prio, diferente do Amazon Payments"], "correct": 1, "trap": true, "explain": "AWS e Amazon Payments sÃ£o fluxos totalmente diferentes â€” nÃ£o confundir cobranÃ§a de serviÃ§os de nuvem com pagamentos internacionais do site."}, {"tag": "SENHA", "text": "Cliente esqueceu a senha e exige um reset MANUAL imediato â€” mas vocÃª ainda nÃ£o tentou os fluxos automÃ¡ticos de recuperaÃ§Ã£o. O que fazer?", "options": ["Fazer o reset manual agora para agilizar", "Esgotar antes os recursos automÃ¡ticos de recuperaÃ§Ã£o de senha"], "correct": 1, "trap": true, "explain": "RedefiniÃ§Ã£o manual de senha sÃ³ deve ser usada quando TODOS os recursos possÃ­veis jÃ¡ foram esgotados. Calma e processo!"}, {"tag": "PAUSA", "text": "VocÃª pede para o cliente verificar o e-mail de confirmaÃ§Ã£o e pergunta 'Deu certo, chegou o e-mail?'. Isso justifica uma pausa no meio do atendimento?", "options": ["Sim â€” Ã© uma pergunta de aÃ§Ã£o vÃ¡lida", "NÃ£o, nunca se pode pausar"], "correct": 0, "trap": false, "explain": "Pedir para o cliente checar algo (e-mail, app) seguido de uma pergunta de confirmaÃ§Ã£o como 'Deu certo?' Ã© uma pergunta de aÃ§Ã£o vÃ¡lida â€” justifica a pausa."}, {"tag": "PAUSA", "text": "Perto do fim do atendimento vocÃª pergunta: 'Ajudo em algo mais? Alguma outra dÃºvida?' e pausa o contato esperando resposta. Isso Ã© uma pausa vÃ¡lida?", "options": ["Sim, Ã© pergunta de aÃ§Ã£o", "NÃ£o â€” nÃ£o Ã© considerada pergunta de aÃ§Ã£o"], "correct": 1, "trap": true, "explain": "Perguntas genÃ©ricas de encerramento como 'ajudo em algo mais?' NÃƒO sÃ£o consideradas perguntas de aÃ§Ã£o. Pausar o contato nesse momento infla o Parked% indevidamente."}, {"tag": "PAUSA", "text": "Qual das opÃ§Ãµes abaixo Ã© um exemplo correto de 'chamada de atenÃ§Ã£o' que justifica pausa?", "options": ["\"Qualquer coisa, me chama\"", "\"Verifique no app se o reembolso jÃ¡ aparece e me confirme se apareceu\""], "correct": 1, "trap": true, "explain": "A chamada de atenÃ§Ã£o vÃ¡lida direciona uma aÃ§Ã£o especÃ­fica (verificar app/e-mail) e pede confirmaÃ§Ã£o objetiva do resultado â€” nÃ£o uma frase genÃ©rica de disponibilidade."}, {"tag": "PAUSA", "text": "VocÃª pausa o contato sÃ³ para pesquisar a resposta internamente, sem ter pedido nenhuma aÃ§Ã£o ao cliente. Isso Ã© uma pausa justificada pelo critÃ©rio de 'pergunta de aÃ§Ã£o'?", "options": ["Sim", "NÃ£o â€” pesquisa interna sem pedir aÃ§Ã£o ao cliente nÃ£o Ã© pergunta de aÃ§Ã£o"], "correct": 1, "trap": true, "explain": "O critÃ©rio de pergunta de aÃ§Ã£o exige pedir algo ao CLIENTE (checar e-mail/app) e uma pergunta de confirmaÃ§Ã£o â€” pesquisa interna sozinha nÃ£o se encaixa nesse critÃ©rio."}, {"tag": "CHAT", "text": "O chat cai inesperadamente e vocÃª AINDA NÃƒO tinha recebido permissÃ£o do cliente para alterar a conta. Qual a aÃ§Ã£o correta?", "options": ["Fazer a alteraÃ§Ã£o mesmo assim e encerrar o contato", "NÃ£o alterar a conta, fazer follow-up por e-mail e ESTACIONAR o chat (nÃ£o encerrar)"], "correct": 1, "trap": true, "explain": "Chat Abandonado sem permissÃ£o: nÃ£o altere a conta, faÃ§a follow-up via e-mail para confirmar a solicitaÃ§Ã£o, e ESTACIONE o chat â€” nunca encerre o contato."}, {"tag": "CHAT", "text": "O chat cai, mas o cliente JÃ tinha concordado com a resoluÃ§Ã£o antes da queda. O que fazer?", "options": ["Proceder com as aÃ§Ãµes prometidas e confirmar por e-mail depois", "Estacionar o chat sem fazer nada"], "correct": 0, "trap": false, "explain": "Se o agente jÃ¡ tinha a concordÃ¢ncia do cliente antes da queda, deve proceder com as aÃ§Ãµes prometidas e confirmar por e-mail â€” o cÃ³digo de encerramento Ã© personalizado para a solicitaÃ§Ã£o."}, {"tag": "CHAT", "text": "O cliente para de responder no meio do chat. ApÃ³s quanto tempo de inatividade vocÃª pode estacionar o chat (sem ter permissÃ£o de conta)?", "options": ["Imediatamente, nÃ£o precisa esperar", "SÃ³ apÃ³s 3 minutos â€” com uma mensagem de verificaÃ§Ã£o apÃ³s 2 minutos"], "correct": 1, "trap": true, "explain": "Chat Inativo: nÃ£o estacione antes de 3 minutos. ApÃ³s 2 minutos, envie mensagem perguntando se o cliente ainda estÃ¡ na linha; sÃ³ estacione apÃ³s esperar mais 1 minuto sem resposta."}, {"tag": "CHAMADA", "text": "O cliente pede para vocÃª esperar na linha por mais de 2 minutos enquanto ele resolve algo. Qual a aÃ§Ã£o correta?", "options": ["Ficar o tempo que for necessÃ¡rio", "Informar que sÃ³ pode aguardar atÃ© 2 minutos e oferecer retorno"], "correct": 1, "trap": true, "explain": "A polÃ­tica permite ficar em espera por, no mÃ¡ximo, 2 minutos. Depois disso, oriente o cliente a retornar o contato ou ofereÃ§a um follow-up."}, {"tag": "CHAMADA", "text": "VocÃª forneceu a resoluÃ§Ã£o completa ao cliente, mas ele simplesmente nÃ£o desconecta a chamada. O que fazer?", "options": ["Ficar esperando indefinidamente", "Dar um aviso, aguardar resposta e, se nÃ£o houver, encerrar com a declaraÃ§Ã£o de encerramento"], "correct": 1, "trap": false, "explain": "ApÃ³s fornecer a resoluÃ§Ã£o, se o cliente nÃ£o desconecta, dÃª o Aviso 1 e, sem resposta, use a declaraÃ§Ã£o de encerramento antes de desconectar a chamada."}, {"tag": "CHAMADA", "text": "VocÃª pode simplesmente desligar na cara do cliente sempre que quiser agilizar o atendimento?", "options": ["Sim, se o atendimento jÃ¡ foi resolvido", "NÃ£o â€” desconexÃ£o fora das situaÃ§Ãµes previstas na polÃ­tica pode gerar processo disciplinar"], "correct": 1, "trap": true, "explain": "A polÃ­tica Ã© clara: desconectar por motivos fora dos cenÃ¡rios previstos pode resultar em processo disciplinar. Sempre aguarde o cliente desconectar, exceto nos casos excepcionais listados."}];
+const STORAGE_KEY = "transfPausasQuiz_v1_state";
+
+let current = 0, score = 0, streak = 0, maxStreak = 0, answered = false;
+
+function loadState(){
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch(e){ return null; }
+}
+function saveState(patch){
+  const state = Object.assign({ idx: current, score: score, streak: streak, maxStreak: maxStreak, completed: false, finalScore: null }, patch);
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e){}
+}
+
+function startGame(){
+  current = 0; score = 0; streak = 0; maxStreak = 0;
+  saveState({ idx: 0, score: 0, streak: 0, maxStreak: 0, completed: false, finalScore: null, answered: false, selected: null });
+  document.getElementById('startScreen').classList.add('hidden');
+  document.getElementById('gameScreen').classList.remove('hidden');
+  renderQuestion();
+}
+
+function renderQuestion(){
+  answered = false;
+  const q = questions[current];
+  document.getElementById('qTag').textContent = "PERGUNTA " + (current+1) + "/" + questions.length + " Â· " + q.tag;
+  document.getElementById('qText').textContent = q.text;
+  document.getElementById('progressFill').style.width = ((current)/questions.length*100) + "%";
+  const optsDiv = document.getElementById('options');
+  optsDiv.innerHTML = "";
+  q.options.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = "opt";
+    btn.textContent = opt;
+    btn.onclick = () => selectAnswer(i);
+    optsDiv.appendChild(btn);
+  });
+  document.getElementById('feedback').className = "feedback";
+  document.getElementById('feedback').innerHTML = "";
+  document.getElementById('nextBtn').classList.remove('show');
+  updateHud();
+}
+
+function renderAnsweredUI(i, correct, q, pointsInfo){
+  const opts = document.querySelectorAll('.opt');
+  opts.forEach(o => o.classList.add('disabled'));
+  opts[i].classList.add(correct ? 'correct' : 'wrong');
+  if(!correct){ opts[q.correct].classList.add('correct'); }
+  const fb = document.getElementById('feedback');
+  fb.classList.add('show', correct ? 'ok' : 'bad');
+  let trapHtml = q.trap ? '<div class="trap">PEGADINHA</div><br>' : '';
+  let ptsHtml = '';
+  if(correct && pointsInfo && pointsInfo.total){
+    ptsHtml = '<div style="margin-top:10px;font-weight:800;color:#facc15;font-size:0.9rem;">+' + pointsInfo.total + ' pontos' + (pointsInfo.bonus > 0 ? ' (' + pointsInfo.base + ' base + ' + pointsInfo.bonus + ' bonus de sequencia \ud83d\udd25)' : '') + '</div>';
+  }
+  fb.innerHTML = trapHtml + (correct ? 'Acertou! ' : 'Errou. ') + q.explain + ptsHtml;
+  document.getElementById('nextBtn').classList.add('show');
+}
+
+function selectAnswer(i){
+  if(answered) return;
+  answered = true;
+  const q = questions[current];
+  const opts = document.querySelectorAll('.opt');
+  opts.forEach(o => o.classList.add('disabled'));
+  const correct = i === q.correct;
+  let pointsInfo = {base:0, bonus:0, total:0};
+  if(correct){
+    streak++;
+    if(streak > maxStreak) maxStreak = streak;
+    const base = q.trap ? 15 : 10;
+    const bonus = streak > 1 ? Math.min((streak-1)*3, 15) : 0;
+    const total = base + bonus;
+    score += total;
+    pointsInfo = {base:base, bonus:bonus, total:total};
+  } else {
+    streak = 0;
+  }
+  saveState({ idx: current, score: score, streak: streak, maxStreak: maxStreak, completed: false, finalScore: null, answered: true, selected: i });
+  renderAnsweredUI(i, correct, q, pointsInfo);
+  updateHud();
+  return;
+  opts[i].classList.add(correct ? 'correct' : 'wrong');
+  if(!correct){ opts[q.correct].classList.add('correct'); }
+
+  const fb = document.getElementById('feedback');
+  fb.classList.add('show', correct ? 'ok' : 'bad');
+  let trapHtml = q.trap ? '<div class="trap">âš ï¸ PEGADINHA</div><br>' : '';
+  fb.innerHTML = trapHtml + (correct ? "âœ… Acertou! " : "âŒ Errou. ") + q.explain;
+
+  if(correct){ score += q.trap ? 15 : 10; streak++; }
+  else { streak = 0; }
+  updateHud();
+  document.getElementById('nextBtn').classList.add('show');
+}
+
+function updateHud(){
+  document.getElementById('scorePill').textContent = "â­ " + score;
+  document.getElementById('streakPill').textContent = "ðŸ”¥ " + streak;
+}
+
+function nextQuestion(){
+  current++;
+  if(current >= questions.length){
+    saveState({ idx: questions.length, score: score, streak: streak, maxStreak: maxStreak, completed: true, finalScore: score, answered: false, selected: null });
+    endGame();
+  } else {
+    saveState({ idx: current, score: score, streak: streak, maxStreak: maxStreak, completed: false, finalScore: null, answered: false, selected: null });
+    renderQuestion();
+  }
+}
+
+function computeResult(finalScore){
+  const maxScore = questions.length*15;
+  const pct = finalScore/maxScore;
+  let emoji, title, badge, text, color;
+  if(pct >= 0.8){
+    emoji="ðŸ†"; title="Mestre em TransferÃªncias!"; badge="EXPERT"; color="#10b981";
+    text="VocÃª domina as regras de CAP, AMZL, pausas, contas, entretenimento e muito mais. Ã“timo exemplo para o time!";
+  } else if(pct >= 0.5){
+    emoji="ðŸŽ¯"; title="No caminho certo!"; badge="INTERMEDIÃRIO"; color="#f59e0b";
+    text="VocÃª entende boa parte das regras, mas ainda cai em algumas pegadinhas. Vale revisar o material de referÃªncia.";
+  } else {
+    emoji="ðŸ“š"; title="Hora de estudar as regras!"; badge="INICIANTE"; color="#ef4444";
+    text="As pegadinhas pegaram vocÃª algumas vezes. Sem problema â€” Ã© exatamente para isso que serve o workshop!";
+  }
+  return {emoji, title, badge, text, color};
+}
+
+function endGame(){
+  document.getElementById('gameScreen').classList.add('hidden');
+  document.getElementById('startScreen').classList.add('hidden');
+  document.getElementById('endScreen').classList.remove('hidden');
+  const r = computeResult(score);
+  document.getElementById('resultEmoji').textContent = r.emoji;
+  document.getElementById('resultTitle').textContent = r.title;
+  const b = document.getElementById('resultBadge');
+  b.textContent = r.badge + " Â· " + score + " pontos";
+  b.style.background = r.color+"22"; b.style.color = r.color;
+  document.getElementById('resultText').textContent = r.text;
+  const ms = document.getElementById('maxStreakLine');
+  if(ms) ms.textContent = '\ud83d\udd25 Melhor sequencia: ' + maxStreak + ' acertos seguidos';
+}
+
+/* ---------------- InicializaÃ§Ã£o com persistÃªncia ---------------- */
+(function init(){
+  const state = loadState();
+  if(state && state.completed){
+    // Ja concluiu esta versao - mostra direto o resultado final, sem permitir novo jogo
+    score = state.finalScore != null ? state.finalScore : state.score;
+    maxStreak = state.maxStreak || 0;
+    document.getElementById('gameScreen').classList.add('hidden');
+    document.getElementById('startScreen').classList.add('hidden');
+    document.getElementById('endScreen').classList.remove('hidden');
+    const r = computeResult(score);
+    document.getElementById('resultEmoji').textContent = r.emoji;
+    document.getElementById('resultTitle').textContent = r.title;
+    const b = document.getElementById('resultBadge');
+    b.textContent = r.badge + " Â· " + score + " pontos";
+    b.style.background = r.color+"22"; b.style.color = r.color;
+    document.getElementById('resultText').textContent = r.text;
+    const ms2 = document.getElementById('maxStreakLine');
+    if(ms2) ms2.textContent = '\ud83d\udd25 Melhor sequencia: ' + maxStreak + ' acertos seguidos';
+    return;
+  }
+  if(state && state.idx > 0 && state.idx < questions.length){
+    // Retomar de onde parou
+    current = state.idx; score = state.score || 0; streak = state.streak || 0; maxStreak = state.maxStreak || 0;
+    document.getElementById('startScreen').classList.add('hidden');
+    document.getElementById('gameScreen').classList.remove('hidden');
+    document.getElementById('resumeBanner').classList.remove('hidden');
+    renderQuestion();
+    if(state.answered && state.selected != null){
+      answered = true;
+      const q = questions[current];
+      const correct = state.selected === q.correct;
+      renderAnsweredUI(state.selected, correct, q, null);
+      updateHud();
+    }
+    return;
+    renderQuestion();
+    return;
+  }
+  // Nenhum progresso salvo - tela inicial
+  document.getElementById('startScreen').classList.remove('hidden');
+})();
+</script>
+</body>
+</html>

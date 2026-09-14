@@ -1,0 +1,1146 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Simulador — Rastreio &amp; Amazon Now</title>
+<style>
+:root{--blue:#0972d3;--border:#d5dbdb;--gray:#5f6b7a;--bg:#fafafa;--green:#037f51;--red:#d13212;--orange:#e07b00;--dark:#16191f;}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;height:100%;}
+body{font-family:"Amazon Ember",Arial,sans-serif;background:#e9ebed;color:var(--dark);font-size:14px;min-height:100vh;}
+#app{width:100%;min-height:100vh;display:flex;flex-direction:column;}
+button{font-family:inherit;cursor:pointer;}
+a{color:var(--blue);text-decoration:none;cursor:pointer;}
+a:hover{text-decoration:underline;}
+#intro,#final{flex:1;display:flex;align-items:center;justify-content:center;padding:40px 20px;}
+#intro .card,#final .card{max-width:780px;width:100%;background:#fff;border-radius:14px;box-shadow:0 4px 24px rgba(0,0,0,.08);padding:40px 44px;text-align:center;}
+#intro h1{font-size:26px;margin-bottom:6px;}
+.badge-special{display:inline-block;background:#0972d3;color:#fff;font-size:12px;font-weight:700;border-radius:20px;padding:4px 14px;margin-bottom:14px;letter-spacing:.5px;}
+#intro p{color:var(--gray);line-height:1.55;font-size:15px;}
+.startbtn{background:var(--blue);color:#fff;border:none;padding:13px 32px;border-radius:22px;font-size:15px;margin-top:22px;font-weight:600;}
+.rules{text-align:left;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:18px 22px;margin-top:22px;font-size:13.5px;}
+.rules li{margin-bottom:8px;}
+#game{flex:1;display:flex;flex-direction:column;background:#fff;width:100%;}
+.hud{display:flex;justify-content:space-between;padding:9px 32px;background:var(--dark);color:#fff;font-size:12px;}
+.topbar{display:flex;justify-content:space-between;align-items:center;padding:14px 32px;border-bottom:1px solid var(--border);}
+.topbar-left{display:flex;align-items:center;gap:10px;}
+.topbar-left .ico{width:36px;height:36px;border-radius:50%;background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:17px;}
+.topbar-left .lbl b{display:block;font-size:14px;}
+.topbar-left .lbl span{display:block;font-size:12px;color:var(--gray);}
+.topbar-right{display:flex;gap:30px;align-items:center;}
+.tbtn{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;color:var(--dark);cursor:pointer;}
+.tbtn .circ{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;}
+.circ.green{background:#037f51;}.circ.gray{background:#5f6b7a;}.circ.red{background:#d13212;}
+.tbtn.recursos .circ{background:var(--bg);color:var(--dark);border:1px solid var(--border);}
+.tabbar{display:flex;background:#e9ebed;border-bottom:1px solid var(--border);}
+.tabitem{display:flex;align-items:center;gap:8px;padding:9px 16px;font-size:12.5px;color:var(--dark);background:#e9ebed;border-right:1px solid var(--border);cursor:pointer;max-width:220px;}
+.tabitem.active{background:#fff;font-weight:600;}
+.tabitem .ticon{width:18px;height:18px;border-radius:4px;background:var(--blue);color:#fff;font-size:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.tabitem .tlabel{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+#content{padding:0;flex:1;width:100%;}
+.acstage{display:flex;align-items:flex-start;}
+.chatpanel{width:320px;min-width:280px;border-right:1px solid var(--border);background:#fff;display:flex;flex-direction:column;height:calc(100vh - 178px);position:sticky;top:0;overflow:hidden;}
+.chatpanel .cph{padding:13px 18px;border-bottom:1px solid var(--border);font-size:12px;color:var(--gray);display:flex;justify-content:space-between;align-items:center;background:#fafbfb;}
+.chatpanel .cph b{color:var(--dark);font-size:13px;}
+.chatlog{overflow-y:auto;padding:16px 18px;flex:1;}
+.cmsg{margin-bottom:16px;max-width:92%;}
+.cmsg.bot,.cmsg.customer{margin-right:auto;}
+.cmsg.bot .bubble{background:#f2f3f3;border-radius:10px;padding:10px 13px;font-size:12.5px;line-height:1.5;}
+.cmsg.bot .bubble b{font-size:11.5px;color:var(--gray);display:block;margin-bottom:3px;}
+.cmsg.customer .who{font-size:11.5px;color:var(--gray);margin-bottom:3px;}
+.cmsg.customer .bubble{background:#fff;border:1px solid var(--border);border-radius:10px;padding:10px 13px;font-size:12.5px;line-height:1.5;}
+.cmsg.agent{margin-left:auto;text-align:right;}
+.cmsg.agent .who{font-size:11.5px;color:var(--gray);margin-bottom:3px;}
+.cmsg.agent .bubble{background:var(--blue);color:#fff;border-radius:10px;padding:10px 13px;font-size:12.5px;line-height:1.5;display:inline-block;text-align:left;}
+.cmsg .time{font-size:10.5px;color:#8a9296;margin-top:4px;}
+.cmsg.agent .time{text-align:right;}
+.chatinputbar{border-top:1px solid var(--border);padding:12px 16px;display:flex;gap:8px;background:#fafbfb;}
+.chatinputbar input{flex:1;border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:13px;font-family:inherit;}
+.chatinputbar button{background:#fff;border:1px solid var(--border);border-radius:8px;padding:9px 16px;font-size:13px;}
+.mainpanel{flex:1;min-width:0;padding:24px 32px 100px;}
+.casebrief{background:#eef6ff;border:1px solid #b6d6f7;border-radius:10px;padding:16px 22px;margin-bottom:20px;font-size:13.5px;}
+.casebrief b{display:block;margin-bottom:6px;color:var(--blue);font-size:13px;}
+.casebrief .sic{display:inline-block;background:#fff;border:1px solid var(--border);border-radius:12px;padding:3px 12px;font-size:11.5px;color:var(--gray);margin-top:10px;}
+.ordercard{border:1px solid var(--border);border-radius:10px;padding:20px 24px;display:flex;gap:20px;align-items:flex-start;margin-bottom:18px;}
+.ordercard .emo{width:60px;height:60px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:32px;background:var(--bg);border:1px solid var(--border);}
+.ordercard .pn{font-size:12px;color:var(--gray);}
+.ordercard .variant{font-weight:600;margin:5px 0;font-size:15px;}
+.acc{border:1px solid var(--border);border-radius:10px;margin-bottom:10px;overflow:hidden;}
+.acc .hd{padding:14px 20px;display:flex;justify-content:space-between;align-items:center;font-weight:600;font-size:13.5px;cursor:pointer;}
+.acc .hd:hover{background:var(--bg);}
+.acc .bd{padding:20px;border-top:1px solid var(--border);display:none;font-size:13px;}
+.acc.open .bd{display:block;}
+.acc .arrow{transition:transform .15s;}
+.acc.open .arrow{transform:rotate(90deg);}
+.grid3{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:36px;}
+.grid3 h4{font-size:12px;color:var(--gray);margin:0 0 4px;font-weight:600;}
+.grid3 p{margin:0 0 14px;}
+.timeline{list-style:none;padding:0;margin:0;}
+.timeline li{padding:0 0 20px 26px;position:relative;font-size:13px;}
+.timeline li:before{content:"";position:absolute;left:0;top:4px;width:14px;height:14px;border-radius:50%;background:var(--green);border:2px solid #fff;box-shadow:0 0 0 2px var(--green);}
+.timeline li:after{content:"";position:absolute;left:7px;top:18px;width:1px;height:calc(100% - 10px);background:var(--border);}
+.timeline li:last-child:after{display:none;}
+.paytable{width:100%;border-collapse:collapse;font-size:13px;}
+.paytable td{padding:7px 0;}
+.paytable tr.total td{border-top:1px solid var(--border);font-weight:700;padding-top:11px;}
+.obslist{list-style:none;margin:0;padding:0;}
+.obslist li{background:var(--bg);border:1px solid var(--border);border-left:3px solid var(--blue);border-radius:6px;padding:10px 14px;margin-bottom:8px;font-size:13px;}
+/* ---- GEOLOCALIZER — Google Maps style ---- */
+.geo-wrap{border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:18px;box-shadow:0 2px 12px rgba(0,0,0,.10);}
+.geo-header{background:#fff;border-bottom:1px solid #e8eaed;color:var(--dark);padding:10px 16px;display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:600;}
+.geo-header .geo-title-left{display:flex;align-items:center;gap:8px;}
+.geo-header .geo-search-pill{background:#f1f3f4;border-radius:20px;padding:5px 14px;font-size:12px;color:#5f6368;display:flex;align-items:center;gap:6px;}
+.geo-header .geo-eta{font-size:12px;font-weight:500;color:#1a73e8;background:#e8f0fe;border-radius:12px;padding:4px 10px;}
+.geo-map-wrap{position:relative;height:220px;overflow:hidden;}
+/* Camadas do mapa */
+.gm-base{position:absolute;inset:0;background:#e8edf0;}
+.gm-terrain{position:absolute;inset:0;}
+/* Ruas principais */
+.gm-roads{position:absolute;inset:0;pointer-events:none;}
+/* Quarteirões (blocos) */
+.gm-blocks{position:absolute;inset:0;pointer-events:none;}
+/* Rota azul Google Maps */
+.gm-route-svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;}
+/* Pin destino estilo Google Maps */
+.gm-pin-dest{position:absolute;display:flex;flex-direction:column;align-items:center;transform:translate(-50%,-100%);filter:drop-shadow(0 2px 4px rgba(0,0,0,.3));}
+.gm-pin-dest .pin-head{width:28px;height:28px;background:#ea4335;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid #fff;box-shadow:0 2px 6px rgba(234,67,53,.5);}
+.gm-pin-dest .pin-label{font-size:10px;font-weight:700;color:#ea4335;margin-top:4px;white-space:nowrap;background:#fff;border-radius:8px;padding:2px 7px;box-shadow:0 1px 4px rgba(0,0,0,.2);}
+/* Pin origem (DC) */
+.gm-pin-origin{position:absolute;transform:translate(-50%,-50%);}
+.gm-pin-origin .orig-dot{width:16px;height:16px;background:#34a853;border-radius:50%;border:3px solid #fff;box-shadow:0 2px 6px rgba(52,168,83,.5);}
+.gm-pin-origin .orig-label{font-size:9px;font-weight:700;color:#fff;background:#34a853;border-radius:8px;padding:2px 6px;margin-top:3px;white-space:nowrap;box-shadow:0 1px 3px rgba(0,0,0,.2);}
+/* Entregador — bolinha azul pulsante estilo Maps */
+.gm-courier{position:absolute;transform:translate(-50%,-50%);z-index:10;}
+.gm-courier-dot{width:20px;height:20px;background:#1a73e8;border-radius:50%;border:3px solid #fff;box-shadow:0 2px 8px rgba(26,115,232,.6);position:relative;}
+.gm-courier-dot::after{content:"";position:absolute;inset:-6px;border-radius:50%;background:rgba(26,115,232,.2);animation:courier-pulse 2s infinite;}
+@keyframes courier-pulse{0%,100%{transform:scale(1);opacity:.7;}50%{transform:scale(1.5);opacity:0;}}
+.gm-courier-emoji{position:absolute;top:-22px;left:50%;transform:translateX(-50%);font-size:18px;filter:drop-shadow(0 1px 2px rgba(0,0,0,.3));}
+/* Callout de status sobre o entregador */
+.gm-callout{position:absolute;background:#fff;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:600;color:var(--dark);box-shadow:0 2px 8px rgba(0,0,0,.2);white-space:nowrap;transform:translate(-50%,-100%);margin-top:-8px;}
+.gm-callout::after{content:"";position:absolute;bottom:-5px;left:50%;transform:translateX(-50%);border:5px solid transparent;border-top-color:#fff;border-bottom:none;}
+/* Barra de ETA inferior estilo Maps */
+.geo-eta-bar{background:#fff;padding:10px 18px;display:flex;align-items:center;justify-content:space-between;border-top:1px solid #e8eaed;}
+.geo-eta-bar .eta-steps{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.geo-eta-bar .eta-time{font-size:13px;font-weight:700;color:#1a73e8;}
+.gstep{font-size:11.5px;color:#9aa0a6;}.gstep.done{color:#34a853;font-weight:600;}.gstep.active{color:#1a73e8;font-weight:700;}
+.gsep{color:#dadce0;font-size:10px;}
+.geo-pulse{animation:gp 1.4s infinite;}
+@keyframes gp{0%,100%{opacity:1;}50%{opacity:.4;}}
+/* ---- DECISION PANEL ---- */
+.decisionpanel{border:1px solid var(--border);border-radius:10px;margin-bottom:18px;width:100%;}
+.decisionpanel .dphd{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--border);}
+.decisionpanel .dphd b{font-size:14px;}
+.decisionpanel .dpbd{padding:20px;}
+.radioq-label{font-size:13.5px;font-weight:600;margin:14px 0 10px;}
+.radioq-label:first-child{margin-top:0;}
+.radiorow{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:6px;}
+.radiopill{border:1px solid #879596;border-radius:18px;padding:9px 18px;font-size:13px;background:#fff;cursor:pointer;}
+.radiopill:hover{border-color:var(--blue);}
+.radiopill.selected{background:var(--blue);color:#fff;border-color:var(--blue);}
+.radiopill.disabledpill{opacity:.4;text-decoration:line-through;cursor:not-allowed;pointer-events:none;}
+.continuarbtn{margin-top:16px;background:var(--orange);color:#fff;border:none;border-radius:6px;padding:11px 22px;font-size:13.5px;font-weight:600;}
+.continuarbtn:disabled{background:#d5dbdb;color:#8a9296;cursor:not-allowed;}
+.encerrarrow{margin-top:20px;padding-top:16px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;}
+.encerrarbtn{background:var(--red);color:#fff;border:none;border-radius:22px;padding:12px 26px;font-size:14px;font-weight:600;}
+.encerrarbtn:disabled{background:#d5dbdb;color:#8a9296;cursor:not-allowed;}
+.execbox{background:#eafbf1;border:1px solid #9fe6c1;border-radius:10px;padding:16px 20px;margin-top:16px;font-size:13.5px;color:#0b4a2c;}
+.execbox b{display:block;margin-bottom:6px;color:var(--green);}
+.siclist{display:flex;flex-direction:column;gap:10px;margin-top:10px;}
+.sicopt{background:#fff;border:1px solid #879596;border-radius:10px;padding:12px 16px;font-size:13.5px;text-align:left;cursor:pointer;}
+.sicopt:hover{border-color:var(--blue);}
+.sicopt.tried{opacity:.4;text-decoration:line-through;cursor:not-allowed;pointer-events:none;}
+.stepper{display:flex;gap:8px;margin-bottom:20px;}
+.sdot{width:30px;height:30px;border-radius:50%;background:#e9ebed;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:var(--gray);}
+.sdot.done{background:var(--green);color:#fff;border-color:var(--green);}
+.sdot.current{background:var(--blue);color:#fff;border-color:var(--blue);box-shadow:0 0 0 3px rgba(9,114,211,.2);}
+/* ---- MODAL ---- */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:100;}
+.modal-box{background:#fff;border-radius:12px;max-width:560px;width:90%;padding:32px;box-shadow:0 10px 40px rgba(0,0,0,.25);}
+.modal-box.ok{border-top:7px solid var(--green);}.modal-box.err{border-top:7px solid var(--red);}
+.modal-box h3{margin:0 0 12px;font-size:20px;}.modal-box h3.ok{color:var(--green);}.modal-box h3.err{color:var(--red);}
+.modal-box p{line-height:1.6;font-size:14.5px;}
+.modal-box .policy{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px 16px;font-size:12.5px;color:var(--gray);margin-top:14px;}
+.modal-box .cta{background:var(--blue);color:#fff;border:none;border-radius:20px;padding:11px 24px;font-size:14px;margin-top:20px;margin-right:10px;cursor:pointer;}
+.modal-box .cta.retry{background:var(--red);}
+.flowform{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:14px 16px;margin:14px 0;}
+.flowrow{display:flex;justify-content:space-between;padding:6px 0;font-size:13px;border-bottom:1px dashed var(--border);}
+.flowrow:last-child{border-bottom:none;}
+.flowlabel{color:var(--gray);}.flowval{font-weight:600;}
+/* ---- TOAST ---- */
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:var(--dark);color:#fff;padding:12px 22px;border-radius:24px;font-size:13px;z-index:200;opacity:0;transition:opacity .2s;pointer-events:none;}
+.toast.show{opacity:1;}
+/* ---- FINAL ---- */
+#final .score{font-size:48px;font-weight:800;color:var(--blue);}
+#final .rewrap{text-align:left;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:18px;margin-top:22px;font-size:13.5px;max-height:420px;overflow-y:auto;}
+#final .rewrap .item{padding:10px 0;border-bottom:1px solid var(--border);}
+#final .rewrap .badge{display:inline-block;border-radius:10px;padding:2px 10px;font-size:11.5px;margin-left:8px;color:#fff;}
+#final .rewrap .badge.direto{background:var(--green);}
+#final .rewrap .badge.bom{background:#c78100;}
+#final .rewrap .badge.dificil{background:var(--red);}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- TELA INTRO -->
+<div id="intro">
+  <div class="card">
+    <div class="badge-special">🛵 TREINAMENTO ESPECIAL — Daily 02/09</div>
+    <h1>📍 Simulador: Rastreio em Tempo Real &amp; Amazon Now</h1>
+    <p>10 casos mistos sobre rastreamento de pedidos e Amazon Now — com <b>mapa de geolocalização simulado</b> em cada atendimento.</p>
+    <ul class="rules">
+      <li>🗺️ Observe o mapa de rastreio antes de agir — ele tem informações relevantes.</li>
+      <li>✅ Explorar seções (Status, Pagamentos, Observações) é livre e não conta como erro.</li>
+      <li>🎯 A avaliação acontece quando você escolhe uma ação no painel de decisão.</li>
+      <li>🔁 Opções erradas ficam bloqueadas — tente novamente até acertar.</li>
+      <li>📊 Resultado detalhado por caso no final.</li>
+    </ul>
+    <button class="startbtn" onclick="startGame()">Iniciar treinamento</button>
+  </div>
+</div>
+
+<!-- GAME -->
+<div id="game" style="display:none">
+  <div class="hud">
+    <span id="hudProgress">Caso 1 de 10</span>
+    <span id="hudScore">Tentativas neste caso: 0</span>
+  </div>
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="ico">📦</div>
+      <div class="lbl"><b>AC3 — Atendimento ao Cliente</b><span>Amazon Brasil · Varejo</span></div>
+    </div>
+    <div class="topbar-right">
+      <div class="tbtn" onclick="toast('📞 Ligação simulada — use o painel de ações.')"><div class="circ green">📞</div>Ligar</div>
+      <div class="tbtn" onclick="toast('✉️ E-mail registrado nas observações.')"><div class="circ gray">✉️</div>E-mail</div>
+      <div class="tbtn" onclick="toast('⚠️ Encerre o contato pelo painel de decisão.')"><div class="circ red">✕</div>Fechar sessão</div>
+      <div class="tbtn recursos" onclick="toast('📚 CS Assistant disponível no accordion abaixo.')"><div class="circ">▦</div>Recursos</div>
+    </div>
+  </div>
+  <div class="tabbar" id="tabbar"></div>
+  <div id="content"></div>
+</div>
+
+<!-- FINAL -->
+<div id="final" style="display:none">
+  <div class="card">
+    <div style="font-size:38px">🏁</div>
+    <h2>Treinamento concluído!</h2>
+    <div class="score" id="finalScore">—</div>
+    <p id="finalMsg"></p>
+    <div class="rewrap" id="finalReview"></div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal" style="display:none">
+  <div class="modal-box" id="modalBox"></div>
+</div>
+<div class="toast" id="toast"></div>
+
+</div><!-- #app -->
+<script>
+// ============================================================
+// DADOS DOS CENARIOS — 10 casos (Rastreio + Amazon Now)
+// ============================================================
+const SCENARIOS = [
+
+{id:"R1",title:"Amazon Now — app mostra 'Entregue' mas cliente não recebeu",
+ sicLabel:"Check Order Status / Amazon Now",
+ customerMsg:"Fiz um pedido pelo Amazon Now. O app atualizou pra 'Entregue' agora há pouco, mas eu tava em casa o tempo todo e ninguém tocou a campainha. Onde está meu pedido?",
+ geo:{originLabel:"CD GRU5",originX:12,originY:140,destLabel:"Cliente",destX:268,destY:78,courierX:265,courierY:80,courierEmoji:"🛵",steps:["Confirmado","Saiu p/ entrega","Entregue"],active:2,eta:"Entregue há 4 min"},
+ order:{img:"🛒",name:"Água Mineral 6x1,5L + Biscoitos 400g",num:"___NOW1",variant:"Amazon Now — entrega expressa",status:"Entregue (status do sistema — 21:47)",
+   prices:[["Água Mineral 6x1,5L","R$ 18,90"],["Biscoitos Trigo 400g","R$ 7,50"],["Taxa entrega expressa","R$ 6,99"]],total:"R$ 34,39",
+   seller:"Amazon.com.br — Now",carrier:"Entregador Amazon Now",tracking:"NOW-GRU-2108-1747",address:"Vila Madalena, São Paulo, SP",
+   timeline:["Pedido feito — 21:10","Saiu para entrega — 21:31","Entregue — 21:47 (registrado pelo app do entregador)"],
+   obs:["21:47 — Sistema: Status 'Entregue' registrado pelo app do entregador. FOTO de prova de entrega disponível — pacote deixado na portaria do prédio (sem assinatura, padrão Amazon Now).","21:47 — Sistema: Entregador encerrou rota e está offline. Contato direto indisponível."]},
+ csNote:"Amazon Now: entregas em prédios frequentemente ficam na portaria sem tocar a campainha do apartamento. A foto de prova de entrega é o dado decisivo — oriente o cliente a verificar a portaria antes de acionar reembolso.",
+ steps:[
+  {q:"Etapa 1 — Investigar",actions:[
+    {id:"r1a1",label:"Você verificou com o porteiro / na portaria se o pacote foi deixado lá?",ok:true,
+     fb:"Correto! Em prédios, Amazon Now deixa na portaria sem tocar a campainha do apartamento. Primeira verificação antes de qualquer resolução.",pol:"Amazon Now: oriente o cliente a verificar a portaria antes de acionar reembolso."},
+    {id:"r1a2",label:"Vou acionar o reembolso imediatamente.",ok:false,
+     fb:"Prematuro — a foto de prova de entrega (nas observações) indica entrega na portaria. Verifique antes.",pol:"Nunca reembolse sem antes consultar a prova de entrega."},
+    {id:"r1a3",label:"O endereço no app está correto?",ok:false,
+     fb:"Desvio do dado mais relevante — o endereço estava correto (entrega chegou ao local). Foque na prova de entrega.",pol:"Não repita dados já confirmados; avance para a investigação concreta."}
+  ]},
+  {q:"Etapa 2 — Confirmar prova",actions:[
+    {id:"r1b1",label:"Consultar as observações para verificar a foto de prova de entrega e confirmar onde o pacote foi deixado",ok:true,
+     fb:"Correto! As observações confirmam foto de prova disponível — portaria do prédio. Dado concreto para orientar o cliente.",pol:"Sempre verifique a foto de prova nas observações antes de decidir sobre reembolso em Amazon Now."},
+    {id:"r1b2",label:"Informar que o sistema diz 'Entregue' e nada pode ser feito",ok:false,
+     fb:"Insuficiente — o status 'Entregue' não é o dado decisivo; a foto de prova nas observações é.",pol:"O status do app não basta; a foto de prova é a evidência concreta."}
+  ]},
+  {q:"Etapa 3 — Resolução",actions:[
+    {id:"r1c1",label:"Informar que a prova de entrega mostra o pacote na portaria e orientar o cliente a verificar lá antes de qualquer ação adicional",ok:true,
+     fb:"Perfeito! Você usou o dado concreto (foto → portaria) para dar uma orientação precisa — evita reembolso desnecessário.",pol:"Oriente com base na prova antes de acionar qualquer reembolso."},
+    {id:"r1c2",label:"Processar reembolso integral imediatamente",ok:false,
+     fb:"Ignora a evidência disponível — a foto mostra o local exato de entrega.",pol:"Nunca reembolse antes de compartilhar a informação da prova com o cliente."},
+    {id:"r1c3",label:"Informar que Amazon Now não tem garantia e nada pode ser feito",ok:false,
+     fb:"Incorreto — Amazon Now tem prova de entrega por foto e processo de resolução definido.",pol:"Nunca informe que não há solução quando existem dados de entrega registrados."}
+  ]}
+ ]
+},
+
+{id:"R2",title:"Rastreio parado há 48h — cliente teme que pedido se perdeu",
+ sicLabel:"Check Order Status / Em Trânsito",
+ customerMsg:"Meu pedido está com rastreamento parado desde anteontem no mesmo status 'em trânsito no centro de triagem'. O pacote se perdeu?",
+ geo:{originLabel:"CD VCP2",originX:15,originY:148,destLabel:"Cliente",destX:262,destY:72,courierX:128,courierY:112,courierEmoji:"🚚",steps:["Enviado","Em triagem","A caminho","Entregue"],active:1,eta:"Estimativa: +2–3 dias úteis"},
+ order:{img:"👟",name:"Tênis Running Pro 42 — Preto/Laranja",num:"___TRS2",variant:"Enviado pela Amazon",status:"Em trânsito — última atualização há 48h",
+   prices:[["Tênis Running Pro 42","R$ 289,00"]],total:"R$ 289,00",
+   seller:"Amazon.com.br",carrier:"Correios",tracking:"AA997766554BR",address:"Campinas, SP",
+   timeline:["Pedido feito — sábado 22/08","Correios coletaram — segunda 24/08 às 08:10","Em triagem — terça 25/08 às 14:22 (última atualização)"],
+   obs:["26/08 — Sistema: Pacote parado em triagem há 48h. NORMAL para Correios em alta demanda — triagem pode levar até 72h sem atualização visível. Data TRACES deste pedido: 26/08.","26/08 — Sistema: NÃO há registro de extravio ou sinistro. Pacote fisicamente localizado no centro de triagem (última varredura confirmada)."]},
+ csNote:"Rastreio / Correios: paradas de 48–72h em centros de triagem são normais em picos de demanda. Um rastreio parado NÃO significa pedido perdido — verifique as observações para o status físico antes de informar extravio.",
+ steps:[
+  {q:"Etapa 1 — Orientar investigação",actions:[
+    {id:"r2a1",label:"Você já consultou o rastreamento no site dos Correios diretamente? Às vezes tem informação adicional que o app não mostra.",ok:true,
+     fb:"Correto! O site dos Correios pode ter atualizações mais recentes. Confirmar com o cliente antes de concluir extravio é o passo diagnóstico certo.",pol:"Oriente o cliente a verificar na transportadora antes de concluir que o pedido está perdido."},
+    {id:"r2a2",label:"Confirmar que o pedido se perdeu e acionar reembolso.",ok:false,
+     fb:"Conclusão precipitada — as observações do sistema confirmam que o pacote está fisicamente localizado.",pol:"Nunca confirme extravio sem verificar o status físico nas observações."},
+    {id:"r2a3",label:"Sugerir que o cliente compre de novo enquanto o original aparece.",ok:false,
+     fb:"Sugestão inadequada sem investigação.",pol:"Não ofereça alternativas de compra antes de confirmar o status real."}
+  ]},
+  {q:"Etapa 2 — Verificar sistema",actions:[
+    {id:"r2b1",label:"Consultar as observações para verificar se há registro de extravio e qual o status físico do pacote",ok:true,
+     fb:"Correto! As observações confirmam: sem extravio, pacote fisicamente localizado, atraso normal de triagem, data TRACES 26/08.",pol:"Verifique sempre o status físico nas observações antes de falar em extravio."},
+    {id:"r2b2",label:"Informar que o pedido foi extraviado sem consultar as observações",ok:false,
+     fb:"Incorreto — as observações mostram o pacote localizado fisicamente e sem registro de sinistro.",pol:"Nunca informe extravio sem verificar o status físico registrado."}
+  ]},
+  {q:"Etapa 3 — Comunicar ao cliente",actions:[
+    {id:"r2c1",label:"Informar que o pacote está fisicamente no centro de triagem (confirmado), que atraso de 48–72h é normal e que a data TRACES é 26/08 — monitorar até lá",ok:true,
+     fb:"Correto! Dados concretos das observações + prazo claro (TRACES 26/08) = resposta precisa e tranquilizadora.",pol:"Confirme status físico, normalize o atraso de triagem e informe a data TRACES como próximo marco."},
+    {id:"r2c2",label:"Processar reembolso imediatamente porque o rastreio ficou parado",ok:false,
+     fb:"O pacote está localizado — reembolso antes da data TRACES não é o processo correto.",pol:"Reembolso por atraso só após a data TRACES."},
+    {id:"r2c3",label:"Confirmar extravio e orientar a acionar o seguro dos Correios diretamente",ok:false,
+     fb:"O pacote não está perdido — acionar seguro de extravio para pacote localizado é incorreto.",pol:"Nunca acione seguro de extravio para pacote com localização física confirmada."}
+  ]}
+ ]
+},
+
+{id:"R3",title:"Amazon Now — janela de entrega excedida em 40 min",
+ sicLabel:"Amazon Now / Atraso de Entrega",
+ customerMsg:"Pedi pelo Amazon Now há 2 horas, a janela era de 1h20min e já faz 40 minutos que passou. O app diz 'a caminho' mas o entregador não se mexeu no mapa há meia hora.",
+ geo:{originLabel:"Hub Now SP",originX:18,originY:152,destLabel:"Cliente",destX:258,destY:70,courierX:188,courierY:98,courierEmoji:"🛵",steps:["Confirmado","Preparando","A caminho","Entregue"],active:2,eta:"⚠️ Atraso — +40 min"},
+ order:{img:"🍎",name:"Cesta Frutas e Verduras Frescas",num:"___NOW3",variant:"Amazon Now — Fresh",status:"Em atraso — janela excedida",
+   prices:[["Cesta Frutas e Verduras","R$ 64,90"],["Taxa entrega expressa","R$ 6,99"]],total:"R$ 71,89",
+   seller:"Amazon Fresh / Now",carrier:"Entregador Amazon Now",tracking:"NOW-SP-2108-1955",address:"Pinheiros, São Paulo, SP",
+   timeline:["Pedido feito — 18:45","Saiu para entrega — 19:02","Última atualização GPS — 20:00 (Av. Rebouças)"],
+   obs:["21:01 — Sistema: Entregador sem atualização GPS há 61 min. Protocolo de atraso Amazon Now ativado automaticamente às 20:45 (após 25 min sem sinal). Possíveis causas: problema de sinal, acidente, desvio de rota.","21:01 — Sistema: Janela de entrega (19:00–20:20) JÁ EXPIROU. Cliente elegível para reembolso IMEDIATO da taxa de entrega expressa. Se pedido não chegar em +30 min: elegível para reembolso integral (política SLA miss Amazon Now)."]},
+ csNote:"Amazon Now / Atraso: janela expirada = reembolso imediato da taxa de entrega garantido. Pedido não chega em +30 min após contato = reembolso integral do pedido pela política de SLA miss.",
+ steps:[
+  {q:"Etapa 1 — Diagnosticar",actions:[
+    {id:"r3a1",label:"Vou verificar o status do entregador no sistema agora — pode me confirmar o horário em que a janela deveria ter terminado?",ok:true,
+     fb:"Correto! Confirmar o horário com o cliente e cruzar com as observações do sistema é o passo diagnóstico antes de qualquer resolução.",pol:"Confirme os horários e cruze com as observações antes de decidir a resolução por atraso."},
+    {id:"r3a2",label:"Deve ser trânsito, aguarde mais um pouco.",ok:false,
+     fb:"Resposta vaga que ignora as informações do sistema sobre o protocolo de atraso já ativado.",pol:"Nunca normalize atraso sem verificar as observações."},
+    {id:"r3a3",label:"Infelizmente não consigo rastrear o entregador em tempo real.",ok:false,
+     fb:"Incorreto — o sistema registra as atualizações GPS do entregador nas observações.",pol:"Consulte as observações antes de informar o que é possível ou não verificar."}
+  ]},
+  {q:"Etapa 2 — Verificar direitos",actions:[
+    {id:"r3b1",label:"Consultar as observações para verificar a última posição e confirmar os direitos do cliente pelo atraso",ok:true,
+     fb:"Correto! As observações confirmam: protocolo ativado, janela expirada, cliente com direito imediato ao reembolso da taxa expressa.",pol:"Observações de pedidos Amazon Now registram o protocolo de atraso — sempre consulte antes de decidir a compensação."},
+    {id:"r3b2",label:"Prometer que o entregador chega em 10 minutos sem verificar o status",ok:false,
+     fb:"Promessa sem base — as observações mostram entregador sem GPS há 61 min.",pol:"Nunca prometa prazo sem verificar o status real."}
+  ]},
+  {q:"Etapa 3 — Resolver",actions:[
+    {id:"r3c1",label:"Confirmar o atraso, reembolsar imediatamente a taxa expressa e informar que se o pedido não chegar em 30 min o reembolso integral será aplicado",ok:true,
+     fb:"Correto! Política SLA miss aplicada corretamente: reembolso imediato da taxa + comunicação clara do prazo adicional para reembolso integral.",pol:"Janela expirada = reembolso da taxa imediato. +30 min sem entrega = reembolso integral."},
+    {id:"r3c2",label:"Pedir para o cliente aguardar mais 2 horas antes de qualquer ação",ok:false,
+     fb:"A janela já expirou há 40 min — pedir 2h adicionais ignora os direitos já garantidos.",pol:"Não peça espera quando os direitos pelo atraso já são imediatos."},
+    {id:"r3c3",label:"Oferecer apenas cupom de desconto sem reembolsar a taxa",ok:false,
+     fb:"Compensação insuficiente — a política garante reembolso da taxa, não apenas cupom.",pol:"Cumpra o direito garantido antes de oferecer compensações adicionais."}
+  ]}
+ ]
+}
+
+,
+
+{id:"R4",title:"Status 'Tentativa de entrega' mas cliente estava em casa",
+ sicLabel:"Check Order Status / Tentativa de Entrega",
+ customerMsg:"O rastreio diz que o entregador tentou entregar às 14h mas eu estava em casa esse horário inteiro. Ninguém tocou a campainha. O que acontece agora?",
+ geo:{originLabel:"CD GRU3",originX:14,originY:145,destLabel:"Cliente",destX:264,destY:76,courierX:262,courierY:78,courierEmoji:"🚚",steps:["Enviado","A caminho","Tentativa","Reagendado"],active:2,eta:"Nova tentativa: amanhã"},
+ order:{img:"💻",name:"Monitor 27'' Full HD — Preto",num:"___TRS4",variant:"Enviado pela Amazon — objeto grande",status:"Tentativa de entrega registrada — 14:02",
+   prices:[["Monitor 27'' Full HD","R$ 1.249,00"]],total:"R$ 1.249,00",
+   seller:"Amazon.com.br",carrier:"Transportadora Amazon",tracking:"AMZ-GRU-2608-1402",address:"Moema, São Paulo, SP",
+   timeline:["Pedido feito — 24/08","Enviado — 25/08","Saiu para entrega — 26/08 às 07:30","Tentativa registrada — 26/08 às 14:02"],
+   obs:["26/08 14:02 — Sistema: Entregador registrou 'Ausência de morador' às 14:02. Foto do local registrada — foto mostra porta do prédio (portaria fechada). Nenhuma assinatura coletada. Nota de tentativa de entrega deixada? — NÃO registrado no sistema.","26/08 14:05 — Sistema: Nova tentativa automática reagendada para próximo dia útil. Cliente pode também retirar no CD mediante agendamento. Limite de tentativas: 3. Tentativas realizadas: 1."]},
+ csNote:"Tentativa de entrega: o entregador registra ausência quando não consegue acesso ao imóvel (portaria fechada, sem atendimento). O cliente tem direito a mais 2 tentativas automáticas ou pode agendar retirada no CD. Valide a foto de tentativa nas observações.",
+ steps:[
+  {q:"Etapa 1 — Investigar a tentativa",actions:[
+    {id:"r4a1",label:"Consultar as observações para verificar o que foi registrado pelo entregador na tentativa — foto disponível?",ok:true,
+     fb:"Correto! As observações confirmam que a foto mostra a portaria do prédio fechada — o entregador não conseguiu acesso, não necessariamente estava errado. Dado concreto para explicar ao cliente.",pol:"Sempre verifique a foto de tentativa de entrega nas observações antes de concluir erro do entregador."},
+    {id:"r4a2",label:"Informar que o entregador cometeu um erro e registrar reclamação imediata",ok:false,
+     fb:"Conclusão sem evidência — a foto nas observações mostra portaria fechada, o que justifica o registro de ausência.",pol:"Não conclua erro do entregador sem verificar a evidência fotográfica."},
+    {id:"r4a3",label:"Processar reembolso imediatamente pois a entrega falhou",ok:false,
+     fb:"Prematuro — há 2 novas tentativas automáticas previstas e opção de retirada no CD.",pol:"Reembolso por tentativa falha só após esgotamento das 3 tentativas previstas."}
+  ]},
+  {q:"Etapa 2 — Explicar e oferecer opções",actions:[
+    {id:"r4b1",label:"Explicar que a foto mostra portaria fechada (entregador sem acesso), informar que há mais 2 tentativas automáticas e oferecer opção de retirada no CD",ok:true,
+     fb:"Correto! Você usou a evidência concreta (foto → portaria fechada), explicou o processo e apresentou as alternativas disponíveis.",pol:"Informe o número de tentativas restantes e a opção de retirada no CD antes de qualquer resolução definitiva."},
+    {id:"r4b2",label:"Dizer que não há nada a fazer até a próxima tentativa automática, sem dar opções",ok:false,
+     fb:"Incompleto — o cliente tem direito à opção de retirada no CD além das tentativas automáticas.",pol:"Sempre apresente todas as alternativas disponíveis ao cliente."},
+    {id:"r4b3",label:"Transferir para o time de logística para investigar o entregador",ok:false,
+     fb:"Desnecessário — as observações já têm a evidência fotográfica e as próximas ações estão claras.",pol:"Não transfira quando as informações disponíveis permitem resolver sem escalonamento."}
+  ]},
+  {q:"Etapa 3 — Confirmar próximo passo",actions:[
+    {id:"r4c1",label:"Confirmar com o cliente qual prefere: aguardar a próxima tentativa automática (próximo dia útil) ou agendar retirada no CD",ok:true,
+     fb:"Correto! O cliente decide entre as duas opções válidas — você apresentou clareza e controle ao cliente.",pol:"Sempre ofereça as opções e deixe o cliente escolher o próximo passo."},
+    {id:"r4c2",label:"Cancelar o pedido e processar reembolso por não ter conseguido entregar na primeira tentativa",ok:false,
+     fb:"Cancelamento não é necessário — há tentativas restantes e o cliente pode estar satisfeito apenas aguardando.",pol:"Não cancele sem confirmar com o cliente se ele prefere nova tentativa."}
+  ]}
+ ]
+},
+
+{id:"R5",title:"Rastreio mostra 'Entregue' há 3 dias mas item nunca chegou",
+ sicLabel:"Package Lost / WISMO — Entregue não recebido",
+ customerMsg:"O rastreio diz que meu pedido foi entregue há 3 dias, mas eu nunca recebi nada. Já verifiquei na portaria, com vizinhos e na administração do prédio. Nada.",
+ geo:{originLabel:"CD SBC1",originX:13,originY:142,destLabel:"Cliente",destX:266,destY:74,courierX:264,courierY:72,courierEmoji:"🚚",steps:["Enviado","A caminho","Entregue"],active:2,eta:"Entregue há 3 dias"},
+ order:{img:"🎮",name:"Controle Gamer Sem Fio — Preto",num:"___TRS5",variant:"Enviado pela Amazon",status:"Entregue — 22/08 às 16:34 (status do sistema)",
+   prices:[["Controle Gamer Sem Fio","R$ 389,00"]],total:"R$ 389,00",
+   seller:"Amazon.com.br",carrier:"Transportadora Amazon",tracking:"AMZ-SBC-2208-1634",address:"Santo André, SP",
+   timeline:["Pedido feito — 20/08","Enviado — 21/08","Entregue — 22/08 às 16:34"],
+   obs:["22/08 16:34 — Sistema: Entregador registrou 'Entregue'. Foto de prova de entrega disponível — foto mostra pacote na calçada em frente ao número do endereço, SEM assinatura de morador, SEM entrega em mãos.","25/08 — Sistema: Contato atual é o PRIMEIRO contato sobre este pedido. Prazo TRACES já passou (25/08). Cliente elegível para investigação de extravio e reembolso/reenvio. Valor do pedido: R$ 389,00 — dentro do limite de resolução automática."]},
+ csNote:"Entregue não recebido (INR): se o cliente já verificou portaria, vizinhos e administração, e a foto de prova não mostra entrega em mãos (apenas pacote na calçada), a política Amazon permite reembolso ou reenvio após o prazo TRACES. Consulte as observações para confirmar elegibilidade.",
+ steps:[
+  {q:"Etapa 1 — Verificar evidência de entrega",actions:[
+    {id:"r5a1",label:"Consultar as observações para verificar a foto de prova de entrega e o que ela mostra",ok:true,
+     fb:"Correto! A foto nas observações mostra pacote na calçada sem entrega em mãos — evidência insuficiente de entrega efetiva ao cliente. Esse dado fundamenta a resolução.",pol:"A foto de prova de entrega é a evidência central em casos INR — verifique sempre antes de decidir."},
+    {id:"r5a2",label:"Informar que o sistema mostra 'Entregue' e não há o que fazer",ok:false,
+     fb:"Incorreto — o status 'Entregue' no sistema não é evidência suficiente quando a foto não mostra entrega em mãos.",pol:"O status do rastreio não encerra a investigação; a foto de prova é o dado decisivo."},
+    {id:"r5a3",label:"Pedir para o cliente registrar boletim de ocorrência antes de qualquer ação",ok:false,
+     fb:"Requisito desnecessário neste estágio — a política Amazon permite resolução direta após análise da prova de entrega e prazo TRACES.",pol:"Não exija B.O. como pré-requisito para resolução de INR dentro do prazo e valor padrão."}
+  ]},
+  {q:"Etapa 2 — Confirmar elegibilidade",actions:[
+    {id:"r5b1",label:"Verificar nas observações se o prazo TRACES já passou e se o caso está dentro do limite de resolução automática",ok:true,
+     fb:"Correto! As observações confirmam: TRACES passou (25/08), primeiro contato sobre o pedido, valor R$ 389,00 dentro do limite automático. Elegibilidade para reembolso ou reenvio confirmada.",pol:"Confirme TRACES + limite de valor nas observações antes de oferecer reembolso ou reenvio."},
+    {id:"r5b2",label:"Transferir imediatamente para o time de investigação de extravios sem verificar as observações",ok:false,
+     fb:"Desnecessário — as observações já confirmam elegibilidade e o caso pode ser resolvido sem escalonamento.",pol:"Verifique as observações antes de transferir."}
+  ]},
+  {q:"Etapa 3 — Resolução",actions:[
+    {id:"r5c1",label:"Confirmar ao cliente que a prova de entrega não mostra entrega em mãos, que o TRACES já passou, e oferecer reembolso integral ou reenvio",ok:true,
+     fb:"Correto! Resolução fundamentada: prova insuficiente + TRACES passado + eligibilidade confirmada = reembolso ou reenvio garantido.",pol:"INR com foto sem entrega em mãos + TRACES passado + primeiro contato = reembolso ou reenvio garantido."},
+    {id:"r5c2",label:"Negar o reembolso porque o sistema mostra 'Entregue'",ok:false,
+     fb:"Incorreto — o status 'Entregue' não é suficiente quando a foto não comprova entrega efetiva.",pol:"Nunca negue resolução INR baseando-se apenas no status do rastreio."},
+    {id:"r5c3",label:"Oferecer apenas 50% de reembolso como 'boa vontade'",ok:false,
+     fb:"Resolução insuficiente — o cliente tem direito ao reembolso integral ou reenvio completo.",pol:"Não ofereça reembolso parcial quando o cliente tem direito a resolução integral."}
+  ]}
+ ]
+},
+
+{id:"R6",title:"Amazon Now — item do pedido substituído sem aviso, cliente não quer o substituto",
+ sicLabel:"Amazon Now / Substituição de Item",
+ customerMsg:"Recebi meu pedido Amazon Now mas um dos itens foi substituído por outro que eu não pedi e não quero. Ninguém me avisou antes da entrega. O que faço?",
+ geo:{originLabel:"Hub Now RJ",originX:16,originY:150,destLabel:"Cliente",destX:260,destY:72,courierX:258,courierY:70,courierEmoji:"🛵",steps:["Confirmado","Preparando","Entregue"],active:2,eta:"Entregue há 20 min"},
+ order:{img:"🥛",name:"Leite Integral 1L (6 unidades) — SUBSTITUÍDO por Leite Desnatado 1L",num:"___NOW6",variant:"Amazon Now — substituição automática",status:"Entregue com substituição",
+   prices:[["Leite Integral 1L x6 (original)","R$ 31,20"],["Leite Desnatado 1L x6 (substituto enviado)","R$ 28,80"],["Taxa entrega expressa","R$ 6,99"]],total:"R$ 35,79",
+   seller:"Amazon Fresh / Now",carrier:"Entregador Amazon Now",tracking:"NOW-RJ-0109-2010",address:"Botafogo, Rio de Janeiro, RJ",
+   timeline:["Pedido feito — 19:45","Item original indisponível detectado — 19:52","Substituição automática aplicada — 19:53 (sem notificação ao cliente)","Entregue — 20:10"],
+   obs:["19:52 — Sistema: Leite Integral 1L esgotado no hub no momento da separação. Substituição automática aplicada (Leite Desnatado) sem notificação ao cliente — falha no fluxo de notificação prévia.","20:30 — Sistema: Política Amazon Now Substituições: cliente tem direito a recusar o substituto e receber reembolso integral do item original. Devolução do item substituto: não obrigatória para itens perecíveis/alimentares. Cobrança: deve ser ajustada para o valor do item original (R$ 31,20 → não o substituto R$ 28,80)."]},
+ csNote:"Amazon Now / Substituição: cliente deve ser notificado ANTES da entrega sobre qualquer substituição. Se não foi notificado, tem direito a reembolso integral do item original sem precisar devolver o substituto (itens perecíveis). Ajuste a cobrança para o valor original.",
+ steps:[
+  {q:"Etapa 1 — Confirmar o que aconteceu",actions:[
+    {id:"r6a1",label:"Consultar as observações para confirmar se houve falha na notificação e qual a política aplicável para substituições Amazon Now",ok:true,
+     fb:"Correto! As observações confirmam falha no fluxo de notificação prévia e descrevem exatamente os direitos do cliente: reembolso integral do item original sem devolução obrigatória do substituto.",pol:"Em substituições Amazon Now sem notificação prévia, o cliente tem direito a reembolso integral do item original."},
+    {id:"r6a2",label:"Informar que substituições são normais e o cliente deve aceitar",ok:false,
+     fb:"Incorreto — a substituição sem notificação prévia viola o fluxo correto. O cliente tem direito a recusar.",pol:"Substituição sem notificação = direito do cliente de recusar e ser reembolsado."},
+    {id:"r6a3",label:"Pedir para o cliente devolver o item substituto antes de qualquer reembolso",ok:false,
+     fb:"Incorreto para itens perecíveis/alimentares — a política não exige devolução para reembolso de substituições alimentares.",pol:"Itens perecíveis substituídos: devolução não obrigatória para receber reembolso."}
+  ]},
+  {q:"Etapa 2 — Aplicar a resolução correta",actions:[
+    {id:"r6b1",label:"Reembolsar o valor integral do item original (R$ 31,20) e confirmar que o cliente não precisa devolver o substituto por ser item alimentar",ok:true,
+     fb:"Correto! Política aplicada corretamente: reembolso do valor original + sem obrigação de devolução para perecíveis.",pol:"Substituição alimentar sem notificação: reembolso do valor original + sem devolução obrigatória."},
+    {id:"r6b2",label:"Reembolsar apenas a diferença de preço (R$ 2,40) entre os produtos",ok:false,
+     fb:"Insuficiente — o cliente não quer o substituto; tem direito ao reembolso integral do item original, não apenas da diferença.",pol:"Reembolse o valor integral do item original, não apenas a diferença de preço."},
+    {id:"r6b3",label:"Oferecer crédito para a próxima compra em vez de reembolso",ok:false,
+     fb:"O cliente tem direito a reembolso real, não apenas crédito futuro.",pol:"Ofereça reembolso real, não apenas crédito, quando o direito é ao reembolso integral."}
+  ]},
+  {q:"Etapa 3 — Fechar o contato",actions:[
+    {id:"r6c1",label:"Confirmar o reembolso de R$ 31,20, informar que não precisa devolver o leite substituto e registrar o feedback sobre a falha de notificação",ok:true,
+     fb:"Correto! Resolução completa: reembolso correto + dispensa de devolução + registro da falha para melhoria do processo.",pol:"Sempre registre falhas de processo (como ausência de notificação) para retroalimentação operacional."},
+    {id:"r6c2",label:"Encerrar sem registrar a falha de notificação no sistema",ok:false,
+     fb:"Incompleto — a falha de notificação precisa ser registrada para retroalimentação do processo Amazon Now.",pol:"Falhas de processo devem ser registradas, não apenas o caso individual do cliente."}
+  ]}
+ ]
+}
+
+,
+
+{id:"R7",title:"Rastreio com código inválido — cliente não consegue rastrear",
+ sicLabel:"Check Order Status / Código de Rastreio",
+ customerMsg:"Tentei rastrear meu pedido pelo código que recebi no e-mail mas o site dos Correios diz que o código é inválido. Já faz 4 dias que foi enviado. O que está errado?",
+ geo:{originLabel:"CD POA1",originX:14,originY:144,destLabel:"Cliente",destX:263,destY:75,courierX:80,courierY:130,courierEmoji:"🚚",steps:["Enviado","Em rota","A caminho","Entregue"],active:1,eta:"Status interno: em rota"},
+ order:{img:"📚",name:"Kit Livros Técnicos — 3 volumes",num:"___TRS7",variant:"Enviado pela Amazon via Correios",status:"Em trânsito (sistema interno) — código externo com delay",
+   prices:[["Kit Livros Técnicos — 3 volumes","R$ 187,00"]],total:"R$ 187,00",
+   seller:"Amazon.com.br",carrier:"Correios",tracking:"BR-AMZ-POA1-2208-009",address:"Porto Alegre, RS",
+   timeline:["Pedido feito — 22/08","Enviado — 23/08 às 09:15","Em rota interna — 24/08"],
+   obs:["23/08 — Sistema: Código de rastreio externo (Correios) gerado mas ainda NÃO ativado no sistema dos Correios. Isso é normal: pode levar até 48–72h para o código aparecer no site da transportadora após a geração. Pacote já está fisicamente em trânsito no sistema interno Amazon.","26/08 — Sistema: Código de rastreio externo deve estar ativo no site dos Correios a partir de hoje. Se cliente tentar novamente agora deve funcionar. Previsão de entrega: 28/08."]},
+ csNote:"Código de rastreio inválido: é comum que o código externo (transportadora) demore 48–72h para ativar no site da transportadora após a geração. O pacote pode já estar em trânsito no sistema interno Amazon mesmo sem aparecer externamente.",
+ steps:[
+  {q:"Etapa 1 — Investigar o status interno",actions:[
+    {id:"r7a1",label:"Consultar as observações para verificar o status interno do pacote e entender por que o código externo está inválido",ok:true,
+     fb:"Correto! As observações explicam o fenômeno: código gerado mas com delay de ativação no sistema dos Correios (48–72h normal). Pacote já está em trânsito internamente.",pol:"Código externo inválido não significa pedido perdido — verifique o status interno nas observações antes de concluir qualquer problema."},
+    {id:"r7a2",label:"Informar que o código está errado e reenviar outro código imediatamente",ok:false,
+     fb:"Precipitado — o código não está errado; apenas ainda não foi ativado no sistema externo da transportadora.",pol:"Não reenvie código sem investigar o status interno primeiro."},
+    {id:"r7a3",label:"Confirmar que o pedido foi perdido porque o código não funciona",ok:false,
+     fb:"Conclusão sem investigação — o pacote está em trânsito no sistema interno, o código externo apenas tem delay de ativação.",pol:"Nunca confirme extravio baseado apenas em código externo inativo."}
+  ]},
+  {q:"Etapa 2 — Confirmar prazo de ativação",actions:[
+    {id:"r7b1",label:"Verificar nas observações se há previsão de quando o código externo ficará ativo e qual a data de entrega estimada",ok:true,
+     fb:"Correto! As observações indicam que o código deve estar ativo hoje (26/08) e a previsão de entrega é 28/08. Dado concreto para informar ao cliente.",pol:"Sempre forneça ao cliente a previsão de ativação do código e a data de entrega com base nas observações."},
+    {id:"r7b2",label:"Dizer que não é possível saber quando o código vai ativar",ok:false,
+     fb:"Incorreto — as observações têm a previsão de ativação. Use os dados disponíveis.",pol:"Use as informações disponíveis nas observações antes de dizer que não sabe."}
+  ]},
+  {q:"Etapa 3 — Orientar o cliente",actions:[
+    {id:"r7c1",label:"Explicar que o delay de ativação de 48–72h é normal, informar que o código deve estar ativo agora e que a entrega está prevista para 28/08",ok:true,
+     fb:"Correto! Explicação técnica clara + dado concreto (ativação hoje + entrega 28/08) = cliente informado e tranquilizado.",pol:"Normalize o delay de ativação com explicação técnica e forneça a data de entrega prevista."},
+    {id:"r7c2",label:"Cancelar o pedido e reprocessar por causa do código inválido",ok:false,
+     fb:"Desnecessário — o pedido está em trânsito normalmente, o código só tem delay de ativação.",pol:"Não cancele pedido em trânsito por causa de delay de ativação de código externo."},
+    {id:"r7c3",label:"Pedir para o cliente aguardar 10 dias sem dar previsão",ok:false,
+     fb:"As observações têm a previsão exata (28/08) — não use prazo genérico quando há dado concreto disponível.",pol:"Sempre use a previsão concreta das observações; evite prazos genéricos."}
+  ]}
+ ]
+},
+
+{id:"R8",title:"Amazon Now — cliente quer rastrear pedido Now em tempo real mas o app não mostra mapa",
+ sicLabel:"Amazon Now / Rastreio em Tempo Real",
+ customerMsg:"Fiz um pedido Amazon Now mas no app não aparece aquele mapa com o entregador em tempo real. Só aparece 'a caminho'. Tem como ver onde o entregador está?",
+ geo:{originLabel:"Hub Now BH",originX:16,originY:148,destLabel:"Cliente",destX:261,destY:74,courierX:160,courierY:108,courierEmoji:"🛵",steps:["Confirmado","A caminho","Entregue"],active:1,eta:"Estimativa: 25 min"},
+ order:{img:"🧴",name:"Kit Skincare — Hidratante + Sérum",num:"___NOW8",variant:"Amazon Now — entrega em horas",status:"A caminho — entregador designado",
+   prices:[["Kit Skincare Hidratante + Sérum","R$ 129,90"],["Taxa entrega expressa","R$ 6,99"]],total:"R$ 136,89",
+   seller:"Amazon Fresh / Now",carrier:"Entregador Amazon Now",tracking:"NOW-BH-0109-2215",address:"Savassi, Belo Horizonte, MG",
+   timeline:["Pedido feito — 21:55","Entregador designado — 22:08","A caminho — 22:10"],
+   obs:["22:10 — Sistema: Rastreio em tempo real (mapa com posição do entregador) disponível APENAS para pedidos Amazon Now via app atualizado (versão 24.0+) em dispositivos iOS 14+ / Android 10+. Versão do app do cliente: não identificada.","22:10 — Sistema: Se o mapa não aparecer no app, orientar o cliente a: (1) fechar e reabrir o app, (2) verificar permissão de localização do app, (3) atualizar o app para a versão mais recente. O rastreio por texto ('a caminho') é sempre exibido como fallback quando o mapa não carrega."]},
+ csNote:"Rastreio em tempo real Amazon Now: o mapa com posição do entregador requer app atualizado (v24+) e permissões de localização ativas. Se não aparecer, orientar: fechar/reabrir app → verificar permissão localização → atualizar app. O rastreio textual é o fallback padrão.",
+ steps:[
+  {q:"Etapa 1 — Diagnosticar por que o mapa não aparece",actions:[
+    {id:"r8a1",label:"Consultar as observações para entender os requisitos técnicos do mapa em tempo real e o que orientar ao cliente",ok:true,
+     fb:"Correto! As observações descrevem os requisitos (app v24+, iOS 14+/Android 10+) e os passos de troubleshooting. Dados concretos para orientar o cliente.",pol:"Verifique as observações para entender os requisitos técnicos antes de orientar o cliente sobre funcionalidades do app."},
+    {id:"r8a2",label:"Informar que o mapa em tempo real não existe no Amazon Now",ok:false,
+     fb:"Incorreto — o mapa em tempo real existe e está disponível para versões atualizadas do app.",pol:"Nunca informe que uma funcionalidade não existe sem verificar as observações."},
+    {id:"r8a3",label:"Dizer que é problema do celular do cliente e não há o que fazer",ok:false,
+     fb:"Resposta inadequada — há passos de troubleshooting concretos disponíveis nas observações.",pol:"Sempre forneça os passos de troubleshooting disponíveis antes de encerrar sem solução."}
+  ]},
+  {q:"Etapa 2 — Guiar o troubleshooting",actions:[
+    {id:"r8b1",label:"Orientar o cliente a: fechar e reabrir o app, verificar permissão de localização e atualizar o app para a versão mais recente",ok:true,
+     fb:"Correto! Os três passos das observações aplicados na ordem correta — resolve a maioria dos casos de mapa não carregado.",pol:"Siga os passos de troubleshooting das observações na ordem indicada."},
+    {id:"r8b2",label:"Pedir para o cliente reinstalar o app completamente como primeira ação",ok:false,
+     fb:"Ação drástica desnecessária como primeiro passo — os passos menores (fechar/reabrir, permissão, atualizar) devem ser tentados primeiro.",pol:"Siga a ordem de troubleshooting: menos invasivo primeiro, reinstalação como último recurso."},
+    {id:"r8b3",label:"Transferir para suporte técnico imediatamente",ok:false,
+     fb:"Desnecessário — há passos de troubleshooting simples disponíveis que o próprio CSA pode orientar.",pol:"Não transfira para suporte técnico antes de tentar os passos básicos de troubleshooting."}
+  ]},
+  {q:"Etapa 3 — Fechar com contexto",actions:[
+    {id:"r8c1",label:"Informar que enquanto resolve o mapa o rastreio textual ('a caminho') é o fallback e mostra o status corretamente; confirmar a estimativa de entrega de 25 min",ok:true,
+     fb:"Correto! Contexto completo: troubleshooting orientado + fallback textual explicado + estimativa de entrega confirmada. Cliente sai com todas as informações.",pol:"Sempre explique o fallback disponível quando uma funcionalidade específica não está acessível temporariamente."},
+    {id:"r8c2",label:"Encerrar o contato sem confirmar a estimativa de entrega",ok:false,
+     fb:"Incompleto — o cliente tem um pedido a caminho. Confirmar a estimativa de entrega é parte da resolução.",pol:"Sempre confirme a estimativa de entrega ao encerrar contatos de rastreio Amazon Now."}
+  ]}
+ ]
+},
+
+{id:"R9",title:"Pedido Amazon Now cancelado automaticamente — cliente não entende o motivo",
+ sicLabel:"Amazon Now / Cancelamento Automático",
+ customerMsg:"Meu pedido Amazon Now foi cancelado sozinho, recebi um e-mail dizendo 'pedido cancelado' mas não explica o motivo. Eu não cancelei. O que aconteceu?",
+ geo:{originLabel:"Hub Now SP",originX:16,originY:150,destLabel:"Cliente",destX:260,destY:72,courierX:16,courierY:150,courierEmoji:"❌",steps:["Confirmado","Cancelado"],active:1,eta:"Cancelado — reembolso em processamento"},
+ order:{img:"🍕",name:"Pizza Congelada Mussarela 450g + Refrigerante 2L",num:"___NOW9",variant:"Amazon Now — cancelado automaticamente",status:"Cancelado — 02/09 às 20:18",
+   prices:[["Pizza Congelada Mussarela 450g","R$ 22,90"],["Refrigerante Cola 2L","R$ 9,80"],["Taxa entrega expressa","R$ 6,99"]],total:"R$ 39,69",
+   seller:"Amazon Fresh / Now",carrier:"—",tracking:"—",address:"Vila Olímpia, São Paulo, SP",
+   timeline:["Pedido feito — 20:05","Cancelamento automático — 20:18 (13 minutos após o pedido)"],
+   obs:["20:18 — Sistema: Cancelamento automático ativado — MOTIVO: nenhum entregador disponível no raio de entrega no momento do pedido. Hub Now SP com capacidade esgotada às 20:18. Cancelamento automático é acionado após 10 minutos sem entregador disponível.","20:18 — Sistema: Reembolso integral (R$ 39,69) processado automaticamente para o método de pagamento original. Prazo: 1–3 dias úteis no cartão / imediato no saldo Amazon. Pedido pode ser refeito quando houver disponibilidade (app mostrará 'Entrega Now disponível' quando capacidade for restaurada)."]},
+ csNote:"Cancelamento automático Amazon Now: ocorre quando não há entregador disponível após 10 minutos do pedido. Reembolso integral é processado automaticamente. Oriente o cliente a aguardar a disponibilidade no app (indicador 'Entrega Now disponível') para refazer o pedido.",
+ steps:[
+  {q:"Etapa 1 — Explicar o cancelamento",actions:[
+    {id:"r9a1",label:"Consultar as observações para confirmar o motivo do cancelamento automático e o status do reembolso",ok:true,
+     fb:"Correto! As observações revelam o motivo (sem entregador disponível após 10 min) e confirmam que o reembolso integral já foi processado automaticamente.",pol:"Verifique as observações para obter o motivo exato do cancelamento automático antes de explicar ao cliente."},
+    {id:"r9a2",label:"Informar que provavelmente foi um erro de sistema e reprocessar o pedido imediatamente",ok:false,
+     fb:"Incorreto — não foi erro de sistema; foi cancelamento automático por falta de entregador disponível. Reprocessar sem verificar disponibilidade pode gerar outro cancelamento.",pol:"Nunca atribua cancelamento automático a 'erro de sistema' sem verificar as observações."},
+    {id:"r9a3",label:"Pedir para o cliente entrar em contato com o banco para verificar o reembolso antes de qualquer outra ação",ok:false,
+     fb:"Prematuro — o reembolso já foi processado automaticamente (confirmado nas observações). Verificar no banco é desnecessário neste momento.",pol:"Confirme o status do reembolso nas observações antes de orientar o cliente a contatar o banco."}
+  ]},
+  {q:"Etapa 2 — Confirmar o reembolso",actions:[
+    {id:"r9b1",label:"Confirmar ao cliente que o reembolso integral de R$ 39,69 foi processado automaticamente e informar o prazo (1–3 dias úteis no cartão / imediato no saldo Amazon)",ok:true,
+     fb:"Correto! Reembolso confirmado com valor exato e prazo específico por método de pagamento — informação completa e precisa.",pol:"Confirme o valor exato e o prazo do reembolso de acordo com o método de pagamento usado."},
+    {id:"r9b2",label:"Dizer que o reembolso será feito 'em breve' sem informar prazo específico",ok:false,
+     fb:"Insuficiente — as observações têm o prazo exato por método de pagamento. Use os dados disponíveis.",pol:"Nunca use prazos vagos quando há informação concreta disponível nas observações."}
+  ]},
+  {q:"Etapa 3 — Orientar como refazer",actions:[
+    {id:"r9c1",label:"Explicar que o cancelamento foi por falta de entregador disponível, confirmar o reembolso e orientar a aguardar o indicador 'Entrega Now disponível' no app para refazer o pedido",ok:true,
+     fb:"Correto! Explicação completa: motivo claro + reembolso confirmado + instrução prática para refazer quando possível.",pol:"Sempre oriente o cliente sobre como verificar a disponibilidade Amazon Now antes de tentar um novo pedido."},
+    {id:"r9c2",label:"Garantir que o cliente pode refazer o pedido imediatamente e terá entregador",ok:false,
+     fb:"Promessa sem base — a capacidade do hub pode ainda estar esgotada. Oriente o cliente a verificar o indicador no app antes de refazer.",pol:"Nunca garanta disponibilidade sem confirmar que o indicador no app mostra 'Entrega Now disponível'."},
+    {id:"r9c3",label:"Oferecer cupom de desconto como compensação pelo cancelamento automático",ok:false,
+     fb:"Desnecessário — o cancelamento automático é um processo esperado do sistema, não uma falha que exige compensação extra além do reembolso já processado.",pol:"Não ofereça compensação extra por cancelamentos automáticos dentro do processo normal."}
+  ]}
+ ]
+}
+
+,
+
+{id:"R10",title:"Rastreio mostra 'Em trânsito' mas data de entrega já passou há 2 dias",
+ sicLabel:"Check Order Status / Atraso / TRACES",
+ customerMsg:"A data de entrega estimada era sexta-feira. Hoje é domingo e o rastreio ainda mostra 'em trânsito'. Já posso pedir o reembolso ou tenho que esperar mais?",
+ geo:{originLabel:"CD FOR1",originX:14,originY:146,destLabel:"Cliente",destX:264,destY:74,courierX:200,courierY:95,courierEmoji:"🚚",steps:["Enviado","Em trânsito","A caminho","Entregue"],active:1,eta:"⚠️ Atraso — data estimada já passou"},
+ order:{img:"🎧",name:"Fone de Ouvido Bluetooth Over-Ear",num:"___TRS10",variant:"Enviado pela Amazon via Transportadora Parceira",status:"Em trânsito — data estimada 29/08 (sexta) — hoje 31/08 (domingo)",
+   prices:[["Fone de Ouvido Bluetooth Over-Ear","R$ 219,00"]],total:"R$ 219,00",
+   seller:"Amazon.com.br",carrier:"Transportadora Parceira AMZ",tracking:"AMZ-FOR1-2708-8801",address:"Fortaleza, CE",
+   timeline:["Pedido feito — 25/08","Enviado — 26/08 às 11:20","Em trânsito — 27/08 às 08:45 (última atualização)"],
+   obs:["31/08 — Sistema: Data estimada de entrega era 29/08 (sexta). Hoje é 31/08 (domingo). Atraso de 2 dias. Data TRACES deste pedido: 31/08 (hoje). Cliente ELEGÍVEL para acionar reembolso ou CAP (reenvio) a partir de hoje.","31/08 — Sistema: Pacote ainda em trânsito — sem registro de extravio ou sinistro. Probabilidade de entrega nos próximos 1–2 dias úteis ainda alta (atraso de fim de semana é comum para transportadoras parceiras). Cliente pode optar por aguardar ou acionar resolução — ambas as opções são válidas a partir da data TRACES."]},
+ csNote:"Atraso pós-data TRACES: o cliente tem direito a acionar reembolso ou reenvio a partir da data TRACES. Porém, se o pacote ainda está em trânsito (sem extravio), informe também a probabilidade de chegada e deixe o cliente escolher — aguardar ou acionar resolução.",
+ steps:[
+  {q:"Etapa 1 — Verificar elegibilidade para resolução",actions:[
+    {id:"r10a1",label:"Consultar as observações para confirmar a data TRACES, o status do pacote e se o cliente já está elegível para resolução",ok:true,
+     fb:"Correto! As observações confirmam: data TRACES é hoje (31/08), pacote em trânsito sem extravio, cliente elegível para reembolso ou CAP a partir de agora.",pol:"Confirme a data TRACES nas observações antes de informar ao cliente sobre elegibilidade para resolução."},
+    {id:"r10a2",label:"Informar que o cliente precisa esperar mais 7 dias úteis antes de qualquer ação",ok:false,
+     fb:"Incorreto — a data TRACES já passou (era hoje 31/08). O cliente já está elegível para resolução.",pol:"Nunca peça espera adicional após a data TRACES ter sido atingida."},
+    {id:"r10a3",label:"Processar o reembolso imediatamente sem verificar o status do pacote",ok:false,
+     fb:"Prematuro — as observações indicam que o pacote ainda está em trânsito com alta probabilidade de chegar nos próximos dias. O cliente deve ter a opção de aguardar.",pol:"Verifique o status do pacote antes de processar reembolso — apresente as opções ao cliente."}
+  ]},
+  {q:"Etapa 2 — Apresentar as opções",actions:[
+    {id:"r10b1",label:"Informar que a data TRACES foi atingida hoje, que o pacote ainda está em trânsito (sem extravio), e apresentar as duas opções: aguardar 1–2 dias úteis OU acionar reembolso/reenvio agora",ok:true,
+     fb:"Correto! Transparência total: elegibilidade confirmada + status real do pacote + as duas opções válidas apresentadas. O cliente decide com informação completa.",pol:"Após a data TRACES, apresente sempre as duas opções (aguardar ou acionar) quando o pacote ainda está em trânsito sem extravio."},
+    {id:"r10b2",label:"Dizer que como o pacote ainda está em trânsito o cliente deve obrigatoriamente aguardar mais",ok:false,
+     fb:"Incorreto — a data TRACES já foi atingida. O cliente tem direito de escolher entre aguardar ou acionar resolução.",pol:"Após a data TRACES o cliente não é obrigado a aguardar — a escolha é dele."},
+    {id:"r10b3",label:"Cancelar o pedido automaticamente sem dar opção ao cliente",ok:false,
+     fb:"O cliente pode preferir aguardar o pacote que está em trânsito — cancelar sem opção ignora a preferência do cliente.",pol:"Nunca cancele unilateralmente quando o cliente pode preferir aguardar."}
+  ]},
+  {q:"Etapa 3 — Executar a escolha do cliente",actions:[
+    {id:"r10c1",label:"Registrar a preferência do cliente (aguardar OU acionar reembolso) e executar conforme escolhido, informando o prazo de resolução em cada caso",ok:true,
+     fb:"Correto! O cliente tomou a decisão com informação completa e você executou conforme escolhido — resolução orientada ao cliente, não imposta.",pol:"Após apresentar as opções, execute a escolha do cliente e confirme o prazo correspondente."},
+    {id:"r10c2",label:"Insistir que o cliente aguarde mesmo que ele queira o reembolso agora",ok:false,
+     fb:"O cliente tem direito ao reembolso após a data TRACES — insistir em aguardar quando ele quer resolver agora é negar um direito.",pol:"Não negue o direito ao reembolso após a data TRACES."},
+    {id:"r10c3",label:"Encerrar o contato sem confirmar o que foi acordado",ok:false,
+     fb:"Encerramento sem confirmação — sempre confirme com o cliente o que foi combinado antes de fechar o contato.",pol:"Sempre confirme o que foi acordado antes de encerrar qualquer contato."}
+  ]}
+ ]
+}
+
+]; // fim SCENARIOS (10 casos completos)
+
+// ============================================================
+// ENGINE — estado global e funções
+// ============================================================
+const STATE = {
+  idx: 0,
+  stepIdx: 0,
+  attempts: 0,
+  totalAttempts: 0,
+  results: [],
+  disabled: {},
+  stepsDone: false,
+  sicDone: false,
+  sicTried: {}
+};
+
+function startGame(){
+  document.getElementById("intro").style.display = "none";
+  document.getElementById("game").style.display = "flex";
+  renderCase();
+}
+
+function renderCase(){
+  const sc = SCENARIOS[STATE.idx];
+  STATE.stepIdx = 0;
+  STATE.attempts = 0;
+  STATE.disabled = {};
+  STATE.stepsDone = false;
+  STATE.sicDone = false;
+  STATE.sicTried = {};
+  document.getElementById("hudProgress").textContent = "Caso " + (STATE.idx+1) + " de " + SCENARIOS.length;
+  document.getElementById("hudScore").textContent = "Tentativas neste caso: 0";
+  renderTabs(sc);
+  renderMainPanel(sc);
+}
+
+function renderTabs(sc){
+  const bar = document.getElementById("tabbar");
+  bar.innerHTML = "";
+  const tabs = [
+    {icon:"📋", label: sc.title},
+    {icon:"🔍", label:"CS Assistant"},
+  ];
+  tabs.forEach((t,i)=>{
+    const d = document.createElement("div");
+    d.className = "tabitem" + (i===0?" active":"");
+    d.innerHTML = '<div class="ticon">'+t.icon+'</div><div class="tlabel">'+t.label+'</div>';
+    if(i===1) d.onclick = ()=> toast("📚 CS Assistant: " + sc.csNote);
+    bar.appendChild(d);
+  });
+}
+
+function renderMainPanel(sc){
+  document.getElementById("content").innerHTML =
+    '<div class="acstage">' +
+      renderChat(sc) +
+      '<div class="mainpanel" id="mainpanel">' + renderOrderPanel(sc) + '</div>' +
+    '</div>';
+}
+
+function renderChat(sc){
+  const now = new Date();
+  const hm = now.getHours().toString().padStart(2,"0") + ":" + now.getMinutes().toString().padStart(2,"0");
+  return '<div class="chatpanel">' +
+    '<div class="cph"><b>Chat — Cliente</b><span>Ativo</span></div>' +
+    '<div class="chatlog" id="chatlog">' +
+      '<div class="cmsg bot"><div class="bubble"><b>🤖 Sistema</b>Contato iniciado. Identidade verificada.</div></div>' +
+      '<div class="cmsg customer"><div class="who">👤 Cliente</div><div class="bubble">' + sc.customerMsg + '</div><div class="time">' + hm + '</div></div>' +
+    '</div>' +
+    '<div class="chatinputbar"><input type="text" placeholder="Responder ao cliente..." id="chatInput"/><button onclick="sendChat()">Enviar</button></div>' +
+  '</div>';
+}
+
+function sendChat(){
+  const inp = document.getElementById("chatInput");
+  const val = inp.value.trim();
+  if(!val) return;
+  const log = document.getElementById("chatlog");
+  const now = new Date();
+  const hm = now.getHours().toString().padStart(2,"0") + ":" + now.getMinutes().toString().padStart(2,"0");
+  log.innerHTML += '<div class="cmsg agent"><div class="who">Você (CSA)</div><div class="bubble">'+val+'</div><div class="time">'+hm+'</div></div>';
+  log.scrollTop = 99999;
+  inp.value = "";
+}
+
+function renderOrderPanel(sc){
+  const o = sc.order;
+  const stepper = renderStepper(sc);
+  const geo = renderGeo(sc.geo);
+  const accs = renderAccordions(sc);
+  const decision = renderDecision(sc);
+  return stepper + geo +
+    '<div class="casebrief"><b>📋 Situação</b>' + sc.customerMsg + '<span class="sic">SIC provável: ' + sc.sicLabel + '</span></div>' +
+    '<div class="ordercard"><div class="emo">'+o.img+'</div><div><div class="pn">Pedido #'+o.num+'</div><div class="variant">'+o.name+'</div><div class="pn" style="margin-top:4px">'+o.status+'</div></div></div>' +
+    accs + decision;
+}
+
+function renderStepper(sc){
+  let html = '<div class="stepper">';
+  SCENARIOS.forEach((s,i)=>{
+    let cls = "sdot";
+    if(i < STATE.idx) cls += " done";
+    else if(i === STATE.idx) cls += " current";
+    html += '<div class="'+cls+'">'+(i+1)+'</div>';
+  });
+  html += '</div>';
+  return html;
+}
+
+function renderGeo(g){
+  // Steps bar
+  const steps = g.steps.map((s,i)=>{
+    let cls = "gstep";
+    if(i < g.active) cls += " done";
+    else if(i === g.active) cls += " active geo-pulse";
+    // Ícone por etapa
+    const icons = ["🛒","📦","🛵","✅","❌","🔄"];
+    const ico = icons[Math.min(i, icons.length-1)];
+    return '<span class="'+cls+'">'+ico+' '+s+'</span>';
+  }).join('<span class="gsep"> › </span>');
+
+  // --- Tudo dentro de um único SVG fullwidth ---
+  // Coordenadas dos dados são 0..280 x 0..160
+  // Adicionamos padding interno de 40px em todos os lados
+  // para que origem/destino nunca fiquem na borda
+  const PAD = 40;        // padding interno no espaço de coordenadas
+  const DATA_W = 280, DATA_H = 160;
+
+  // Restringe os pontos para ficarem dentro do espaço com padding
+  function clamp(v, mn, mx){ return Math.max(mn, Math.min(mx, v)); }
+  const ox = clamp(g.originX,  PAD, DATA_W - PAD);
+  const oy = clamp(g.originY,  PAD, DATA_H - PAD);
+  const dx = clamp(g.destX,    PAD, DATA_W - PAD);
+  const dy = clamp(g.destY,    PAD, DATA_H - PAD);
+  const cx = clamp(g.courierX, PAD, DATA_W - PAD);
+  const cy = clamp(g.courierY, PAD, DATA_H - PAD);
+
+  // Curva de bezier: ponto de controle no meio + curvatura suave para cima
+  // Nunca sai do espaço: limitamos bmy a PAD
+  const bmx = (ox + dx) / 2;
+  const bmy = clamp(Math.min(oy, dy) - 30, PAD, DATA_H - PAD);
+
+  // Cores
+  const isDelay    = g.eta && g.eta.includes("Atraso");
+  const isCancelled= g.courierEmoji === "❌";
+  const routeColor = isCancelled ? "#ea4335" : isDelay ? "#f29900" : "#1a73e8";
+  const dotColor   = isCancelled ? "#ea4335" : "#1a73e8";
+
+  // Callout
+  const calloutText = isCancelled ? "Cancelado" :
+    (g.active === g.steps.length-1 ? "Entregue ✓" :
+    (isDelay ? "⚠ Atrasado" : "A caminho..."));
+
+  // ETA chip
+  const etaChipStyle = (isDelay || isCancelled)
+    ? 'background:#fce8e6;color:#c5221f;'
+    : 'background:#e6f4ea;color:#137333;';
+
+  // Courier emoji icon — usa o do cenário ou padrão por tipo
+  const courierIcon = (g.courierEmoji && g.courierEmoji !== "❌") ? g.courierEmoji : (isCancelled ? "" : "🛵");
+
+  // Rota percorrida: do origin ao courier (sub-bezier simplificada)
+  const cmx = (ox + cx) / 2;
+  const cmy = clamp(Math.min(oy, cy) - 15, PAD, DATA_H - PAD);
+
+  // SVG unificado: fundo de mapa + rota + pins — tudo dentro do mesmo viewBox
+  // viewBox = "0 0 DATA_W DATA_H" → preserveAspectRatio="none" estica para 100% da div
+  // Isso garante que todos os elementos ficam visíveis sem zoom ou corte
+
+  const mapSVG =
+    // Fundo base mapa Google Maps (bege/cinza claro)
+    '<rect x="0" y="0" width="'+DATA_W+'" height="'+DATA_H+'" fill="#e8edf0"/>' +
+
+    // Parques / zonas verdes
+    '<rect x="0"   y="0"   width="70"  height="50"  fill="#d4e9c4" rx="2"/>' +
+    '<rect x="150" y="0"   width="60"  height="45"  fill="#d4e9c4" rx="2"/>' +
+    '<rect x="220" y="110" width="60"  height="50"  fill="#dbeacc" rx="2"/>' +
+    '<rect x="0"   y="110" width="55"  height="50"  fill="#dbeacc" rx="2"/>' +
+
+    // Quarteirões (cinza médio)
+    '<rect x="0"   y="55"  width="55"  height="50"  fill="#e2e6e9" rx="2"/>' +
+    '<rect x="60"  y="0"   width="55"  height="50"  fill="#e2e6e9" rx="2"/>' +
+    '<rect x="60"  y="55"  width="55"  height="50"  fill="#e2e6e9" rx="2"/>' +
+    '<rect x="120" y="55"  width="55"  height="50"  fill="#e2e6e9" rx="2"/>' +
+    '<rect x="120" y="0"   width="25"  height="50"  fill="#e2e6e9" rx="2"/>' +
+    '<rect x="215" y="0"   width="65"  height="45"  fill="#e2e6e9" rx="2"/>' +
+    '<rect x="215" y="50"  width="65"  height="55"  fill="#e2e6e9" rx="2"/>' +
+    '<rect x="60"  y="110" width="55"  height="50"  fill="#e2e6e9" rx="2"/>' +
+    '<rect x="120" y="110" width="55"  height="50"  fill="#e2e6e9" rx="2"/>' +
+    '<rect x="180" y="110" width="35"  height="50"  fill="#e2e6e9" rx="2"/>' +
+
+    // Ruas principais (brancas, horizontais)
+    '<line x1="0" y1="52"  x2="'+DATA_W+'" y2="52"  stroke="#fff" stroke-width="5"/>' +
+    '<line x1="0" y1="107" x2="'+DATA_W+'" y2="107" stroke="#fff" stroke-width="5"/>' +
+    // Ruas secundárias (horizontais)
+    '<line x1="0" y1="25"  x2="'+DATA_W+'" y2="25"  stroke="#f5f5f5" stroke-width="2.5"/>' +
+    '<line x1="0" y1="130" x2="'+DATA_W+'" y2="130" stroke="#f5f5f5" stroke-width="2.5"/>' +
+    '<line x1="0" y1="150" x2="'+DATA_W+'" y2="150" stroke="#f5f5f5" stroke-width="2.5"/>' +
+
+    // Ruas principais (brancas, verticais)
+    '<line x1="57"  y1="0" x2="57"  y2="'+DATA_H+'" stroke="#fff" stroke-width="5"/>' +
+    '<line x1="117" y1="0" x2="117" y2="'+DATA_H+'" stroke="#fff" stroke-width="5"/>' +
+    '<line x1="177" y1="0" x2="177" y2="'+DATA_H+'" stroke="#fff" stroke-width="5"/>' +
+    '<line x1="213" y1="0" x2="213" y2="'+DATA_H+'" stroke="#fff" stroke-width="5"/>' +
+    // Ruas secundárias (verticais)
+    '<line x1="28"  y1="0" x2="28"  y2="'+DATA_H+'" stroke="#f5f5f5" stroke-width="2.5"/>' +
+    '<line x1="88"  y1="0" x2="88"  y2="'+DATA_H+'" stroke="#f5f5f5" stroke-width="2.5"/>' +
+    '<line x1="148" y1="0" x2="148" y2="'+DATA_H+'" stroke="#f5f5f5" stroke-width="2.5"/>' +
+    '<line x1="248" y1="0" x2="248" y2="'+DATA_H+'" stroke="#f5f5f5" stroke-width="2.5"/>' +
+    '<line x1="265" y1="0" x2="265" y2="'+DATA_H+'" stroke="#f5f5f5" stroke-width="2.5"/>' +
+
+    // ROTA: sombra branca
+    '<path d="M '+ox+' '+oy+' Q '+bmx+' '+bmy+' '+dx+' '+dy+'" stroke="rgba(255,255,255,0.55)" stroke-width="9" fill="none" stroke-linecap="round"/>' +
+    // ROTA: azul principal (completa, mais suave)
+    '<path d="M '+ox+' '+oy+' Q '+bmx+' '+bmy+' '+dx+' '+dy+'" stroke="'+routeColor+'" stroke-width="5.5" fill="none" stroke-linecap="round" opacity="0.45"/>' +
+    // ROTA PERCORRIDA: da origem ao courier (mais opaca = "já passou")
+    (!isCancelled
+      ? '<path d="M '+ox+' '+oy+' Q '+cmx+' '+cmy+' '+cx+' '+cy+'" stroke="'+routeColor+'" stroke-width="5.5" fill="none" stroke-linecap="round"/>'
+      : '') +
+
+    // PIN ORIGEM — círculo verde + halo
+    '<circle cx="'+ox+'" cy="'+oy+'" r="7" fill="'+routeColor+'" fill-opacity="0.15" stroke="none"/>' +
+    '<circle cx="'+ox+'" cy="'+oy+'" r="5" fill="#34a853" stroke="#fff" stroke-width="2"/>' +
+
+    // LABEL ORIGEM — retângulo arredondado + texto
+    '<rect x="'+(ox+8)+'" y="'+(oy-10)+'" width="52" height="17" rx="4" fill="#34a853"/>' +
+    '<text x="'+(ox+10)+'" y="'+(oy+2)+'" font-size="8" font-weight="700" fill="#fff" font-family="Arial,sans-serif">'+g.originLabel+'</text>' +
+
+    // PIN DESTINO — teardrop vermelho (círculo + triângulo)
+    // halo
+    '<circle cx="'+dx+'" cy="'+dy+'" r="12" fill="#ea4335" fill-opacity="0.12" stroke="none"/>' +
+    // corpo do pin
+    '<circle cx="'+dx+'" cy="'+(dy-8)+'" r="9" fill="#ea4335" stroke="#fff" stroke-width="2.5"/>' +
+    '<polygon points="'+(dx-5)+','+(dy-2)+' '+(dx+5)+','+(dy-2)+' '+dx+','+(dy+7)+'" fill="#ea4335"/>' +
+    // ponto interno branco
+    '<circle cx="'+dx+'" cy="'+(dy-8)+'" r="3.5" fill="#fff"/>' +
+
+    // LABEL DESTINO
+    '<rect x="'+(dx-26)+'" y="'+(dy+9)+'" width="52" height="17" rx="4" fill="#ea4335"/>' +
+    '<text x="'+(dx-24)+'" y="'+(dy+21)+'" font-size="8" font-weight="700" fill="#fff" font-family="Arial,sans-serif">'+g.destLabel+'</text>' +
+
+    // COURIER — bolinha azul pulsante
+    // halo animado (círculo externo, animação via CSS class no elemento wrapper)
+    '<circle cx="'+cx+'" cy="'+cy+'" r="13" fill="'+dotColor+'" fill-opacity="0.15" stroke="none" class="courier-halo"/>' +
+    '<circle cx="'+cx+'" cy="'+cy+'" r="8"  fill="'+dotColor+'" stroke="#fff" stroke-width="2.5"/>' +
+    // emoji do veículo acima do dot
+    '<text x="'+cx+'" y="'+(cy-13)+'" font-size="13" text-anchor="middle" font-family="Arial,sans-serif">'+courierIcon+'</text>' +
+
+    // CALLOUT acima do courier
+    '<rect x="'+(cx-26)+'" y="'+(cy-36)+'" width="52" height="18" rx="5" fill="#fff" filter="url(#mshadow)"/>' +
+    '<text x="'+cx+'" y="'+(cy-24)+'" font-size="8" font-weight="700" fill="#333" text-anchor="middle" font-family="Arial,sans-serif">'+calloutText+'</text>' +
+    // setinha do callout
+    '<polygon points="'+(cx-4)+','+(cy-18)+' '+(cx+4)+','+(cy-18)+' '+cx+','+(cy-12)+'" fill="#fff"/>' +
+
+    // Filtro de sombra para o callout
+    '<defs><filter id="mshadow" x="-20%" y="-20%" width="140%" height="140%">' +
+    '<feDropShadow dx="0" dy="1" stdDeviation="2" flood-color="rgba(0,0,0,0.2)"/>' +
+    '</filter></defs>';
+
+  return '<div class="geo-wrap">' +
+
+    // Header
+    '<div class="geo-header">' +
+      '<div class="geo-title-left">' +
+        '<span style="font-size:15px">📍</span>' +
+        '<div class="geo-search-pill">🔍 Rastreio em Tempo Real</div>' +
+      '</div>' +
+      '<span class="geo-eta" style="'+etaChipStyle+'">'+g.eta+'</span>' +
+    '</div>' +
+
+    // SVG fullwidth — tudo dentro, sem elementos CSS posicionados externamente
+    '<div class="geo-map-wrap">' +
+      '<svg width="100%" height="100%" viewBox="0 0 '+DATA_W+' '+DATA_H+'" preserveAspectRatio="xMidYMid meet" style="display:block;">' +
+        mapSVG +
+      '</svg>' +
+    '</div>' +
+
+    // Barra inferior com steps + ETA
+    '<div class="geo-eta-bar">' +
+      '<div class="eta-steps">'+steps+'</div>' +
+      '<span class="eta-time">'+g.eta+'</span>' +
+    '</div>' +
+
+  '</div>';
+}
+
+function renderAccordions(sc){
+  const o = sc.order;
+  const tlHtml = o.timeline.map(t=>'<li>'+t+'</li>').join('');
+  const obsHtml = o.obs.map(ob=>'<li class="obslist" style="list-style:none"><div class="obslist"><div style="background:var(--bg);border:1px solid var(--border);border-left:3px solid var(--blue);border-radius:6px;padding:10px 14px;margin-bottom:8px;font-size:13px;">'+ob+'</div></div></li>').join('');
+  const priceRows = o.prices.map(r=>'<tr><td>'+r[0]+'</td><td style="text-align:right">'+r[1]+'</td></tr>').join('');
+
+  return [
+    {title:"📦 Status e detalhes da entrega", content:
+      '<div class="grid3"><div>' +
+        '<h4>TRANSPORTADORA</h4><p>'+o.carrier+'</p>' +
+        '<h4>RASTREIO</h4><p>'+o.tracking+'</p>' +
+        '<h4>ENDEREÇO</h4><p>'+o.address+'</p>' +
+      '</div><div>' +
+        '<h4>VENDEDOR</h4><p>'+o.seller+'</p>' +
+      '</div><div>' +
+        '<h4>CRONOGRAMA</h4>' +
+        '<ul class="timeline">'+tlHtml+'</ul>' +
+      '</div></div>'
+    },
+    {title:"💳 Pagamento e itens", content:
+      '<table class="paytable">'+priceRows+
+      '<tr class="total"><td>Total</td><td style="text-align:right">'+o.total+'</td></tr></table>'
+    },
+    {title:"📝 Observações do pedido", content:
+      '<ul style="list-style:none;padding:0;margin:0">'+obsHtml+'</ul>'
+    },
+    {title:"📚 CS Assistant — orientações", content:
+      '<div style="background:#eef6ff;border:1px solid #b6d6f7;border-radius:8px;padding:14px 18px;font-size:13.5px;line-height:1.6;">'+sc.csNote+'</div>'
+    }
+  ].map((a,i)=>{
+    const openClass = i===0 ? " open" : "";
+    return '<div class="acc'+openClass+'" id="acc'+i+'">' +
+      '<div class="hd" onclick="toggleAcc('+i+')"><span>'+a.title+'</span><span class="arrow">▶</span></div>' +
+      '<div class="bd">'+a.content+'</div>' +
+    '</div>';
+  }).join('');
+}
+
+function toggleAcc(i){
+  const el = document.getElementById("acc"+i);
+  el.classList.toggle("open");
+}
+
+function renderDecision(sc){
+  if(STATE.stepsDone) return renderSicPanel(sc);
+  const step = sc.steps[STATE.stepIdx];
+  const pills = step.actions.map(a=>{
+    const dis = STATE.disabled[a.id] ? " disabledpill" : "";
+    return '<button class="radiopill'+dis+'" id="pill_'+a.id+'" onclick="selectAction(\''+a.id+'\')">'+a.label+'</button>';
+  }).join('');
+  return '<div class="decisionpanel">' +
+    '<div class="dphd"><b>🎯 Painel de Decisão — '+step.q+'</b><span style="font-size:12px;color:var(--gray)">Etapa '+(STATE.stepIdx+1)+' de '+sc.steps.length+'</span></div>' +
+    '<div class="dpbd">' +
+      '<div class="radioq-label">Qual é a ação correta agora?</div>' +
+      '<div class="radiorow" id="pillrow">'+pills+'</div>' +
+    '</div>' +
+  '</div>';
+}
+
+function selectAction(id){
+  const sc = SCENARIOS[STATE.idx];
+  const step = sc.steps[STATE.stepIdx];
+  const action = step.actions.find(a=>a.id===id);
+  if(!action || STATE.disabled[id]) return;
+
+  STATE.attempts++;
+  STATE.totalAttempts++;
+  document.getElementById("hudScore").textContent = "Tentativas neste caso: " + STATE.attempts;
+
+  if(action.ok){
+    showModal(true, action.fb, action.pol, ()=>{
+      STATE.stepIdx++;
+      if(STATE.stepIdx >= sc.steps.length){
+        STATE.stepsDone = true;
+        STATE.results.push({title:sc.title, attempts:STATE.attempts});
+      }
+      if(STATE.stepsDone){
+        refreshDecision(sc);
+      } else {
+        refreshDecision(sc);
+      }
+    });
+  } else {
+    STATE.disabled[id] = true;
+    showModal(false, action.fb, action.pol, null);
+    setTimeout(()=>{
+      document.querySelectorAll(".radiopill").forEach(p=>{
+        const pid = p.id.replace("pill_","");
+        if(STATE.disabled[pid]) p.classList.add("disabledpill");
+      });
+    }, 100);
+  }
+}
+
+function refreshDecision(sc){
+  const panel = document.querySelector(".decisionpanel");
+  if(panel) panel.outerHTML = "";
+  const mp = document.getElementById("mainpanel");
+  const newDecision = renderDecision(sc);
+  const tempDiv = document.createElement("div");
+  tempDiv.innerHTML = newDecision;
+  mp.appendChild(tempDiv.firstChild);
+}
+
+function renderSicPanel(sc){
+  if(STATE.sicDone) return renderEncerrarRow(sc);
+  const opts = [sc.sicLabel, gerarSicDecoy(sc), gerarSicDecoy2(sc), gerarSicDecoy3(sc)];
+  const shuffled = opts.sort(()=>Math.random()-0.5);
+  const btns = shuffled.map(s=>{
+    const tried = STATE.sicTried[s] ? " tried" : "";
+    return '<button class="sicopt'+tried+'" onclick="selectSic(\''+escAttr(s)+'\',\''+escAttr(sc.sicLabel)+'\')">'+s+'</button>';
+  }).join('');
+  return '<div class="decisionpanel">' +
+    '<div class="dphd"><b>📁 Selecionar SIC de Encerramento</b></div>' +
+    '<div class="dpbd">' +
+      '<div class="radioq-label">Qual SIC melhor descreve este contato?</div>' +
+      '<div class="siclist" id="siclist">'+btns+'</div>' +
+    '</div>' +
+  '</div>';
+}
+
+function escAttr(s){ return s.replace(/'/g,"&#39;"); }
+
+function gerarSicDecoy(sc){
+  const decoys = ["Cancelamento de Pedido","Devolução / Reembolso","Problema com Pagamento","Conta / Login","Produto Danificado","Informação de Produto"];
+  return decoys[STATE.idx % decoys.length];
+}
+function gerarSicDecoy2(sc){
+  const decoys = ["Prime / Assinatura","Nota Fiscal / Comprovante","Endereço de Entrega","Garantia / Troca","Pedido não encontrado","Cupom / Promoção"];
+  return decoys[(STATE.idx+1) % decoys.length];
+}
+function gerarSicDecoy3(sc){
+  const decoys = ["Atendimento Anterior","Reclamação Geral","Produto Errado Recebido","Atraso na Entrega","Transferência para Especialista","Outros"];
+  return decoys[(STATE.idx+2) % decoys.length];
+}
+
+function selectSic(chosen, correct){
+  if(STATE.sicTried[chosen]) return;
+  if(chosen === correct){
+    STATE.sicDone = true;
+    toast("✅ SIC correto registrado!");
+    const mp = document.getElementById("mainpanel");
+    const panel = mp.querySelector(".decisionpanel");
+    if(panel){
+      panel.outerHTML = renderEncerrarRow(SCENARIOS[STATE.idx]);
+    }
+  } else {
+    STATE.sicTried[chosen] = true;
+    toast("❌ SIC incorreto — tente outro.");
+    const list = document.getElementById("siclist");
+    if(list){
+      list.querySelectorAll(".sicopt").forEach(b=>{
+        if(b.textContent === chosen) b.classList.add("tried");
+      });
+    }
+  }
+}
+
+function renderEncerrarRow(sc){
+  return '<div class="execbox"><b>✅ Ações executadas com sucesso</b>Todas as etapas concluídas. SIC registrado: <b>'+sc.sicLabel+'</b></div>' +
+    '<div class="encerrarrow"><button class="encerrarbtn" onclick="encerrarAtendimento()">Encerrar Atendimento ▶</button></div>';
+}
+
+function encerrarAtendimento(){
+  STATE.idx++;
+  if(STATE.idx >= SCENARIOS.length){
+    showFinal();
+  } else {
+    renderCase();
+    window.scrollTo(0,0);
+  }
+}
+
+function showModal(ok, fb, pol, onNext){
+  const box = document.getElementById("modalBox");
+  const overlay = document.getElementById("modal");
+  box.className = "modal-box " + (ok?"ok":"err");
+  box.innerHTML =
+    '<h3 class="'+(ok?"ok":"err")+'">'+(ok?"✅ Correto!":"❌ Não é a melhor opção")+'</h3>' +
+    '<p>'+fb+'</p>' +
+    '<div class="policy"><b>📋 Âncora de política:</b> '+pol+'</div>' +
+    (ok
+      ? '<button class="cta" onclick="closeModal()">Continuar ▶</button>'
+      : '<button class="cta retry" onclick="closeModal()">Tentar novamente</button>'
+    );
+  overlay.style.display = "flex";
+  if(ok){
+    window._modalNext = onNext;
+  } else {
+    window._modalNext = null;
+  }
+}
+
+function closeModal(){
+  document.getElementById("modal").style.display = "none";
+  if(window._modalNext){ window._modalNext(); window._modalNext = null; }
+}
+
+function showFinal(){
+  document.getElementById("game").style.display = "none";
+  document.getElementById("final").style.display = "flex";
+
+  const total = SCENARIOS.length;
+  const direto = STATE.results.filter(r=>r.attempts===1).length;
+  const bom = STATE.results.filter(r=>r.attempts===2).length;
+  const dificil = STATE.results.filter(r=>r.attempts>=3).length;
+
+  document.getElementById("finalScore").textContent = direto + "/" + total + " direto";
+
+  let msg = "";
+  if(direto >= 8) msg = "🏆 Excelente! Você domina rastreio e Amazon Now.";
+  else if(direto >= 5) msg = "👍 Bom desempenho! Revise os casos onde teve dificuldade.";
+  else msg = "📚 Continue praticando — os casos de revisão abaixo mostram onde focar.";
+  document.getElementById("finalMsg").textContent = msg;
+
+  let reviewHtml = STATE.results.map(r=>{
+    let badge = "", cls = "";
+    if(r.attempts===1){ badge="Direto"; cls="direto"; }
+    else if(r.attempts===2){ badge="Bom"; cls="bom"; }
+    else { badge="Difícil"; cls="dificil"; }
+    return '<div class="item"><b>'+r.title+'</b><span class="badge '+cls+'">'+badge+'</span><span style="font-size:12px;color:var(--gray);margin-left:8px">'+r.attempts+' tentativa(s)</span></div>';
+  }).join('');
+  document.getElementById("finalReview").innerHTML = reviewHtml;
+}
+
+function topbarAction(t){
+  const msgs = {
+    ligar:"📞 Ligação simulada — use o painel de ações para decisões.",
+    email:"✉️ E-mail registrado nas observações do pedido.",
+    fechar:"⚠️ Encerre pelo botão 'Encerrar Atendimento' no painel de decisão.",
+    recursos:"📚 CS Assistant disponível no accordion 'CS Assistant — orientações'."
+  };
+  toast(msgs[t]||"");
+}
+
+function toast(msg){
+  const el = document.getElementById("toast");
+  el.textContent = msg;
+  el.classList.add("show");
+  setTimeout(()=>el.classList.remove("show"), 2800);
+}
+</script>
+</body>
+</html>

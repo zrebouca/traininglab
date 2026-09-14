@@ -1,0 +1,222 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Treino de Atendimento â€” Encerramento & MÃºltiplos Problemas</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#0f172a;color:#e2e8f0;font-family:system-ui,-apple-system,'Segoe UI',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px}
+  .container{width:100%;max-width:680px}
+  .screen{display:none}.screen.active{display:block}
+  .start-card{background:#1e293b;border:1px solid #334155;border-radius:18px;padding:36px 32px;text-align:center}
+  .start-card h1{font-size:1.7rem;font-weight:800;color:#e2e8f0;margin-bottom:8px}
+  .start-card .sub{color:#94a3b8;font-size:0.97rem;margin-bottom:24px;line-height:1.6}
+  .badge-reconhecimento{background:#0f172a;border:1px solid #6366f1;border-radius:12px;padding:14px 20px;margin:20px 0;color:#a5b4fc;font-size:0.93rem}
+  .badge-reconhecimento strong{color:#6366f1;font-size:1.05rem}
+  .stats-row{display:flex;gap:12px;justify-content:center;margin-bottom:24px;flex-wrap:wrap}
+  .stat-pill{background:#0f172a;border:1px solid #334155;border-radius:10px;padding:8px 18px;font-size:0.85rem;color:#94a3b8}
+  .stat-pill span{color:#e2e8f0;font-weight:700}
+  .btn-start{background:#6366f1;color:#fff;border:none;border-radius:12px;padding:14px 36px;font-size:1.05rem;font-weight:700;cursor:pointer;transition:background .2s;width:100%}
+  .btn-start:hover{background:#4f46e5}
+  .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+  .topbar-title{font-size:0.85rem;color:#64748b;font-weight:600;letter-spacing:.03em}
+  .hud{display:flex;gap:14px}
+  .hud-item{background:#1e293b;border:1px solid #334155;border-radius:10px;padding:6px 14px;font-size:0.88rem;font-weight:700}
+  .hud-item.score{color:#a5b4fc}
+  .hud-item.streak{color:#f59e0b}
+  .progress-wrap{background:#1e293b;border-radius:8px;height:6px;margin-bottom:20px;overflow:hidden}
+  .progress-bar{background:#6366f1;height:6px;border-radius:8px;transition:width .4s}
+  .question-card{background:#1e293b;border:1px solid #334155;border-radius:18px;padding:28px 26px}
+  .q-tag{display:inline-block;background:#6366f122;color:#818cf8;border-radius:20px;padding:4px 14px;font-size:0.75rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:14px}
+  .q-counter{font-size:0.82rem;color:#64748b;margin-bottom:8px}
+  .q-text{font-size:1.05rem;color:#e2e8f0;font-weight:600;line-height:1.55;margin-bottom:22px}
+  .options{display:flex;flex-direction:column;gap:10px}
+  .opt-btn{background:#0f172a;border:2px solid #334155;border-radius:12px;padding:13px 18px;color:#cbd5e1;font-size:0.95rem;text-align:left;cursor:pointer;transition:all .18s;font-family:inherit}
+  .opt-btn:hover:not(:disabled){border-color:#6366f1;color:#e2e8f0}
+  .opt-btn.correct{background:#10b98122;border-color:#10b981;color:#10b981;font-weight:700}
+  .opt-btn.wrong{background:#ef444422;border-color:#ef4444;color:#ef4444}
+  .opt-btn.reveal{background:#10b98111;border-color:#10b98166;color:#6ee7b7}
+  .feedback{margin-top:18px;background:#0f172a;border:1px solid #334155;border-radius:12px;padding:14px 16px;font-size:0.88rem;color:#94a3b8;line-height:1.6;display:none}
+  .feedback.show{display:block}
+  .feedback .verdict{font-weight:800;margin-bottom:6px;font-size:0.95rem}
+  .feedback .verdict.ok{color:#10b981}
+  .feedback .verdict.err{color:#ef4444}
+  .streak-banner{background:#f59e0b22;border:1px solid #f59e0b66;border-radius:10px;padding:8px 14px;color:#fbbf24;font-size:0.85rem;font-weight:700;margin-top:12px;display:none;text-align:center}
+  .btn-next{background:#6366f1;color:#fff;border:none;border-radius:12px;padding:12px 28px;font-size:0.95rem;font-weight:700;cursor:pointer;margin-top:16px;display:none;width:100%}
+  .btn-next:hover{background:#4f46e5}
+  .resume-banner{background:#6366f122;border:1px solid #6366f166;border-radius:10px;padding:10px 16px;color:#a5b4fc;font-size:0.85rem;margin-bottom:16px;display:none;text-align:center}
+  .end-card{background:#1e293b;border:1px solid #334155;border-radius:18px;padding:36px 32px;text-align:center}
+  .end-emoji{font-size:3.2rem;margin-bottom:12px}
+  .end-title{font-size:1.5rem;font-weight:800;margin-bottom:6px}
+  .badge-label{display:inline-block;border-radius:20px;padding:6px 22px;font-size:0.88rem;font-weight:800;letter-spacing:.06em;margin-bottom:20px}
+  .badge-expert{background:#10b98122;color:#10b981;border:1px solid #10b981}
+  .badge-inter{background:#f59e0b22;color:#f59e0b;border:1px solid #f59e0b}
+  .badge-init{background:#ef444422;color:#ef4444;border:1px solid #ef4444}
+  .score-row{display:flex;gap:14px;justify-content:center;margin:18px 0;flex-wrap:wrap}
+  .score-box{background:#0f172a;border:1px solid #334155;border-radius:12px;padding:14px 22px}
+  .score-box .val{font-size:1.6rem;font-weight:800;color:#a5b4fc}
+  .score-box .lbl{font-size:0.78rem;color:#64748b;margin-top:2px}
+  .reconhecimento-end{background:#0f172a;border:1px solid #6366f1;border-radius:12px;padding:16px 20px;margin:20px 0;color:#a5b4fc;font-size:0.9rem;line-height:1.6}
+  .reconhecimento-end strong{color:#6366f1}
+  .lock-note{color:#475569;font-size:0.8rem;margin-top:16px}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="screen active" id="startScreen">
+    <div class="start-card">
+      <div style="font-size:2.4rem;margin-bottom:10px">ðŸŽ¯</div>
+      <h1>Encerramento & MÃºltiplos Problemas</h1>
+      <p class="sub">Revisa como fechar um contato com qualidade, organizar casos com vÃ¡rios pedidos ao mesmo tempo, e transformar situaÃ§Ãµes difÃ­ceis em experiÃªncias positivas para o cliente.</p>
+      <div class="stats-row">
+        <div class="stat-pill">Perguntas: <span>30</span></div>
+        <div class="stat-pill">Estilo: <span>Verdadeiro / Falso</span></div>
+        <div class="stat-pill">Dificuldade: <span>IntermediÃ¡rio</span></div>
+      </div>
+      <div class="badge-reconhecimento">
+        ðŸŽ SÃ³ de <strong>ler o MAP e completar esse jogo</strong>, vocÃª jÃ¡ garante <strong>20 minutos de reconhecimento</strong>.<br>
+        <span style="font-size:0.85rem;color:#64748b">Manda o print da tela final no privado para registrar. ðŸ“¸</span>
+      </div>
+      <button class="btn-start" onclick="startGame()">ComeÃ§ar Jogo ðŸš€</button>
+    </div>
+  </div>
+
+  <div class="screen" id="gameScreen">
+    <div class="topbar">
+      <span class="topbar-title">ENCERRAMENTO & MÃšLTIPLOS PROBLEMAS</span>
+      <div class="hud">
+        <div class="hud-item score">â­ <span id="scoreVal">0</span></div>
+        <div class="hud-item streak">ðŸ”¥ <span id="streakVal">0</span></div>
+      </div>
+    </div>
+    <div class="progress-wrap"><div class="progress-bar" id="progressBar"></div></div>
+    <div class="resume-banner" id="resumeBanner">â†©ï¸ Continuando de onde vocÃª parou!</div>
+    <div class="question-card">
+      <div class="q-tag" id="qTag"></div>
+      <div class="q-counter" id="qCounter"></div>
+      <div class="q-text" id="qText"></div>
+      <div class="options" id="optionsWrap"></div>
+      <div class="streak-banner" id="streakBanner"></div>
+      <div class="feedback" id="feedbackBox">
+        <div class="verdict" id="verdictText"></div>
+        <div id="explainText"></div>
+      </div>
+      <button class="btn-next" id="btnNext" onclick="nextQuestion()">PrÃ³xima â†’</button>
+    </div>
+  </div>
+
+  <div class="screen" id="endScreen">
+    <div class="end-card">
+      <div class="end-emoji" id="endEmoji"></div>
+      <div class="end-title" id="endTitle"></div>
+      <div class="badge-label" id="badgeLabel"></div>
+      <div class="score-row">
+        <div class="score-box"><div class="val" id="finalScore"></div><div class="lbl">pontos</div></div>
+        <div class="score-box"><div class="val" id="finalStreak"></div><div class="lbl">melhor sequÃªncia</div></div>
+        <div class="score-box"><div class="val" id="finalPct"></div><div class="lbl">aproveitamento</div></div>
+      </div>
+      <div class="reconhecimento-end">
+        ðŸŽ ParabÃ©ns por chegar atÃ© aqui! VocÃª acabou de garantir seus <strong>20 minutos de reconhecimento</strong>.<br>
+        <span style="font-size:0.85rem;color:#64748b">Manda o print desta tela no privado para registrar. ðŸ“¸</span>
+      </div>
+      <div class="lock-note">ðŸ”’ Este jogo registra apenas uma tentativa por dispositivo.</div>
+    </div>
+  </div>
+</div>
+<script>
+const SAVE_KEY = 'encerramentoMultiQuiz_v1_state';
+const questions = [
+  {tag:"ENCERRAMENTO",text:"Usar o mesmo blurb de encerramento genÃ©rico em todos os contatos difÃ­ceis ('limitaÃ§Ãµes e polÃ­ticas que nÃ£o podemos contornar') Ã© um sinal de profissionalismo.",options:["Verdadeiro","Falso"],correct:1,trap:true,explain:"âŒ Pegadinha! Blurbs genÃ©ricos sÃ£o percebidos como copy-paste automÃ¡tico â€” especialmente em contatos emocionalmente carregados. Um encerramento de qualidade menciona o produto, o problema real e o prÃ³ximo passo especÃ­fico para aquele cliente."},
+  {tag:"ENCERRAMENTO",text:"Um bom encerramento deve incluir: (1) confirmaÃ§Ã£o de que o problema foi resolvido, (2) prÃ³ximo passo se houver, (3) abertura para dÃºvidas.",options:["Verdadeiro","Falso"],correct:0,trap:false,explain:"âœ… Correto! Esses trÃªs elementos garantem que o cliente sai com clareza sobre o que foi feito e o que vem a seguir. Isso reduz contatos de retorno desnecessÃ¡rios e aumenta a satisfaÃ§Ã£o."},
+  {tag:"ENCERRAMENTO",text:"Encerrar o chat sem perguntar se o cliente tem mais alguma dÃºvida Ã© aceitÃ¡vel se o problema principal foi resolvido.",options:["Verdadeiro","Falso"],correct:1,trap:false,explain:"âŒ Errado. Sempre confirme antes de encerrar: 'Posso encerrar nosso contato? HÃ¡ mais alguma coisa em que eu possa ajudar?' Ã€s vezes o cliente tem uma segunda questÃ£o que nÃ£o mencionou â€” e Ã© sua Ãºltima oportunidade de tratar antes de fechar."},
+  {tag:"ENCERRAMENTO",text:"Quando o problema nÃ£o pÃ´de ser resolvido completamente, o encerramento deve incluir uma Ã¢ncora clara: o que vai acontecer a seguir e como o cliente pode retornar.",options:["Verdadeiro","Falso"],correct:0,trap:false,explain:"âœ… Exato! A Ã¢ncora de prÃ³ximo passo Ã© fundamental quando nÃ£o hÃ¡ resoluÃ§Ã£o imediata. Ex: 'Se o produto nÃ£o chegar atÃ© [data], retorne aqui e qualquer agente consegue processar a soluÃ§Ã£o imediatamente.' Isso reduz incerteza e o risco de BTB negativo."},
+  {tag:"ENCERRAMENTO",text:"Um encerramento personalizado ('Fico feliz em ter resolvido o problema do seu sabonete, [Nome]!') tem mais impacto positivo na avaliaÃ§Ã£o do cliente do que um encerramento genÃ©rico.",options:["Verdadeiro","Falso"],correct:0,trap:false,explain:"âœ… Correto! Mencionar o produto ou o problema especÃ­fico do cliente no encerramento demonstra que vocÃª realmente se envolveu com o caso â€” nÃ£o foi apenas mais um contato. Isso contribui diretamente para avaliaÃ§Ãµes positivas nas dimensÃµes de Empatia e Prestatividade."},
+  {tag:"MULTI-PROBLEMA",text:"Quando um cliente apresenta dois pedidos com problemas diferentes, o ideal Ã© resolver um e perguntar sobre o segundo apenas no final do atendimento.",options:["Verdadeiro","Falso"],correct:1,trap:false,explain:"âŒ Errado. Identifique todos os problemas logo no inÃ­cio e crie um mini-plano antes de agir. Tratar um por vez sem visÃ£o do todo pode fazer vocÃª tomar aÃ§Ãµes no produto errado ou perder o segundo problema completamente."},
+  {tag:"MULTI-PROBLEMA",text:"Criar um mini-resumo no inÃ­cio de um contato com mÃºltiplos pedidos ('EntÃ£o temos: pedido X com [problema] e pedido Y com [problema]. Correto?') Ã© considerado uma boa prÃ¡tica.",options:["Verdadeiro","Falso"],correct:0,trap:false,explain:"âœ… Exato! O mini-resumo alinha expectativas, demonstra escuta ativa e organiza o atendimento. O cliente confirma se vocÃª entendeu tudo corretamente antes de vocÃª agir â€” evitando retrabalho."},
+  {tag:"MULTI-PROBLEMA",text:"Em um contato com mÃºltiplos pedidos, confirmar o nome do produto antes de executar qualquer aÃ§Ã£o aumenta desnecessariamente o AHT.",options:["Verdadeiro","Falso"],correct:1,trap:true,explain:"âŒ Pegadinha! Confirmar o produto leva 5 segundos e evita que vocÃª aplique uma soluÃ§Ã£o no pedido errado â€” o que geraria um novo contato de correÃ§Ã£o. Essa verificaÃ§Ã£o rÃ¡pida na verdade REDUZ o AHT no longo prazo."},
+  {tag:"MULTI-PROBLEMA",text:"Quando um cliente menciona 'sÃ£o mais de 10 produtos cancelados', o correto Ã© pedir que ele informe todos os pedidos antes de verificar qualquer um.",options:["Verdadeiro","Falso"],correct:1,trap:true,explain:"âŒ Pegadinha! Esperar o cliente listar todos os 10+ pedidos antes de agir aumenta o AHT e frustra o cliente. O correto Ã© comeÃ§ar a verificar pelos mais urgentes/mencionados e ir tratando um a um, enquanto o cliente consulta os demais."},
+  {tag:"MULTI-PROBLEMA",text:"Em contatos com mÃºltiplos problemas, registrar os status de cada pedido de forma clara ('pedido do sabÃ£o: reembolso processado; pedido dos patins: aguardando atualizaÃ§Ã£o') facilita o encerramento e reduz confusÃ£o.",options:["Verdadeiro","Falso"],correct:0,trap:false,explain:"âœ… Correto! Um mini-resumo dos status ao final do contato garante que o cliente sai com clareza sobre o que foi tratado em cada pedido â€” especialmente importante quando hÃ¡ mais de dois problemas."},
+  {tag:"EQUIPARAÃ‡ÃƒO",text:"ApÃ³s emitir um vale-presente para equiparaÃ§Ã£o, vocÃª pode encerrar o contato sem verificar se o cliente recebeu o crÃ©dito na conta.",options:["Verdadeiro","Falso"],correct:1,trap:false,explain:"âŒ Errado. ApÃ³s emitir qualquer crÃ©dito, confirme: 'Consegue verificar agora no app se o vale jÃ¡ aparece?' Isso fecha o ciclo, garante que a soluÃ§Ã£o chegou ao cliente e evita um novo contato de 'cadÃª meu crÃ©dito?'"},
+  {tag:"EQUIPARAÃ‡ÃƒO",text:"Ao processar uma equiparaÃ§Ã£o de preÃ§o, explicar claramente ao cliente como usar o vale-presente (onde aparece, como aplicar no checkout) Ã© parte do atendimento completo.",options:["Verdadeiro","Falso"],correct:0,trap:false,explain:"âœ… Exato! Um vale emitido sem instruÃ§Ã£o de uso gera dÃºvidas e um novo contato. Explique: onde o vale aparece (conta > vale-presente), como aplicar no checkout, e o que acontece se o valor do produto for maior que o vale."},
+  {tag:"EQUIPARAÃ‡ÃƒO",text:"A equiparaÃ§Ã£o de preÃ§o sÃ³ pode ser feita se o produto estiver disponÃ­vel em estoque.",options:["Verdadeiro","Falso"],correct:1,trap:true,explain:"âŒ Pegadinha! A equiparaÃ§Ã£o Ã© feita via vale-presente ou crÃ©dito â€” independe de estoque. O cliente usa o crÃ©dito para recomprar quando quiser. A indisponibilidade de estoque pode impedir a substituiÃ§Ã£o, mas nÃ£o impede a equiparaÃ§Ã£o via crÃ©dito."},
+  {tag:"EQUIPARAÃ‡ÃƒO",text:"Quando a equiparaÃ§Ã£o nÃ£o puder ser feita pelo motivo que for, o correto Ã© encerrar o contato informando o cliente que nÃ£o Ã© possÃ­vel, sem oferecer alternativas.",options:["Verdadeiro","Falso"],correct:1,trap:true,explain:"âŒ Pegadinha! Sempre ofereÃ§a uma alternativa ou um prÃ³ximo passo concreto. Mesmo que a equiparaÃ§Ã£o completa nÃ£o seja possÃ­vel, explore: parcial, item equivalente, crÃ©dito de boa-fÃ©, prazo para retornar apÃ³s reembolso. Sair sem nenhuma oferta em um caso de valor alto Ã© risco direto de BTB negativo."},
+  {tag:"FEEDBACK CLIENTE",text:"Quando um cliente diz que vai parar de comprar na Amazon ('serÃ¡ minha Ãºltima compra'), o correto Ã© reconhecer a frustraÃ§Ã£o, registrar formalmente e oferecer uma Ã¢ncora.",options:["Verdadeiro","Falso"],correct:0,trap:false,explain:"âœ… Correto! Churn declarado Ã© um sinal de alerta mÃ¡ximo. ReconheÃ§a a frustraÃ§Ã£o especificamente ('Entendo, e lamento que essa experiÃªncia tenha sido tÃ£o frustrante'), registre internamente, e ofereÃ§a uma Ã¢ncora: 'Se precisar de qualquer ajuda, pode contar comigo diretamente por aqui.'"},
+  {tag:"FEEDBACK CLIENTE",text:"Registrar a insatisfaÃ§Ã£o do cliente no sistema Ã© suficiente â€” vocÃª nÃ£o precisa comunicar ao cliente que fez isso.",options:["Verdadeiro","Falso"],correct:1,trap:false,explain:"âŒ Errado. Comunicar ao cliente que o feedback foi registrado ('Vou deixar seu relato registrado internamente para que o time de logÃ­stica possa avaliar') demonstra que a Amazon age, nÃ£o apenas anota. Isso tem impacto direto na percepÃ§Ã£o de cuidado."},
+  {tag:"FEEDBACK CLIENTE",text:"Quando o cliente reclama repetidamente da mesma transportadora em mÃºltiplos contatos, mencionar que vocÃª estÃ¡ abrindo um chamado interno de logÃ­stica (mesmo que seja um processo padrÃ£o) demonstra proatividade.",options:["Verdadeiro","Falso"],correct:0,trap:false,explain:"âœ… Exato! 'Vou abrir um acompanhamento interno para que o desempenho dessa transportadora seja avaliado' â€” mesmo que seja um processo padrÃ£o, comunicar isso ao cliente mostra que a Amazon age sobre o problema. Isso reduz significativamente o risco de Reclame Aqui ou Procon."},
+  {tag:"TRANSPORTADORA",text:"Dizer ao cliente 'nÃ£o tenho como entrar em contato com a transportadora' e oferecer apenas 'aguardar' como soluÃ§Ã£o Ã© uma resposta completa para um pedido atrasado.",options:["Verdadeiro","Falso"],correct:1,trap:true,explain:"âŒ Pegadinha! Mesmo sem contato direto com a transportadora, existem outras aÃ§Ãµes: verificar se hÃ¡ nota adicional disponÃ­vel no sistema, verificar opÃ§Ãµes de reagendamento, oferecer cancelamento/reembolso se o cliente preferir, abrir chamado interno de logÃ­stica. 'SÃ³ aguardar' sem explorar o sistema Ã© uma resposta incompleta."},
+  {tag:"TRANSPORTADORA",text:"Quando nÃ£o hÃ¡ data de entrega disponÃ­vel e o pedido estÃ¡ em trÃ¢nsito, oferecer a opÃ§Ã£o de cancelamento/reembolso ao cliente Ã© uma alternativa vÃ¡lida.",options:["Verdadeiro","Falso"],correct:0,trap:false,explain:"âœ… Correto! O cliente tem o direito de escolher: aguardar a entrega ou cancelar e receber o reembolso. Apresentar essa opÃ§Ã£o claramente demonstra respeito pela autonomia do cliente e evita frustraÃ§Ãµes por espera indefinida."},
+  {tag:"TRANSPORTADORA",text:"Ã‰ responsabilidade do cliente entrar em contato com a transportadora diretamente para resolver problemas de entrega.",options:["Verdadeiro","Falso"],correct:1,trap:true,explain:"âŒ Pegadinha! A Amazon Ã© responsÃ¡vel pela experiÃªncia de entrega do inÃ­cio ao fim. O cliente contrata a Amazon â€” nÃ£o a transportadora. Orientar o cliente a resolver sozinho com a transportadora passa a responsabilidade indevidamente e Ã© percebido como descaso."},
+  {tag:"EMPATIA",text:"Empatia genÃ©rica ('Lamento pelo transtorno. Essa nÃ£o Ã© a experiÃªncia que a Amazon gostaria que vocÃª tivesse') tem o mesmo impacto de empatia especÃ­fica na percepÃ§Ã£o do cliente.",options:["Verdadeiro","Falso"],correct:1,trap:true,explain:"âŒ Pegadinha! Empatia genÃ©rica Ã© percebida como automÃ¡tica â€” especialmente por clientes jÃ¡ frustrados. Empatia especÃ­fica menciona o produto, a situaÃ§Ã£o real e o impacto para o cliente: 'Entendo o quanto isso Ã© frustrante â€” vocÃª comprou o produto para um presente e ficou sem resposta.' Isso Ã© o que gera conexÃ£o real."},
+  {tag:"EMPATIA",text:"Reconhecer o sentimento do cliente antes de explicar o motivo do problema aumenta a receptividade do cliente Ã  informaÃ§Ã£o que vem a seguir.",options:["Verdadeiro","Falso"],correct:0,trap:false,explain:"âœ… Correto! Quando o cliente estÃ¡ frustrado, o cÃ©rebro prioriza a emoÃ§Ã£o â€” ele nÃ£o processa bem as explicaÃ§Ãµes tÃ©cnicas atÃ© se sentir ouvido. ReconheÃ§a primeiro ('Entendo que Ã© frustrante esperar tanto'), depois explique. Isso muda completamente o tom do contato."},
+  {tag:"EMPATIA",text:"Dizer 'me coloco no seu lugar, pois sou cliente tambÃ©m' Ã© uma forma adequada de demonstrar empatia profissional.",options:["Verdadeiro","Falso"],correct:1,trap:true,explain:"âŒ Pegadinha! Esse tipo de comparaÃ§Ã£o pode soar condescendente ou deslocar o foco do problema do cliente para o associate. Empatia profissional Ã© sobre reconhecer e validar o sentimento do cliente â€” nÃ£o equiparar suas experiÃªncias. Mantenha o foco no cliente."},
+  {tag:"CHECK ORDER",text:"Quando um pedido ainda estÃ¡ dentro do prazo mas estÃ¡ parado hÃ¡ dias na mesma localidade, informar o prazo final ('vocÃª tem atÃ© dia X') sem qualquer outra aÃ§Ã£o Ã© uma resposta adequada.",options:["Verdadeiro","Falso"],correct:1,trap:false,explain:"âŒ Errado. Mencionar apenas o prazo sem nenhuma aÃ§Ã£o adicional passa a impressÃ£o de que a Amazon nÃ£o se importa com o que estÃ¡ acontecendo antes do prazo. Explore as opÃ§Ãµes disponÃ­veis no sistema e, ao menos, registre a insatisfaÃ§Ã£o internamente e comunique ao cliente que fez isso."},
+  {tag:"CHECK ORDER",text:"Verificar as atualizaÃ§Ãµes de rastreio antes de informar o cliente sobre o status do pedido Ã© um passo obrigatÃ³rio no atendimento de Check Order.",options:["Verdadeiro","Falso"],correct:0,trap:false,explain:"âœ… Correto! Nunca informe um status sem verificar o rastreio atualizado no sistema. O cliente pode ter informaÃ§Ãµes mais recentes do que vocÃª se vocÃª nÃ£o verificar â€” o que prejudica sua credibilidade e gera desconfianÃ§a."},
+  {tag:"QUALIDADE CCX",text:"As dimensÃµes de qualidade CCX avaliadas pelos clientes incluem: Conhecimento, EficiÃªncia, Prestatividade, Empatia, Cortesia e Clareza.",options:["Verdadeiro","Falso"],correct:0,trap:false,explain:"âœ… Correto! Essas sÃ£o as 6 dimensÃµes do CCX. Cada contato Ã© avaliado pelo cliente nesses 6 critÃ©rios. Um encerramento fraco impacta diretamente Prestatividade e Empatia â€” mesmo que o problema tenha sido resolvido tecnicamente."},
+  {tag:"QUALIDADE CCX",text:"Um contato onde o problema foi resolvido tecnicamente mas o cliente saiu sem entender o que foi feito sempre receberÃ¡ avaliaÃ§Ã£o positiva no CCX.",options:["Verdadeiro","Falso"],correct:1,trap:true,explain:"âŒ Pegadinha! Clareza Ã© uma das 6 dimensÃµes do CCX. Se o cliente nÃ£o entendeu o que foi feito, o que vai receber ou o prÃ³ximo passo, ele pode avaliar negativamente mesmo apÃ³s uma resoluÃ§Ã£o tÃ©cnica. Sempre confirme que o cliente entendeu antes de encerrar."},
+  {tag:"QUALIDADE CCX",text:"A dimensÃ£o 'Prestatividade' no CCX avalia se o associate fez o esforÃ§o necessÃ¡rio para encontrar uma soluÃ§Ã£o para o cliente.",options:["Verdadeiro","Falso"],correct:0,trap:false,explain:"âœ… Exato! Prestatividade nÃ£o Ã© sobre se o problema foi resolvido â€” Ã© sobre o esforÃ§o percebido pelo cliente. Explorar opÃ§Ãµes, consultar outro setor, oferecer alternativas: tudo isso contribui para uma alta nota em Prestatividade, mesmo quando a resoluÃ§Ã£o nÃ£o Ã© possÃ­vel."},
+  {tag:"QUALIDADE CCX",text:"Confirmar os 4 Ãºltimos dÃ­gitos do cartÃ£o antes de processar uma troca Ã© desnecessÃ¡rio e apenas aumenta o AHT.",options:["Verdadeiro","Falso"],correct:1,trap:true,explain:"âŒ Pegadinha! A confirmaÃ§Ã£o dos 4 Ãºltimos dÃ­gitos Ã© um requisito do sistema para processar determinadas trocas/substituiÃ§Ãµes â€” serve como verificaÃ§Ã£o de seguranÃ§a. Embora pareÃ§a burocrÃ¡tico, Ã© um processo obrigatÃ³rio que protege o cliente e a Amazon. Explique ao cliente brevemente o motivo ao solicitar."},
+  {tag:"QUALIDADE CCX",text:"Dizer ao cliente 'fiz meu melhor para atendÃª-lo com empatia, clareza e profissionalismo' antes de encerrar um contato nÃ£o resolvido Ã© uma forma adequada de encerrar.",options:["Verdadeiro","Falso"],correct:1,trap:true,explain:"âŒ Pegadinha! Essa frase, embora bem-intencionada, soa como autoelogio e pode irritar um cliente jÃ¡ frustrado. O encerramento deve ser sobre o cliente â€” nÃ£o sobre o associate. Foque no prÃ³ximo passo do cliente, nÃ£o na avaliaÃ§Ã£o do prÃ³prio atendimento."},
+  {tag:"QUALIDADE CCX",text:"Um cliente que recebeu produto com defeito e solicitou troca â€” mas foi informado que o produto estÃ¡ sem estoque â€” deve sair do contato com: o reembolso confirmado, a forma de devoluÃ§Ã£o clara e o prazo informado.",options:["Verdadeiro","Falso"],correct:0,trap:false,explain:"âœ… Correto! Quando a troca nÃ£o Ã© possÃ­vel por falta de estoque, o reembolso deve ser processado com todas as informaÃ§Ãµes: valor exato, prazo de processamento, como proceder com a devoluÃ§Ã£o e confirmaÃ§Ã£o de que o cliente entendeu. Isso Ã© um encerramento completo para esse tipo de caso."}
+];
+
+let state = { idx:0, score:0, streak:0, maxStreak:0, completed:false, finalScore:0, answered:false, selected:-1 };
+function saveState(){ localStorage.setItem(SAVE_KEY, JSON.stringify(state)); }
+function loadState(){ const s = localStorage.getItem(SAVE_KEY); if(s) state = JSON.parse(s); }
+function startGame(){
+  loadState();
+  document.getElementById('startScreen').classList.remove('active');
+  document.getElementById('gameScreen').classList.add('active');
+  if(state.completed){ showEnd(); return; }
+  if(state.idx > 0) document.getElementById('resumeBanner').style.display='block';
+  renderQuestion();
+}
+function renderQuestion(){
+  const q = questions[state.idx];
+  document.getElementById('progressBar').style.width = ((state.idx/questions.length)*100)+'%';
+  document.getElementById('scoreVal').textContent = state.score;
+  document.getElementById('streakVal').textContent = state.streak;
+  document.getElementById('qTag').textContent = q.tag;
+  document.getElementById('qCounter').textContent = 'Pergunta '+(state.idx+1)+' de '+questions.length;
+  document.getElementById('qText').textContent = q.text;
+  const wrap = document.getElementById('optionsWrap');
+  wrap.innerHTML = '';
+  q.options.forEach((o,i)=>{ const btn=document.createElement('button'); btn.className='opt-btn'; btn.textContent=o; btn.onclick=()=>answer(i); wrap.appendChild(btn); });
+  document.getElementById('feedbackBox').classList.remove('show');
+  document.getElementById('btnNext').style.display='none';
+  document.getElementById('streakBanner').style.display='none';
+  if(state.answered) restoreAnswered();
+}
+function restoreAnswered(){
+  const q=questions[state.idx]; const btns=document.querySelectorAll('.opt-btn'); btns.forEach(b=>b.disabled=true);
+  if(state.selected===q.correct) btns[state.selected].classList.add('correct');
+  else { btns[state.selected].classList.add('wrong'); btns[q.correct].classList.add('reveal'); }
+  showFeedback(state.selected===q.correct,q); document.getElementById('btnNext').style.display='block';
+}
+function answer(i){
+  if(state.answered) return; state.answered=true; state.selected=i;
+  const q=questions[state.idx]; const btns=document.querySelectorAll('.opt-btn'); btns.forEach(b=>b.disabled=true);
+  const correct=i===q.correct;
+  if(correct){ btns[i].classList.add('correct'); const pts=q.trap?15:10; state.streak++; if(state.streak>state.maxStreak) state.maxStreak=state.streak; const bonus=state.streak>=2?Math.min((state.streak-1)*3,15):0; state.score+=pts+bonus; if(state.streak>=2){ const sb=document.getElementById('streakBanner'); sb.textContent='ðŸ”¥ SequÃªncia de '+state.streak+'! +'+bonus+' bÃ´nus'; sb.style.display='block'; } }
+  else { btns[i].classList.add('wrong'); btns[q.correct].classList.add('reveal'); state.streak=0; }
+  saveState(); showFeedback(correct,q); document.getElementById('scoreVal').textContent=state.score; document.getElementById('streakVal').textContent=state.streak; document.getElementById('btnNext').style.display='block';
+}
+function showFeedback(correct,q){ const fb=document.getElementById('feedbackBox'); document.getElementById('verdictText').className='verdict '+(correct?'ok':'err'); document.getElementById('verdictText').textContent=correct?'âœ… Correto!':'âŒ NÃ£o foi dessa vez'; document.getElementById('explainText').innerHTML=q.explain; fb.classList.add('show'); }
+function nextQuestion(){ state.idx++; state.answered=false; state.selected=-1; if(state.idx>=questions.length){ finishGame(); return; } saveState(); renderQuestion(); }
+function finishGame(){ state.completed=true; state.finalScore=state.score; saveState(); showEnd(); }
+function showEnd(){
+  document.getElementById('gameScreen').classList.remove('active'); document.getElementById('endScreen').classList.add('active');
+  const max=questions.length*15; const pct=Math.round((state.finalScore/max)*100);
+  document.getElementById('finalScore').textContent=state.finalScore; document.getElementById('finalStreak').textContent=state.maxStreak; document.getElementById('finalPct').textContent=pct+'%';
+  let emoji,title,badge,cls;
+  if(pct>=80){ emoji='ðŸ†';title='Especialista em Atendimento!';badge='EXPERT';cls='badge-expert'; }
+  else if(pct>=50){ emoji='ðŸŽ¯';title='Bom trabalho!';badge='INTERMEDIÃRIO';cls='badge-inter'; }
+  else { emoji='ðŸ“š';title='Continue praticando!';badge='INICIANTE';cls='badge-init'; }
+  document.getElementById('endEmoji').textContent=emoji; document.getElementById('endTitle').textContent=title;
+  const bl=document.getElementById('badgeLabel'); bl.textContent=badge; bl.className='badge-label '+cls;
+}
+loadState();
+if(state.completed){ document.getElementById('startScreen').classList.remove('active'); document.getElementById('endScreen').classList.add('active'); showEnd(); }
+</script>
+</body>
+</html>

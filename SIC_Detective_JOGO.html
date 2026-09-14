@@ -1,0 +1,1306 @@
+﻿<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SIC DETECTIVE â€” Arquivo Confidencial</title>
+<style>
+  :root{
+    --cork:#3b2a1a;
+    --corkdark:#2a1c10;
+    --paper:#f4ecd8;
+    --paperdark:#e8dcc0;
+    --ink:#2b2119;
+    --red:#a3271f;
+    --redbright:#c0392b;
+    --green:#2e6b34;
+    --gold:#c99a2e;
+    --gray:#6b6258;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    min-height:100vh;
+    background:
+      radial-gradient(circle at 20% 20%, rgba(0,0,0,0.15) 0, transparent 40%),
+      radial-gradient(circle at 80% 60%, rgba(0,0,0,0.15) 0, transparent 40%),
+      repeating-linear-gradient(45deg, var(--cork) 0px, var(--cork) 2px, var(--corkdark) 2px, var(--corkdark) 4px);
+    font-family: 'Georgia', 'Times New Roman', serif;
+    color: var(--ink);
+    padding: 24px 12px 60px;
+  }
+  .hidden{ display:none !important; }
+  .wrap{ max-width: 880px; margin: 0 auto; }
+
+  .board-header{ text-align:center; color: var(--paper); margin-bottom: 24px; }
+  .board-header h1{
+    font-family:'Courier New', monospace; font-size: 42px; letter-spacing: 6px; margin: 0;
+    text-shadow: 2px 2px 0 #000, 0 0 20px rgba(255,255,255,0.15);
+  }
+  .board-header .sub{ font-size: 14px; letter-spacing: 2px; opacity: 0.85; margin-top:6px; font-family:'Courier New', monospace; }
+  .tape{
+    position:relative; display:inline-block;
+    background: repeating-linear-gradient(45deg, #d8b400, #d8b400 10px, #1a1a1a 10px, #1a1a1a 20px);
+    color:#1a1a1a; font-family:'Courier New', monospace; font-weight:bold; font-size:12px; letter-spacing:2px;
+    padding:4px 14px; margin: 10px 0 0; transform: rotate(-1deg); box-shadow: 2px 2px 6px rgba(0,0,0,0.5);
+  }
+
+  .file-card{
+    background: var(--paper); border: 2px solid #00000022; border-radius: 4px;
+    box-shadow: 0 8px 18px rgba(0,0,0,0.4), inset 0 0 40px rgba(0,0,0,0.05);
+    padding: 24px; position: relative; margin-bottom: 22px;
+  }
+  .file-card::before{
+    content:""; position:absolute; top:-10px; left: 50%; width:22px; height:22px; margin-left:-11px;
+    background: radial-gradient(circle at 35% 35%, #ff6b5b, var(--red)); border-radius:50%;
+    box-shadow: 0 3px 4px rgba(0,0,0,0.5);
+  }
+  .file-tab{
+    position:absolute; top:-18px; left:22px; background: var(--redbright); color:#fff;
+    font-family:'Courier New', monospace; font-size:11px; font-weight:bold; letter-spacing:1px;
+    padding:5px 12px; border-radius: 3px 3px 0 0; box-shadow: 0 -2px 6px rgba(0,0,0,0.3);
+  }
+  .diff-tag{
+    position:absolute; top:-18px; right:22px; background:#2b2119; color:#f4ecd8;
+    font-family:'Courier New', monospace; font-size:11px; font-weight:bold; letter-spacing:1px;
+    padding:5px 12px; border-radius: 3px 3px 0 0; box-shadow: 0 -2px 6px rgba(0,0,0,0.3);
+  }
+
+  .ficha{
+    display:grid; grid-template-columns: repeat(2, 1fr); gap: 8px 20px;
+    background: var(--paperdark); border: 1px dashed var(--gray); padding: 12px 16px;
+    margin: 14px 0 18px; font-family:'Courier New', monospace; font-size: 13px;
+  }
+  .ficha div span{ color:var(--gray); }
+  .ficha b{ color: var(--ink); }
+
+  .relato{
+    font-size: 18px; font-style: italic; line-height:1.5; padding: 14px 18px;
+    border-left: 4px solid var(--red); background: rgba(163,39,31,0.05); margin-bottom: 18px;
+  }
+  .pergunta{ font-weight:bold; font-size:16px; margin-bottom: 14px; font-family:'Courier New', monospace; }
+
+  .opcoes{ display:flex; flex-direction:column; gap:10px; }
+  .opcao{
+    text-align:left; background:#fff; border: 2px solid #00000022; border-radius: 4px;
+    padding: 12px 16px; cursor:pointer; font-family: 'Georgia', serif; font-size: 14.5px;
+    transition: all .15s ease; box-shadow: 2px 3px 0 rgba(0,0,0,0.15);
+  }
+  .opcao:hover{ transform: translateY(-2px); box-shadow: 3px 5px 6px rgba(0,0,0,0.25); border-color: var(--gold); }
+  .opcao:disabled{ cursor:default; opacity:0.6; }
+  .opcao.sel-perfect{ background:#e5f3e5; border-color: var(--green); }
+  .opcao.sel-valid{ background:#fbf1d6; border-color: var(--gold); }
+  .opcao.sel-wrong{ background:#fbe2e0; border-color: var(--red); }
+
+  .feedback-box{
+    margin-top:16px; padding:14px 16px; border-radius:4px;
+    font-family:'Courier New', monospace; font-size: 13.5px; line-height:1.5; display:none;
+  }
+  .feedback-box.show{ display:block; }
+  .feedback-box.fb-perfect{ background:#e5f3e5; border:2px solid var(--green); color:#1c4a20; }
+  .feedback-box.fb-valid{ background:#fbf1d6; border:2px solid var(--gold); color:#5c4a10; }
+  .feedback-box.fb-wrong{ background:#fbe2e0; border:2px solid var(--red); color:#6b1712; }
+
+  .stamp{
+    position:absolute; top: 30px; right: 24px; font-family:'Courier New', monospace;
+    font-weight:bold; font-size: 22px; border: 4px solid currentColor; padding: 6px 14px;
+    border-radius: 6px; transform: rotate(-14deg); opacity: 0.9; letter-spacing:1px; display:none;
+  }
+  .stamp.show{ display:block; animation: stampIn .35s ease; }
+  .stamp.st-perfect{ color: var(--green); }
+  .stamp.st-valid{ color: var(--gold); }
+  .stamp.st-wrong{ color: var(--red); }
+  @keyframes stampIn{ from{ transform: rotate(-14deg) scale(2.4); opacity:0;} to{ transform: rotate(-14deg) scale(1); opacity:0.9; } }
+
+  .btn{
+    font-family:'Courier New', monospace; font-weight:bold; letter-spacing:1px; background: var(--red);
+    color:#fff; border:none; padding: 12px 26px; border-radius: 4px; cursor:pointer; font-size: 14px;
+    box-shadow: 0 4px 0 #6e1b16; transition: transform .1s;
+  }
+  .btn:hover{ transform: translateY(2px); box-shadow: 0 2px 0 #6e1b16; }
+  .btn.secondary{ background: var(--gray); box-shadow: 0 4px 0 #45403a; }
+  .btn.secondary:hover{ box-shadow: 0 2px 0 #45403a; }
+  .btn.gold{ background: var(--gold); box-shadow: 0 4px 0 #8a6a1e; color:#2b2119; }
+  .btn-row{ display:flex; justify-content:center; gap:12px; margin-top: 18px; flex-wrap:wrap; }
+  .center{ text-align:center; }
+
+  .hud{
+    display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;
+    color: var(--paper); font-family:'Courier New', monospace; font-size:13px;
+    margin-bottom: 14px; letter-spacing: 1px;
+  }
+  .hud .pts{ color: var(--gold); font-weight:bold; font-size:16px; }
+  .progress-bar{ background: rgba(255,255,255,0.15); height:8px; border-radius:4px; overflow:hidden; margin: 6px 0 16px; }
+  .progress-bar > div{ height:100%; background: var(--gold); transition: width .3s; }
+
+  .siren-screen{
+    background: repeating-linear-gradient(90deg, #2b0000, #2b0000 20px, #1a0000 20px, #1a0000 40px);
+    border: 4px solid var(--redbright); border-radius: 8px; padding: 28px; color: #ffe8e8;
+    box-shadow: 0 0 40px rgba(200,30,20,0.5); animation: sirenPulse 1.4s infinite;
+  }
+  @keyframes sirenPulse{ 0%,100%{ box-shadow: 0 0 20px rgba(200,30,20,0.3);} 50%{ box-shadow: 0 0 55px rgba(200,30,20,0.7);} }
+  .siren-title{ font-family:'Courier New', monospace; font-size:22px; font-weight:bold; text-align:center; margin-bottom:16px; letter-spacing:1px; }
+  .siren-opt{
+    display:block; width:100%; text-align:left; background:#3a0d0d; color:#ffe8e8;
+    border:2px solid #ff8f8f55; border-radius:4px; padding: 12px 16px; margin-bottom:10px;
+    font-family:'Courier New', monospace; font-size: 13.5px; cursor:pointer;
+  }
+  .siren-opt:hover{ background:#4d1414; }
+  .siren-opt.correct{ background:#1e4a1e; border-color: #4caf50; }
+  .siren-opt.incorrect{ background:#5c1414; border-color:#ff6b6b; }
+
+  .badge-strip{ display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin: 18px 0; }
+  .rules-list{ font-size:14px; line-height:1.7; }
+  .rules-list li{ margin-bottom:6px; }
+
+  .cabinet{ display:grid; grid-template-columns: repeat(auto-fit,minmax(160px,1fr)); gap:14px; margin: 18px 0; }
+  .drawer{
+    background: var(--paperdark); border: 2px solid var(--gray); border-radius: 4px;
+    padding: 14px; text-align:center; font-family:'Courier New', monospace; font-size:13px;
+  }
+  .drawer.locked{ opacity:0.5; }
+  .drawer.done{ border-color: var(--green); background:#e5f3e5; }
+  .drawer .lockicon{ font-size:22px; }
+
+  .continue-banner{
+    background:#fff6d8; border:2px dashed var(--gold); border-radius:6px; padding:14px 18px;
+    margin: 14px 0; font-family:'Courier New', monospace; font-size:13.5px; text-align:center;
+  }
+
+  .final-score{ font-family:'Courier New', monospace; font-size:48px; text-align:center; color: var(--red); font-weight:bold; }
+  .final-badge{ text-align:center; font-size:26px; margin: 10px 0; }
+  .breakdown{ font-size:13.5px; font-family:'Courier New', monospace; line-height:1.8; }
+
+  footer.note{ text-align:center; color: var(--paper); opacity:0.6; font-size:11px; margin-top:30px; font-family:'Courier New', monospace; }
+
+  /* E-MAIL CARD */
+  .email-card{
+    background:#fff; border:1px solid #ccc2a8; border-radius:4px; margin-bottom:18px;
+    box-shadow: 1px 2px 6px rgba(0,0,0,0.15); overflow:hidden;
+  }
+  .email-head{
+    background:#efe7d2; border-bottom:1px solid #ccc2a8; padding:10px 14px;
+    font-family:'Courier New',monospace; font-size:12.5px; line-height:1.6;
+  }
+  .email-head b{ color:var(--ink); }
+  .email-thread-old{
+    background:#f7f4ea; border-bottom:1px dashed #ccc2a8; color:#8a8070;
+    font-size:12.5px; font-style:italic; padding:10px 14px; line-height:1.5;
+  }
+  .email-body{ padding:16px; font-size:15.5px; line-height:1.55; }
+  .email-body .tag-nova{
+    display:inline-block; background:var(--redbright); color:#fff; font-family:'Courier New',monospace;
+    font-size:10.5px; font-weight:bold; letter-spacing:1px; padding:2px 8px; border-radius:3px; margin-bottom:8px;
+  }
+
+  /* LIGAÃ‡ÃƒO / ÃUDIO */
+  .call-card{
+    background:#1c1c1c; border-radius:6px; padding:16px 18px; margin-bottom:18px; color:#eee;
+  }
+  .call-head{ font-family:'Courier New',monospace; font-size:12px; color:#9fd89f; margin-bottom:10px; letter-spacing:1px; }
+  .call-transcript{ font-size:15.5px; font-style:italic; line-height:1.55; color:#f0f0f0; }
+  .audio-btn{
+    margin-top:12px; background: var(--green); color:#fff; border:none; border-radius:20px;
+    padding: 8px 18px; font-family:'Courier New',monospace; font-size:12.5px; cursor:pointer; letter-spacing:0.5px;
+  }
+  .audio-btn:hover{ filter:brightness(1.1); }
+  .audio-btn.playing{ background:#1f7a2b; animation: pulseAudio 1s infinite; }
+  @keyframes pulseAudio{ 0%,100%{opacity:1;} 50%{opacity:0.6;} }
+  .audio-note{ font-size:11px; color:#aaa; margin-top:6px; font-family:'Courier New',monospace; }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <div class="board-header">
+    <h1>ðŸ•µï¸ SIC DETECTIVE</h1>
+    <div class="sub">ARQUIVO CONFIDENCIAL â€” CENTRAL DE CASOS Â· CS OPs-VAR BR</div>
+    <div class="tape">EVIDÃŠNCIA #031 â€” NÃƒO DOBRAR</div>
+  </div>
+
+  <!-- SCREEN: INTRO -->
+  <div id="screen-intro">
+    <div class="file-card">
+      <div class="file-tab">BRIEFING</div>
+      <p style="font-size:16px; line-height:1.6;">Bem-vindo(a) Ã  Central, Detetive. Todos os dias chegam <b>casos</b> â€” cada um Ã© um contato real de cliente. Sua missÃ£o: descobrir o <b>SIC correto</b> (o rÃ³tulo que classifica o motivo do contato) antes que o rastro fique frio.</p>
+      <p style="font-size:16px; line-height:1.6;">Cada caso tem 4 rÃ³tulos possÃ­veis. SÃ³ um Ã© <b>perfeito</b>. Alguns sÃ£o <b>aceitÃ¡veis</b> (mesma Ã¡rea, mas nÃ£o o ideal). Outros estÃ£o simplesmente <b>errados</b>.</p>
+      <ul class="rules-list">
+        <li>ðŸŸ¢ <b>RÃ³tulo perfeito</b> = pontuaÃ§Ã£o mÃ¡xima + bÃ´nus de velocidade</li>
+        <li>ðŸŸ¡ <b>RÃ³tulo aceitÃ¡vel</b> = pontuaÃ§Ã£o parcial, sem bÃ´nus</li>
+        <li>ðŸ”´ <b>RÃ³tulo errado</b> = zero pontos, leia a explicaÃ§Ã£o com atenÃ§Ã£o</li>
+        <li>ðŸš¨ De vez em quando, um <b>Alerta de Protocolo</b> vai testar se vocÃª sabe <b>quando</b> preencher o SIC</li>
+        <li>ðŸ’¾ Seu progresso Ã© salvo automaticamente neste navegador â€” se fechar no meio, pode continuar depois</li>
+        <li>ðŸ“ž Alguns casos chegam por <b>ligaÃ§Ã£o</b> (com Ã¡udio de verdade) ou <b>e-mail</b> (com uma resposta anterior no meio) â€” o SIC certo nÃ£o muda com o canal</li>
+      </ul>
+      <div id="continue-banner" class="continue-banner hidden"></div>
+      <div class="cabinet" id="intro-cabinet"></div>
+      <div class="btn-row">
+        <button class="btn" id="btn-new-game" onclick="Game.start()">ðŸ“‚ ABRIR PRIMEIRO CASO</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCREEN: GAME (case) -->
+  <div id="screen-game" class="hidden">
+    <div class="hud">
+      <div id="hud-shift">TURNO 1</div>
+      <div id="hud-counter">Caso 1 de 1</div>
+      <div class="pts">ðŸª™ <span id="hud-score">0</span> pts</div>
+      <div id="hud-streak">ðŸ”¥ sequÃªncia: 0</div>
+    </div>
+    <div class="progress-bar"><div id="hud-progress" style="width:0%"></div></div>
+
+    <div class="file-card" id="case-card">
+      <div class="file-tab" id="case-numero">CASO #000</div>
+      <div class="diff-tag" id="case-diff">â€”</div>
+      <div class="stamp" id="case-stamp"></div>
+      <div class="ficha" id="case-ficha"></div>
+      <div id="case-modalidade" style="font-family:'Courier New',monospace; font-size:12px; letter-spacing:1px; color:var(--gray); margin-bottom:8px;"></div>
+      <div class="relato" id="case-relato"></div>
+      <div id="case-extra"></div>
+      <div class="pergunta" id="case-pergunta"></div>
+      <div class="opcoes" id="case-opcoes"></div>
+      <div class="feedback-box" id="case-feedback"></div>
+      <div class="btn-row">
+        <button class="btn hidden" id="btn-next" onclick="Game.next()">âž¡ï¸ PRÃ“XIMO CASO</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCREEN: PROTOCOL ALERT -->
+  <div id="screen-protocol" class="hidden">
+    <div class="siren-screen">
+      <div class="siren-title" id="protocol-texto"></div>
+      <div id="protocol-opcoes"></div>
+      <div class="feedback-box" id="protocol-feedback" style="background:#1a0000; color:#ffe8e8; border:2px solid #ff8f8f;"></div>
+      <div class="btn-row">
+        <button class="btn secondary hidden" id="btn-protocol-next" onclick="Game.afterProtocol()">CONTINUAR</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCREEN: SHIFT SUMMARY -->
+  <div id="screen-shift-summary" class="hidden">
+    <div class="file-card">
+      <div class="file-tab">RELATÃ“RIO DE TURNO</div>
+      <h2 id="shift-summary-title" style="font-family:'Courier New',monospace;"></h2>
+      <div class="breakdown" id="shift-summary-body"></div>
+      <div class="btn-row">
+        <button class="btn" onclick="Game.continueAfterShift()">âž¡ï¸ CONTINUAR</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCREEN: BOSS CASE INTRO -->
+  <div id="screen-boss-intro" class="hidden">
+    <div class="siren-screen" style="animation:none; background:#1a1a1a; border-color:#c99a2e;">
+      <div class="siren-title" style="color:#c99a2e;">ðŸ—‚ï¸ ARQUIVO FRIO REABERTO</div>
+      <p style="font-family:'Courier New',monospace; font-size:14px; line-height:1.7;">Este caso Ã© diferente: o cliente fala de <b>mais de um assunto</b> na mesma conversa. Sua missÃ£o Ã© achar o motivo que estÃ¡ <b>realmente</b> conduzindo o contato agora â€” nem o primeiro assunto, nem o mais antigo.</p>
+      <div class="btn-row"><button class="btn gold" onclick="Game.startBoss()">ðŸ”Ž ABRIR ARQUIVO</button></div>
+    </div>
+  </div>
+
+  <!-- SCREEN: FINAL -->
+  <div id="screen-final" class="hidden">
+    <div class="file-card">
+      <div class="file-tab">RELATÃ“RIO FINAL</div>
+      <div class="final-score" id="final-score">0 pts</div>
+      <div class="final-badge" id="final-badge"></div>
+      <p id="final-text" style="text-align:center; font-size:14px;"></p>
+      <div class="breakdown" id="final-breakdown"></div>
+      <div class="btn-row">
+        <button class="btn secondary" onclick="Game.restart()">ðŸ” JOGAR DE NOVO</button>
+      </div>
+      <p style="text-align:center; font-size:12px; margin-top:18px; color:var(--gray);">ðŸ“¸ Print da tela final e envie no Chime pra registrar seu resultado.</p>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ============================================================
+// SIC DETECTIVE â€” Base de dados (curada a partir de dados reais
+// de SIC, Semana 31, CS OPs-VAR BR) â€” para fins de treinamento.
+// ============================================================
+const SIC_GAME_DATA = {
+
+  meta: {
+    title: "SIC DETECTIVE",
+    subtitle: "Arquivo Confidencial â€” Central de Casos CS OPs-VAR BR",
+    version: "3.0",
+    motto: "Nenhum caso fica sem rÃ³tulo. Nenhum rastro fica frio."
+  },
+
+  shifts: [
+    {
+      id: 1,
+      title: "Turno 1 â€” Fundamentos do Arquivo",
+      subtitle: "Casos simples. Aprenda a montar o rÃ³tulo correto.",
+      cases: [
+        { id:"C1", numero:"Caso #031-A", dificuldade:"facil",
+          ficha:{ pedido:"#BR-77291", dataCompra:"29/07", prazoEntrega:"â€”", statusRastreio:"Entregue" },
+          relato:"\"Recebi um vale-presente de aniversÃ¡rio mas nÃ£o sei quanto ele tem, pode verificar pra mim?\"",
+          pergunta:"Qual rÃ³tulo descreve corretamente este caso?",
+          opcoes:[
+            { label:"Vale-Presente e Gift Cards â€º Verificar Saldo do Vale-Presente", tier:"perfect", feedback:"Correto! O cliente sÃ³ quer saber o saldo â€” Ã© exatamente esse o motivo do contato." },
+            { label:"Vale-Presente e Gift Cards â€º Usar Vale-Presente numa Compra", tier:"valid", feedback:"AceitÃ¡vel, mesma famÃ­lia, mas o cliente nÃ£o pediu para usar o vale â€” sÃ³ para consultar o saldo. NÃ£o Ã© o rÃ³tulo ideal." },
+            { label:"Conta e Acesso â€º Problemas de Acesso Ã  Conta", tier:"wrong", feedback:"Incorreto. NÃ£o hÃ¡ nada sobre login ou acesso Ã  conta neste relato." },
+            { label:"QuestÃµes de Pagamento â€º Amazon Mastercard", tier:"wrong", feedback:"Incorreto. Vale-presente nÃ£o Ã© cartÃ£o de crÃ©dito Amazon." }
+          ]
+        },
+        { id:"C2", numero:"Caso #031-B", dificuldade:"facil",
+          ficha:{ pedido:"â€”", dataCompra:"â€”", prazoEntrega:"â€”", statusRastreio:"N/A â€” caso de acesso Ã  conta" },
+          relato:"\"NÃ£o consigo entrar na minha conta! Aparece uma pergunta de seguranÃ§a que eu nunca configurei.\"",
+          pergunta:"Qual rÃ³tulo descreve corretamente este caso?",
+          opcoes:[
+            { label:"Conta e Acesso â€º Pergunta de SeguranÃ§a DinÃ¢mica", tier:"perfect", feedback:"Correto! Ã‰ literalmente o fluxo de verificaÃ§Ã£o por pergunta de seguranÃ§a/telefone, motivo especÃ­fico para isso." },
+            { label:"Conta e Acesso â€º Problemas de Acesso Ã  Conta (genÃ©rico)", tier:"valid", feedback:"AceitÃ¡vel â€” Ã© da mesma Ã¡rea (acesso Ã  conta), mas existe um rÃ³tulo mais especÃ­fico para pergunta de seguranÃ§a dinÃ¢mica." },
+            { label:"DevoluÃ§Ãµes e Reembolsos â€º Verificar Status da DevoluÃ§Ã£o", tier:"wrong", feedback:"Incorreto. NÃ£o hÃ¡ devoluÃ§Ã£o envolvida aqui." },
+            { label:"Merchant & Marketplace â€º Verificar Status da SolicitaÃ§Ã£o", tier:"wrong", feedback:"Incorreto. Isso Ã© para reclamaÃ§Ãµes A-to-Z de vendedores terceiros." }
+          ]
+        },
+        { id:"C3", numero:"Caso #031-C", dificuldade:"facil",
+          ficha:{ pedido:"#BR-80410", dataCompra:"01/08", prazoEntrega:"07/08", statusRastreio:"Em processamento" },
+          relato:"\"Preciso da nota fiscal desse pedido pra prestar contas na empresa, como eu peÃ§o?\"",
+          pergunta:"Qual rÃ³tulo descreve corretamente este caso?",
+          opcoes:[
+            { label:"QuestÃµes de Pagamento â€º Solicitar Danfe/NF-e", tier:"perfect", feedback:"Correto! Pedido explÃ­cito de nota fiscal (Danfe/NF-e)." },
+            { label:"QuestÃµes de Pagamento â€º Pagamento Recusado", tier:"valid", feedback:"Mesma famÃ­lia (Pagamento), mas nada foi recusado â€” o cliente sÃ³ quer a nota fiscal. NÃ£o Ã© o ideal." },
+            { label:"DevoluÃ§Ãµes e Reembolsos â€º Verificar Status do Reembolso", tier:"wrong", feedback:"Incorreto. NÃ£o hÃ¡ menÃ§Ã£o a reembolso." },
+            { label:"Problema Com o Pedido â€º Verificar Status/Rastreamento", tier:"wrong", feedback:"Incorreto. O cliente nÃ£o perguntou sobre rastreio." }
+          ]
+        },
+        { id:"C4", numero:"Caso #031-D", dificuldade:"facil",
+          ficha:{ pedido:"â€”", dataCompra:"â€”", prazoEntrega:"â€”", statusRastreio:"N/A â€” pergunta prÃ©-compra" },
+          relato:"\"Antes de comprar: se eu nÃ£o gostar do produto, quantos dias eu tenho pra devolver?\"",
+          pergunta:"Qual rÃ³tulo descreve corretamente este caso?",
+          opcoes:[
+            { label:"Fazer um Pedido â€º PolÃ­tica de DevoluÃ§Ã£o", tier:"perfect", feedback:"Correto! Ã‰ uma dÃºvida prÃ©-compra sobre polÃ­tica â€” ainda nÃ£o existe pedido nem devoluÃ§Ã£o em andamento." },
+            { label:"DevoluÃ§Ãµes e Reembolsos â€º Solicitar Reembolso", tier:"valid", feedback:"Tema parecido, mas esse rÃ³tulo Ã© para devoluÃ§Ãµes JÃ em andamento, nÃ£o para dÃºvidas antes da compra." },
+            { label:"QuestÃµes de Pagamento â€º ComparaÃ§Ã£o de PreÃ§o", tier:"wrong", feedback:"Incorreto. NÃ£o hÃ¡ nada sobre preÃ§o aqui." },
+            { label:"Problema Com o Pedido â€º Item Errado ou NÃ£o Como Esperado", tier:"wrong", feedback:"Incorreto. NÃ£o existe pedido ainda â€” Ã© uma pergunta antes da compra." }
+          ]
+        },
+        { id:"C17", numero:"Caso #031-Q", dificuldade:"facil",
+          ficha:{ pedido:"â€”", dataCompra:"â€”", prazoEntrega:"â€”", statusRastreio:"N/A â€” pergunta prÃ©-compra" },
+          relato:"\"Quando esse produto que tÃ¡ esgotado volta a ficar disponÃ­vel pra comprar?\"",
+          pergunta:"Qual rÃ³tulo descreve corretamente este caso?",
+          opcoes:[
+            { label:"Fazer um Pedido â€º Disponibilidade do Produto", tier:"perfect", feedback:"Correto! Pergunta direta sobre disponibilidade/reposiÃ§Ã£o de estoque." },
+            { label:"Fazer um Pedido â€º InformaÃ§Ãµes do Produto", tier:"valid", feedback:"AceitÃ¡vel, mesma Ã¡rea, mas a pergunta Ã© especificamente sobre disponibilidade, nÃ£o sobre caracterÃ­sticas do produto." },
+            { label:"Problema Com o Pedido â€º Item Faltando no Envio", tier:"wrong", feedback:"Incorreto. NÃ£o existe pedido ainda â€” o produto estÃ¡ esgotado antes da compra." },
+            { label:"DevoluÃ§Ãµes e Reembolsos â€º Solicitar Reembolso", tier:"wrong", feedback:"Incorreto. NÃ£o hÃ¡ compra nem devoluÃ§Ã£o envolvida." }
+          ]
+        },
+        { id:"C18", numero:"Caso #031-R", dificuldade:"facil",
+          ficha:{ pedido:"â€”", dataCompra:"â€”", prazoEntrega:"â€”", statusRastreio:"N/A â€” pergunta prÃ©-compra" },
+          relato:"\"Quais formas de pagamento vocÃªs aceitam? Posso pagar via Pix?\"",
+          pergunta:"Qual rÃ³tulo descreve corretamente este caso?",
+          opcoes:[
+            { label:"Fazer um Pedido â€º Formas de Pagamento Aceitas", tier:"perfect", feedback:"Correto! Pergunta direta sobre quais mÃ©todos de pagamento sÃ£o aceitos." },
+            { label:"QuestÃµes de Pagamento â€º Parcelamento no CartÃ£o", tier:"valid", feedback:"AceitÃ¡vel, mesma famÃ­lia (pagamento), mas a pergunta Ã© sobre quais formas existem, nÃ£o sobre parcelamento especificamente." },
+            { label:"QuestÃµes de Pagamento â€º Pagamento Recusado", tier:"wrong", feedback:"Incorreto. Nada foi recusado â€” Ã© uma dÃºvida antes de comprar." },
+            { label:"Fazer um Pedido â€º PolÃ­tica de DevoluÃ§Ã£o", tier:"wrong", feedback:"Incorreto. NÃ£o tem relaÃ§Ã£o com devoluÃ§Ã£o." }
+          ]
+        }
+      ]
+    },
+    {
+      id: 2,
+      title: "Turno 2 â€” Vizinhos Perigosos",
+      subtitle: "Casos que se parecem, mas nÃ£o sÃ£o iguais. Preste atenÃ§Ã£o no prazo e no evento logÃ­stico.",
+      cases: [
+        { id:"C5", numero:"Caso #031-E", dificuldade:"media",
+          ficha:{ pedido:"#BR-91002", dataCompra:"28/07", prazoEntrega:"05/08 (ainda nÃ£o venceu)", statusRastreio:"Em trÃ¢nsito desde 01/08, centro de distribuiÃ§Ã£o SP" },
+          relato:"\"Meu rastreio tÃ¡ 'em trÃ¢nsito' desde a Ãºltima terÃ§a e nÃ£o mudou. CadÃª minha encomenda?\"",
+          pergunta:"Qual rÃ³tulo descreve corretamente este caso? (Repare: o prazo ainda nÃ£o venceu)",
+          opcoes:[
+            { label:"Onde EstÃ¡ Meu Pedido â€º Verificar Status/Rastreamento â€º Em TrÃ¢nsito Para o Cliente", tier:"perfect", feedback:"Correto! Prazo ainda vÃ¡lido, rastreio mostra movimento normal â€” Ã© sÃ³ uma consulta de status." },
+            { label:"Onde EstÃ¡ Meu Pedido â€º Problemas na Entrega", tier:"valid", feedback:"AceitÃ¡vel â€” estÃ¡ na Ã¡rea certa, mas nÃ£o hÃ¡ nenhum problema relatado na entrega, sÃ³ uma consulta." },
+            { label:"Problema Com o Pedido â€º Pacote Perdido ou Roubado", tier:"wrong", feedback:"Incorreto. O prazo de entrega ainda nÃ£o venceu â€” Ã© cedo para tratar como perdido." },
+            { label:"Onde EstÃ¡ Meu Pedido â€º Verificar Status/Rastreamento â€º Devolvido Pela Transportadora", tier:"wrong", feedback:"Incorreto. Nada indica devoluÃ§Ã£o Ã  transportadora." }
+          ]
+        },
+        { id:"C6", numero:"Caso #031-F", dificuldade:"media",
+          ficha:{ pedido:"#BR-88213", dataCompra:"20/07", prazoEntrega:"28/07 (venceu hÃ¡ 6 dias)", statusRastreio:"Marcado como ENTREGUE em 27/07" },
+          relato:"\"O rastreio diz que foi entregue dia 27, mas eu nÃ£o recebi absolutamente nada!\"",
+          pergunta:"Qual rÃ³tulo descreve corretamente este caso?",
+          opcoes:[
+            { label:"Problema Com o Pedido â€º Pacote Perdido ou Roubado", tier:"perfect", feedback:"Correto! Status diz 'entregue' mas o cliente nÃ£o recebeu â€” clÃ¡ssico caso de pacote perdido/roubado, prazo jÃ¡ vencido." },
+            { label:"DevoluÃ§Ãµes e Reembolsos â€º Solicitar Reembolso", tier:"valid", feedback:"Pode ser o prÃ³ximo passo depois da investigaÃ§Ã£o, mas o motivo do CONTATO agora Ã© reportar que nÃ£o recebeu â€” nÃ£o Ã© ainda um pedido de reembolso." },
+            { label:"Onde EstÃ¡ Meu Pedido â€º Verificar Status/Rastreamento â€º Em TrÃ¢nsito Para o Cliente", tier:"wrong", feedback:"Incorreto. O status jÃ¡ mostra 'entregue', nÃ£o 'em trÃ¢nsito'." },
+            { label:"Onde EstÃ¡ Meu Pedido â€º Verificar Status/Rastreamento â€º Pedido Cancelado", tier:"wrong", feedback:"Incorreto. NÃ£o hÃ¡ cancelamento envolvido." }
+          ]
+        },
+        { id:"C7", numero:"Caso #031-G", dificuldade:"media",
+          ficha:{ pedido:"#BR-90345", dataCompra:"22/07", prazoEntrega:"30/07", statusRastreio:"3 tentativas de entrega sem sucesso â€” devolvido ao CD em 02/08" },
+          relato:"\"O motorista disse que tentou entregar 3 vezes e nÃ£o conseguiu, e agora o rastreio mostra que voltou pro depÃ³sito!\"",
+          pergunta:"Qual rÃ³tulo descreve corretamente este caso?",
+          opcoes:[
+            { label:"Onde EstÃ¡ Meu Pedido â€º Verificar Status/Rastreamento â€º Devolvido Pela Transportadora", tier:"perfect", feedback:"Correto! O evento logÃ­stico especÃ­fico Ã© a devoluÃ§Ã£o ao centro de distribuiÃ§Ã£o apÃ³s tentativas falhas." },
+            { label:"Onde EstÃ¡ Meu Pedido â€º Problemas na Entrega", tier:"valid", feedback:"AceitÃ¡vel, Ã¡rea certa, mas existe um rÃ³tulo mais especÃ­fico para o evento exato (devolvido pela transportadora)." },
+            { label:"Problema Com o Pedido â€º Pacote Perdido ou Roubado", tier:"wrong", feedback:"Incorreto. O pacote nÃ£o estÃ¡ perdido â€” o rastreio mostra exatamente onde ele estÃ¡ (voltou ao CD)." },
+            { label:"Onde EstÃ¡ Meu Pedido â€º Verificar Status/Rastreamento â€º Pedido Cancelado", tier:"wrong", feedback:"Incorreto. NinguÃ©m cancelou o pedido." }
+          ]
+        },
+        { id:"C8", numero:"Caso #031-H", dificuldade:"media",
+          ficha:{ pedido:"#BR-95521", dataCompra:"01/08 (hÃ¡ 2 dias)", prazoEntrega:"09/08", statusRastreio:"Processando â€” ainda nÃ£o saiu do centro de distribuiÃ§Ã£o" },
+          relato:"\"Comprei hÃ¡ 2 dias e o status ainda diz 'processando'. Preciso disso pra um evento em 2 dias, serÃ¡ que vai dar tempo?\"",
+          pergunta:"Qual rÃ³tulo descreve corretamente este caso?",
+          opcoes:[
+            { label:"Onde EstÃ¡ Meu Pedido â€º Verificar Status/Rastreamento â€º Ainda NÃ£o Enviado", tier:"perfect", feedback:"Correto! O pedido ainda estÃ¡ dentro do prazo, sÃ³ ainda nÃ£o saiu do CD â€” Ã© uma consulta de status de envio." },
+            { label:"Onde EstÃ¡ Meu Pedido â€º Verificar Status/Rastreamento â€º Em TrÃ¢nsito Para o Cliente", tier:"wrong", feedback:"Incorreto. Ainda nÃ£o saiu do centro de distribuiÃ§Ã£o, entÃ£o nÃ£o estÃ¡ em trÃ¢nsito." },
+            { label:"Problema Com o Pedido â€º Item Faltando no Envio", tier:"wrong", feedback:"Incorreto. NÃ£o houve envio ainda, entÃ£o nÃ£o hÃ¡ como faltar item no envio." },
+            { label:"DevoluÃ§Ãµes e Reembolsos â€º Verificar Status da DevoluÃ§Ã£o", tier:"wrong", feedback:"Incorreto. NÃ£o existe devoluÃ§Ã£o â€” o pedido ainda nem foi enviado." }
+          ]
+        },
+        { id:"C19", numero:"Caso #031-S", dificuldade:"media",
+          ficha:{ pedido:"#BR-66210", dataCompra:"25/07", prazoEntrega:"cancelado pelo sistema em 30/07 por falta de estoque", statusRastreio:"Pedido cancelado pelo sistema" },
+          relato:"\"Recebi um e-mail dizendo que meu pedido foi cancelado por falta de estoque, mas eu nÃ£o cancelei nada! O que aconteceu?\"",
+          pergunta:"Qual rÃ³tulo descreve corretamente este caso?",
+          opcoes:[
+            { label:"Onde EstÃ¡ Meu Pedido â€º Verificar Status/Rastreamento â€º Pedido Cancelado", tier:"perfect", feedback:"Correto! O evento logÃ­stico especÃ­fico Ã© o cancelamento automÃ¡tico pelo sistema, nÃ£o pelo cliente." },
+            { label:"DevoluÃ§Ãµes e Reembolsos â€º Verificar Status do Reembolso", tier:"valid", feedback:"Pode ser um prÃ³ximo passo (o dinheiro precisa voltar), mas o motivo do contato agora Ã© entender o cancelamento, nÃ£o o reembolso ainda." },
+            { label:"Problema Com o Pedido â€º Cliente NÃ£o Quer Mais o Item", tier:"wrong", feedback:"Incorreto. O cliente nÃ£o desistiu do item â€” foi o sistema que cancelou." },
+            { label:"Onde EstÃ¡ Meu Pedido â€º Verificar Status/Rastreamento â€º Ainda NÃ£o Enviado", tier:"wrong", feedback:"Incorreto. O pedido nÃ£o estÃ¡ apenas atrasado, ele foi cancelado." }
+          ]
+        },
+        { id:"C20", numero:"Caso #031-T", dificuldade:"media",
+          ficha:{ pedido:"#BR-71234", dataCompra:"28/07", prazoEntrega:"Entregue em 02/08", statusRastreio:"Entregue" },
+          relato:"\"Comprei um kit de ferramentas e chegou faltando a bateria do carregador. O resto do kit veio certinho.\"",
+          pergunta:"Qual rÃ³tulo descreve corretamente este caso?",
+          opcoes:[
+            { label:"Problema Com o Pedido â€º PeÃ§a Faltando no Produto", tier:"perfect", feedback:"Correto! Ã‰ uma peÃ§a especÃ­fica faltando DENTRO do produto, nÃ£o o item inteiro que faltou no envio." },
+            { label:"Problema Com o Pedido â€º Item Faltando no Envio", tier:"valid", feedback:"AceitÃ¡vel, tema parecido, mas esse rÃ³tulo Ã© para quando um ITEM INTEIRO do pedido nÃ£o veio â€” aqui o produto veio, sÃ³ uma peÃ§a dele que faltou." },
+            { label:"Problema Com o Pedido â€º Item Danificado/Defeituoso", tier:"wrong", feedback:"Incorreto. Nada chegou danificado, sÃ³ uma peÃ§a nÃ£o veio na caixa." },
+            { label:"Problema Com o Pedido â€º Item Errado ou NÃ£o Como Esperado", tier:"wrong", feedback:"Incorreto. O item Ã© o correto, sÃ³ estÃ¡ incompleto." }
+          ]
+        }
+      ]
+    },
+    {
+      id: 3,
+      title: "Turno 3 â€” Dinheiro no Jogo",
+      subtitle: "Pagamentos e reembolsos: o detalhe certo muda tudo.",
+      cases: [
+        { id:"C9", numero:"Caso #031-I", dificuldade:"media",
+          ficha:{ pedido:"#BR-70012", dataCompra:"15/07", prazoEntrega:"â€”", statusRastreio:"N/A â€” questÃ£o de pagamento" },
+          relato:"\"Parcelei em 10x no cartÃ£o, mas a fatura chegou cobrando o valor cheio numa parcela sÃ³!\"",
+          pergunta:"Qual rÃ³tulo descreve corretamente este caso?",
+          opcoes:[
+            { label:"QuestÃµes de Pagamento â€º Parcelamento no CartÃ£o", tier:"perfect", feedback:"Correto! O problema Ã© especificamente sobre o parcelamento nÃ£o ter sido respeitado na fatura." },
+            { label:"QuestÃµes de Pagamento â€º CobranÃ§a NÃ£o Reconhecida", tier:"valid", feedback:"AceitÃ¡vel, mesma famÃ­lia, mas o cliente RECONHECE a cobranÃ§a â€” o problema Ã© o parcelamento, nÃ£o uma cobranÃ§a desconhecida." },
+            { label:"QuestÃµes de Pagamento â€º Pagamento Recusado", tier:"wrong", feedback:"Incorreto. O pagamento nÃ£o foi recusado, ele jÃ¡ passou â€” o problema Ã© como foi cobrado." },
+            { label:"DevoluÃ§Ãµes e Reembolsos â€º Verificar Status do Reembolso", tier:"wrong", feedback:"Incorreto. NÃ£o hÃ¡ reembolso envolvido." }
+          ]
+        },
+        { id:"C10", numero:"Caso #031-J", dificuldade:"media",
+          ficha:{ pedido:"â€”", dataCompra:"hoje", prazoEntrega:"â€”", statusRastreio:"N/A â€” tentativa de compra" },
+          relato:"\"Tentei fechar a compra e meu cartÃ£o foi recusado 3 vezes, mesmo tendo saldo!\"",
+          pergunta:"Qual rÃ³tulo descreve corretamente este caso?",
+          opcoes:[
+            { label:"QuestÃµes de Pagamento â€º Pagamento Recusado", tier:"perfect", feedback:"Correto! Recusa direta de pagamento no momento da compra." },
+            { label:"Conta e Acesso â€º Problemas de Acesso Ã  Conta", tier:"valid", feedback:"Ã€s vezes confundido com bloqueio de conta, mas o cliente foi claro: Ã© o pagamento que estÃ¡ sendo recusado, nÃ£o o login." },
+            { label:"QuestÃµes de Pagamento â€º CobranÃ§a NÃ£o Reconhecida", tier:"wrong", feedback:"Incorreto. NÃ£o existe cobranÃ§a ainda â€” o pagamento nem foi aprovado." },
+            { label:"Prime, Assinaturas e PromoÃ§Ãµes â€º PromoÃ§Ã£o NÃ£o Aplicada", tier:"wrong", feedback:"Incorreto. NÃ£o hÃ¡ menÃ§Ã£o a cupom ou promoÃ§Ã£o." }
+          ]
+        },
+        { id:"C11", numero:"Caso #031-K", dificuldade:"media",
+          ficha:{ pedido:"â€”", dataCompra:"â€”", prazoEntrega:"â€”", statusRastreio:"N/A â€” fatura do cartÃ£o" },
+          relato:"\"Tem uma cobranÃ§a na fatura do meu cartÃ£o que eu nÃ£o reconheÃ§o, nÃ£o sei se Ã© da Amazon.\"",
+          pergunta:"Qual rÃ³tulo descreve corretamente este caso?",
+          opcoes:[
+            { label:"QuestÃµes de Pagamento â€º CobranÃ§a NÃ£o Reconhecida", tier:"perfect", feedback:"Correto! Cliente nÃ£o reconhece a cobranÃ§a â€” Ã© exatamente esse o motivo." },
+            { label:"DevoluÃ§Ãµes e Reembolsos â€º Verificar Status do Reembolso", tier:"valid", feedback:"SÃ³ seria vÃ¡lido se o cliente tivesse citado um reembolso pendente â€” aqui ele nÃ£o mencionou isso." },
+            { label:"QuestÃµes de Pagamento â€º Pagamento Recusado", tier:"wrong", feedback:"Incorreto. O pagamento passou, o problema Ã© nÃ£o reconhecer a cobranÃ§a." },
+            { label:"Problema Com o Pedido â€º Pacote Perdido ou Roubado", tier:"wrong", feedback:"Incorreto. NÃ£o hÃ¡ nada sobre entrega aqui." }
+          ]
+        },
+        { id:"C12", numero:"Caso #031-L", dificuldade:"media",
+          ficha:{ pedido:"#BR-60099", dataCompra:"20/07", prazoEntrega:"â€”", statusRastreio:"DevoluÃ§Ã£o escaneada pela transportadora em 26/07 (hÃ¡ 5 dias)" },
+          relato:"\"JÃ¡ devolvi o produto hÃ¡ 10 dias, a etiqueta foi escaneada hÃ¡ 5, e atÃ© agora nada do meu dinheiro voltar!\"",
+          pergunta:"Qual rÃ³tulo descreve corretamente este caso?",
+          opcoes:[
+            { label:"DevoluÃ§Ãµes e Reembolsos â€º Verificar Status do Reembolso", tier:"perfect", feedback:"Correto! O cliente jÃ¡ devolveu â€” agora quer saber sobre O DINHEIRO, que Ã© reembolso, nÃ£o status do pacote." },
+            { label:"DevoluÃ§Ãµes e Reembolsos â€º Verificar Status da DevoluÃ§Ã£o", tier:"valid", feedback:"PrÃ³ximo, mas o cliente jÃ¡ sabe que a devoluÃ§Ã£o foi escaneada â€” a pergunta especÃ­fica Ã© sobre o reembolso do valor." },
+            { label:"DevoluÃ§Ãµes e Reembolsos â€º Etiqueta de DevoluÃ§Ã£o NÃ£o Funciona", tier:"wrong", feedback:"Incorreto. A etiqueta jÃ¡ funcionou â€” foi escaneada com sucesso." },
+            { label:"QuestÃµes de Pagamento â€º CobranÃ§a NÃ£o Reconhecida", tier:"wrong", feedback:"Incorreto. NÃ£o hÃ¡ cobranÃ§a desconhecida, Ã© reembolso de uma devoluÃ§Ã£o jÃ¡ feita." }
+          ]
+        },
+        { id:"C21", numero:"Caso #031-U", dificuldade:"media",
+          ficha:{ pedido:"â€”", dataCompra:"â€”", prazoEntrega:"â€”", statusRastreio:"N/A â€” resgate de promoÃ§Ã£o" },
+          relato:"\"Ganhei uma promoÃ§Ã£o de R$20 de desconto numa campanha, mas nÃ£o sei como resgatar esse valor na minha conta.\"",
+          pergunta:"Qual rÃ³tulo descreve corretamente este caso?",
+          opcoes:[
+            { label:"Fazer um Pedido â€º Resgatar uma PromoÃ§Ã£o", tier:"perfect", feedback:"Correto! O cliente jÃ¡ tem a promoÃ§Ã£o â€” sÃ³ precisa saber como resgatar/aplicar, que Ã© um motivo especÃ­fico." },
+            { label:"Prime, Assinaturas e PromoÃ§Ãµes â€º PromoÃ§Ã£o NÃ£o Aplicada", tier:"valid", feedback:"AceitÃ¡vel, tema parecido, mas esse rÃ³tulo Ã© para quando a promoÃ§Ã£o FALHOU ao aplicar no carrinho â€” aqui o cliente sÃ³ quer saber como resgatar, ainda nem tentou usar." },
+            { label:"QuestÃµes de Pagamento â€º ComparaÃ§Ã£o de PreÃ§o", tier:"wrong", feedback:"Incorreto. NÃ£o hÃ¡ comparaÃ§Ã£o de preÃ§o envolvida." },
+            { label:"DevoluÃ§Ãµes e Reembolsos â€º Solicitar Reembolso", tier:"wrong", feedback:"Incorreto. NÃ£o houve compra nem cobranÃ§a envolvida ainda." }
+          ]
+        },
+        { id:"C22", numero:"Caso #031-V", dificuldade:"media",
+          ficha:{ pedido:"#BR-58890", dataCompra:"29/07", prazoEntrega:"Entregue em 01/08", statusRastreio:"Entregue" },
+          relato:"\"Pedi sÃ³ 1 unidade do produto, mas chegaram 2 iguais na mesma caixa. NÃ£o paguei por 2, o que eu faÃ§o?\"",
+          pergunta:"Qual rÃ³tulo descreve corretamente este caso?",
+          opcoes:[
+            { label:"Problema Com o Pedido â€º Recebeu Item Extra", tier:"perfect", feedback:"Correto! Ã‰ especificamente sobre receber uma unidade extra nÃ£o comprada." },
+            { label:"Problema Com o Pedido â€º Item Errado ou NÃ£o Como Esperado", tier:"valid", feedback:"AceitÃ¡vel, tema parecido (algo saiu diferente do esperado), mas existe rÃ³tulo especÃ­fico para quantidade extra recebida." },
+            { label:"DevoluÃ§Ãµes e Reembolsos â€º Solicitar Reembolso", tier:"wrong", feedback:"Incorreto. O cliente nÃ£o pagou pelo item extra â€” nÃ£o hÃ¡ reembolso a pedir ainda." },
+            { label:"Problema Com o Pedido â€º Cliente NÃ£o Quer Mais o Item", tier:"wrong", feedback:"Incorreto. O cliente nÃ£o desistiu do item que comprou, sÃ³ recebeu uma cÃ³pia extra." }
+          ]
+        }
+      ]
+    },
+    {
+      id: 4,
+      title: "Turno 4 â€” Contas, Assinaturas e Casos Raros",
+      subtitle: "O que parece igual, raramente Ã©.",
+      cases: [
+        { id:"C13", numero:"Caso #031-M", dificuldade:"dificil",
+          ficha:{ pedido:"â€”", dataCompra:"â€”", prazoEntrega:"â€”", statusRastreio:"N/A â€” redefiniÃ§Ã£o de senha" },
+          relato:"\"Esqueci a resposta da pergunta de seguranÃ§a pra redefinir minha senha, e agora a tela pede confirmaÃ§Ã£o por telefone.\"",
+          pergunta:"Qual rÃ³tulo descreve corretamente este caso?",
+          opcoes:[
+            { label:"Conta e Acesso â€º Pergunta de SeguranÃ§a DinÃ¢mica", tier:"perfect", feedback:"Correto! Ã‰ especificamente o fluxo de verificaÃ§Ã£o por pergunta de seguranÃ§a/telefone." },
+            { label:"Conta e Acesso â€º Problemas de Acesso Ã  Conta (genÃ©rico)", tier:"valid", feedback:"AceitÃ¡vel, mesma Ã¡rea, mas existe rÃ³tulo mais especÃ­fico para esse fluxo exato." },
+            { label:"Conta e Acesso â€º Encerramento de Conta", tier:"wrong", feedback:"Incorreto. NinguÃ©m pediu para encerrar a conta." },
+            { label:"Merchant & Marketplace â€º Verificar Status da SolicitaÃ§Ã£o", tier:"wrong", feedback:"Incorreto. NÃ£o tem relaÃ§Ã£o com reclamaÃ§Ã£o de vendedor terceiro." }
+          ]
+        },
+        { id:"C14", numero:"Caso #031-N", dificuldade:"dificil",
+          ficha:{ pedido:"â€”", dataCompra:"â€”", prazoEntrega:"â€”", statusRastreio:"N/A â€” assinatura Prime" },
+          relato:"\"Quero cancelar minha assinatura Prime, nÃ£o uso mais.\"",
+          pergunta:"Qual rÃ³tulo descreve corretamente este caso?",
+          opcoes:[
+            { label:"Prime, Assinaturas e PromoÃ§Ãµes â€º Amazon Prime â€º Cancelar Assinatura Prime", tier:"perfect", feedback:"Correto! Pedido direto e especÃ­fico de cancelamento." },
+            { label:"Prime, Assinaturas e PromoÃ§Ãµes â€º Amazon Prime â€º Gerenciar Assinaturas", tier:"valid", feedback:"AceitÃ¡vel, mesma Ã¡rea, mas 'cancelar' Ã© uma aÃ§Ã£o especÃ­fica que tem rÃ³tulo prÃ³prio." },
+            { label:"Conta e Acesso â€º Encerramento de Conta", tier:"wrong", feedback:"Incorreto. O cliente quer cancelar o Prime, nÃ£o fechar a conta inteira da Amazon." },
+            { label:"Prime, Assinaturas e PromoÃ§Ãµes â€º Amazon Prime â€º Add-ons do Prime Video", tier:"wrong", feedback:"Incorreto. NÃ£o hÃ¡ menÃ§Ã£o a Prime Video." }
+          ]
+        },
+        { id:"C15", numero:"Caso #031-O", dificuldade:"dificil",
+          ficha:{ pedido:"#BR-55210", dataCompra:"hoje", prazoEntrega:"â€”", statusRastreio:"N/A â€” finalizaÃ§Ã£o de compra" },
+          relato:"\"Meu cupom de 15% nÃ£o aplicou no carrinho na hora de fechar a compra!\"",
+          pergunta:"Qual rÃ³tulo descreve corretamente este caso?",
+          opcoes:[
+            { label:"Prime, Assinaturas e PromoÃ§Ãµes â€º PromoÃ§Ã£o NÃ£o Aplicada", tier:"perfect", feedback:"Correto! Ã‰ exatamente isso: cupom/promoÃ§Ã£o que nÃ£o aplicou no pedido." },
+            { label:"DevoluÃ§Ãµes e Reembolsos â€º Solicitar Reembolso", tier:"valid", feedback:"SÃ³ seria vÃ¡lido depois, se o cliente jÃ¡ tivesse pago o valor cheio e pedisse a diferenÃ§a de volta â€” mas ele estÃ¡ no meio da compra." },
+            { label:"QuestÃµes de Pagamento â€º ComparaÃ§Ã£o de PreÃ§o", tier:"wrong", feedback:"Incorreto. ComparaÃ§Ã£o de preÃ§o Ã© sobre preÃ§o mais baixo em outro lugar, nÃ£o sobre cupom nÃ£o aplicado." },
+            { label:"QuestÃµes de Pagamento â€º Pagamento Recusado", tier:"wrong", feedback:"Incorreto. Nada foi recusado, sÃ³ o cupom nÃ£o aplicou." }
+          ]
+        },
+        { id:"C16", numero:"Caso #031-P", dificuldade:"dificil",
+          ficha:{ pedido:"#BR-44120 (vendedor terceiro)", dataCompra:"20/07", prazoEntrega:"â€”", statusRastreio:"ContestaÃ§Ã£o aberta hÃ¡ 5 dias, sem resposta do vendedor" },
+          relato:"\"Abri uma contestaÃ§Ã£o com o vendedor terceiro hÃ¡ 5 dias e ele nÃ£o respondeu nada. Quero abrir uma reclamaÃ§Ã£o formal.\"",
+          pergunta:"Qual rÃ³tulo descreve corretamente este caso?",
+          opcoes:[
+            { label:"Merchant & Marketplace â€º A-to-Z Claim â€º Verificar Status da SolicitaÃ§Ã£o", tier:"perfect", feedback:"Correto! A contestaÃ§Ã£o jÃ¡ existe e estÃ¡ sem resposta â€” o cliente quer status/andamento, nÃ£o um recurso de negativa." },
+            { label:"Merchant & Marketplace â€º A-to-Z Claim â€º Recorrer de Pedido Negado", tier:"valid", feedback:"SÃ³ seria ideal se o pedido JÃ tivesse sido negado â€” aqui ele sÃ³ estÃ¡ sem resposta, ainda nÃ£o foi negado." },
+            { label:"DevoluÃ§Ãµes e Reembolsos â€º Verificar Status do Reembolso", tier:"wrong", feedback:"Incorreto. Ã‰ uma compra de vendedor terceiro (Marketplace), nÃ£o uma devoluÃ§Ã£o direta com a Amazon." },
+            { label:"QuestÃµes de Pagamento â€º CobranÃ§a NÃ£o Reconhecida", tier:"wrong", feedback:"Incorreto. NÃ£o hÃ¡ cobranÃ§a desconhecida â€” Ã© uma contestaÃ§Ã£o de marketplace." }
+          ]
+        },
+        { id:"C23", numero:"Caso #031-W", dificuldade:"dificil",
+          ficha:{ pedido:"â€”", dataCompra:"â€”", prazoEntrega:"â€”", statusRastreio:"N/A â€” assinatura Prime" },
+          relato:"\"Sou assinante Prime, mas nÃ£o sei tudo que tÃ¡ incluso no meu plano. Pode me explicar os benefÃ­cios?\"",
+          pergunta:"Qual rÃ³tulo descreve corretamente este caso?",
+          opcoes:[
+            { label:"Prime, Assinaturas e PromoÃ§Ãµes â€º Amazon Prime â€º BenefÃ­cios da Assinatura", tier:"perfect", feedback:"Correto! Pergunta direta sobre o que estÃ¡ incluso no plano Prime." },
+            { label:"Prime, Assinaturas e PromoÃ§Ãµes â€º Amazon Prime â€º Gerenciar Assinaturas", tier:"valid", feedback:"AceitÃ¡vel, mesma Ã¡rea, mas o cliente quer entender benefÃ­cios, nÃ£o gerenciar/alterar a assinatura." },
+            { label:"Prime, Assinaturas e PromoÃ§Ãµes â€º Amazon Prime â€º Cancelar Assinatura Prime", tier:"wrong", feedback:"Incorreto. O cliente nÃ£o pediu para cancelar nada." },
+            { label:"Prime, Assinaturas e PromoÃ§Ãµes â€º Amazon Prime â€º Add-ons do Prime Video", tier:"wrong", feedback:"Incorreto. NÃ£o hÃ¡ menÃ§Ã£o especÃ­fica a Prime Video." }
+          ]
+        },
+        { id:"C24", numero:"Caso #031-X", dificuldade:"dificil",
+          ficha:{ pedido:"â€”", dataCompra:"hoje", prazoEntrega:"â€”", statusRastreio:"N/A â€” reclamaÃ§Ã£o sobre preÃ§o" },
+          relato:"\"Esse produto tava R$50 semana passada e hoje aparece por R$180! Isso nÃ£o Ã© abuso de preÃ§o?\"",
+          pergunta:"Qual rÃ³tulo descreve corretamente este caso?",
+          opcoes:[
+            { label:"Problema Com o Pedido â€º PreÃ§o Abusivo", tier:"perfect", feedback:"Correto! Ã‰ uma reclamaÃ§Ã£o direta sobre aumento de preÃ§o percebido como abusivo." },
+            { label:"QuestÃµes de Pagamento â€º ComparaÃ§Ã£o de PreÃ§o", tier:"valid", feedback:"AceitÃ¡vel, tema parecido (preÃ§o), mas comparaÃ§Ã£o de preÃ§o Ã© sobre encontrar mais barato em outro lugar â€” aqui o cliente estÃ¡ reclamando de abuso, nÃ£o pedindo comparaÃ§Ã£o." },
+            { label:"Merchant & Marketplace â€º A-to-Z Claim â€º Verificar Status da SolicitaÃ§Ã£o", tier:"wrong", feedback:"Incorreto. NÃ£o existe uma contestaÃ§Ã£o aberta â€” Ã© uma reclamaÃ§Ã£o inicial sobre preÃ§o." },
+            { label:"Prime, Assinaturas e PromoÃ§Ãµes â€º PromoÃ§Ã£o NÃ£o Aplicada", tier:"wrong", feedback:"Incorreto. NÃ£o hÃ¡ cupom ou promoÃ§Ã£o envolvida." }
+          ]
+        }
+      ]
+    },
+    {
+      id: 5,
+      title: "Turno 5 â€” Canais Especiais",
+      subtitle: "Nem todo caso chega por chat. Leia, escute e classifique do mesmo jeito.",
+      cases: [
+        { id:"C25", numero:"Caso #031-Y", dificuldade:"dificil", modalidade:"ligacao",
+          ficha:{ pedido:"â€”", dataCompra:"â€”", prazoEntrega:"â€”", statusRastreio:"N/A â€” seguranÃ§a da conta" },
+          relato:"Boa tarde! Recebi um e-mail dizendo que Ã© da Amazon, pedindo pra eu confirmar meu cartÃ£o de crÃ©dito clicando num link. Isso parece estranho, serÃ¡ que Ã© phishing?",
+          pergunta:"Qual rÃ³tulo descreve corretamente este caso?",
+          opcoes:[
+            { label:"SeguranÃ§a e VerificaÃ§Ã£o â€º E-mail Suspeito ou Phishing", tier:"perfect", feedback:"Correto! O cliente estÃ¡ reportando um e-mail suspeito recebido, pedindo orientaÃ§Ã£o sobre seguranÃ§a." },
+            { label:"Conta e Acesso â€º Problemas de Acesso Ã  Conta", tier:"valid", feedback:"AceitÃ¡vel, mesma Ã¡rea geral (conta), mas existe rÃ³tulo especÃ­fico para reporte de phishing/e-mail suspeito." },
+            { label:"QuestÃµes de Pagamento â€º CobranÃ§a NÃ£o Reconhecida", tier:"wrong", feedback:"Incorreto. NÃ£o houve cobranÃ§a â€” Ã© uma pergunta sobre um e-mail suspeito, nada foi cobrado." },
+            { label:"Conta e Acesso â€º Encerramento de Conta", tier:"wrong", feedback:"Incorreto. NinguÃ©m pediu para encerrar a conta." }
+          ]
+        },
+        { id:"C26", numero:"Caso #031-Z", dificuldade:"dificil",
+          ficha:{ pedido:"â€”", dataCompra:"â€”", prazoEntrega:"â€”", statusRastreio:"N/A â€” verificaÃ§Ã£o de identidade" },
+          relato:"\"Pra continuar minha solicitaÃ§Ã£o de reembolso, o sistema pediu uma foto minha com o documento. Isso Ã© normal? Como eu envio?\"",
+          pergunta:"Qual rÃ³tulo descreve corretamente este caso?",
+          opcoes:[
+            { label:"SeguranÃ§a e VerificaÃ§Ã£o â€º VerificaÃ§Ã£o de Identidade", tier:"perfect", feedback:"Correto! O cliente estÃ¡ com dÃºvida especificamente sobre o processo de verificaÃ§Ã£o de identidade (foto/selfie com documento)." },
+            { label:"DevoluÃ§Ãµes e Reembolsos â€º Verificar Status do Reembolso", tier:"valid", feedback:"AceitÃ¡vel, Ã© o contexto (reembolso), mas a pergunta especÃ­fica agora Ã© sobre a verificaÃ§Ã£o de identidade, nÃ£o sobre o status do dinheiro." },
+            { label:"Conta e Acesso â€º Pergunta de SeguranÃ§a DinÃ¢mica", tier:"wrong", feedback:"Incorreto. NÃ£o Ã© sobre pergunta de seguranÃ§a de login, Ã© verificaÃ§Ã£o de identidade para uma solicitaÃ§Ã£o." },
+            { label:"Merchant & Marketplace â€º A-to-Z Claim â€º Verificar Status da SolicitaÃ§Ã£o", tier:"wrong", feedback:"Incorreto. NÃ£o Ã© uma compra de vendedor terceiro." }
+          ]
+        },
+        { id:"C27", numero:"Caso #031-AA", dificuldade:"dificil", modalidade:"email",
+          emailDe:"cliente_kindle@gmail.com", emailPara:"atendimento-amazon@amazon.com.br", emailAssunto:"RE: Sua assinatura Kindle Unlimited",
+          respostaAnterior:"OlÃ¡! Confirmamos que sua assinatura Kindle Unlimited estÃ¡ ativa, com renovaÃ§Ã£o prevista para o dia 15. Qualquer dÃºvida, estamos Ã  disposiÃ§Ã£o. â€” Equipe Amazon",
+          ficha:{ pedido:"â€”", dataCompra:"â€”", prazoEntrega:"â€”", statusRastreio:"N/A â€” assinatura de conteÃºdo digital" },
+          relato:"Na verdade eu nÃ£o quero mais renovar o Kindle Unlimited, quero cancelar antes do dia 15 pra nÃ£o ser cobrado de novo. Como faÃ§o?",
+          pergunta:"Qual rÃ³tulo descreve corretamente a NOVA mensagem do cliente (nÃ£o a resposta anterior)?",
+          opcoes:[
+            { label:"Assinaturas Digitais â€º Kindle Unlimited â€º Cancelar Assinatura", tier:"perfect", feedback:"Correto! A resposta anterior sÃ³ confirmava a renovaÃ§Ã£o â€” a NOVA mensagem pede cancelamento antes da cobranÃ§a." },
+            { label:"Prime, Assinaturas e PromoÃ§Ãµes â€º Amazon Prime â€º Cancelar Assinatura Prime", tier:"wrong", feedback:"Incorreto. Kindle Unlimited Ã© uma assinatura de conteÃºdo digital separada do Prime." },
+            { label:"QuestÃµes de Pagamento â€º CobranÃ§a NÃ£o Reconhecida", tier:"wrong", feedback:"Incorreto. Ainda nÃ£o houve cobranÃ§a â€” o cliente estÃ¡ tentando cancelar ANTES dela acontecer." },
+            { label:"SeguranÃ§a e VerificaÃ§Ã£o â€º VerificaÃ§Ã£o de Identidade", tier:"wrong", feedback:"Incorreto. NÃ£o hÃ¡ nada sobre verificaÃ§Ã£o de identidade neste e-mail." }
+          ]
+        },
+        { id:"C28", numero:"Caso #031-BB", dificuldade:"media",
+          ficha:{ pedido:"â€”", dataCompra:"â€”", prazoEntrega:"â€”", statusRastreio:"N/A â€” assinatura de conteÃºdo digital" },
+          relato:"\"Fui cobrado no cartÃ£o pelo Amazon Music Unlimited mas eu nem uso o app, quero entender essa cobranÃ§a.\"",
+          pergunta:"Qual rÃ³tulo descreve corretamente este caso?",
+          opcoes:[
+            { label:"Assinaturas Digitais â€º Amazon Music Unlimited â€º DÃºvida sobre CobranÃ§a", tier:"perfect", feedback:"Correto! Ã‰ especificamente sobre a cobranÃ§a da assinatura de conteÃºdo digital Music Unlimited." },
+            { label:"QuestÃµes de Pagamento â€º CobranÃ§a NÃ£o Reconhecida", tier:"valid", feedback:"AceitÃ¡vel, tema parecido (cobranÃ§a estranha), mas existe rÃ³tulo especÃ­fico da assinatura de conteÃºdo digital envolvida." },
+            { label:"Prime, Assinaturas e PromoÃ§Ãµes â€º Amazon Prime â€º Gerenciar Assinaturas", tier:"wrong", feedback:"Incorreto. Music Unlimited nÃ£o Ã© gerenciado dentro da assinatura Prime base." },
+            { label:"QuestÃµes de Pagamento â€º Parcelamento no CartÃ£o", tier:"wrong", feedback:"Incorreto. NÃ£o hÃ¡ menÃ§Ã£o a parcelamento." }
+          ]
+        },
+        { id:"C29", numero:"Caso #031-CC", dificuldade:"media",
+          ficha:{ pedido:"#BR-20044 (Kindle)", dataCompra:"10/07", prazoEntrega:"â€”", statusRastreio:"N/A â€” suporte tÃ©cnico de dispositivo" },
+          relato:"\"Meu Kindle simplesmente nÃ£o liga mais, tentei carregar a noite toda e nada. JÃ¡ reiniciei vÃ¡rias vezes.\"",
+          pergunta:"Qual rÃ³tulo descreve corretamente este caso?",
+          opcoes:[
+            { label:"Suporte a Dispositivos â€º Dispositivo NÃ£o Liga/Trava", tier:"perfect", feedback:"Correto! Problema especÃ­fico de hardware â€” o dispositivo nÃ£o liga mesmo apÃ³s tentativas de reinÃ­cio." },
+            { label:"Problema Com o Pedido â€º Item Danificado/Defeituoso", tier:"valid", feedback:"AceitÃ¡vel, tema parecido (produto com problema), mas existe rÃ³tulo especÃ­fico de suporte tÃ©cnico para esse tipo de falha de dispositivo." },
+            { label:"Suporte a Dispositivos â€º Problema na Tela", tier:"wrong", feedback:"Incorreto. O problema Ã© o dispositivo nÃ£o ligar, nÃ£o a tela." },
+            { label:"DevoluÃ§Ãµes e Reembolsos â€º Solicitar Reembolso", tier:"wrong", feedback:"Incorreto. O cliente estÃ¡ descrevendo o defeito, ainda nÃ£o pediu reembolso." }
+          ]
+        },
+        { id:"C30", numero:"Caso #031-DD", dificuldade:"dificil", modalidade:"ligacao",
+          ficha:{ pedido:"#BR-20099 (Fire Tablet)", dataCompra:"05/07", prazoEntrega:"â€”", statusRastreio:"N/A â€” suporte tÃ©cnico de dispositivo" },
+          relato:"Oi, meu tablet caiu de uma altura baixa e agora a tela tÃ¡ com uma linha preta atravessando, mas ainda funciona. Isso tem garantia?",
+          pergunta:"Qual rÃ³tulo descreve corretamente este caso?",
+          opcoes:[
+            { label:"Suporte a Dispositivos â€º Problema na Tela", tier:"perfect", feedback:"Correto! Problema especÃ­fico e visÃ­vel na tela do dispositivo." },
+            { label:"Problema Com o Pedido â€º Item Danificado/Defeituoso", tier:"valid", feedback:"AceitÃ¡vel, tema parecido, mas existe rÃ³tulo especÃ­fico de suporte tÃ©cnico para esse tipo de dano em dispositivo." },
+            { label:"Suporte a Dispositivos â€º Dispositivo NÃ£o Liga/Trava", tier:"wrong", feedback:"Incorreto. O tablet liga e funciona â€” o problema Ã© visual, na tela." },
+            { label:"DevoluÃ§Ãµes e Reembolsos â€º Solicitar Reembolso", tier:"wrong", feedback:"Incorreto. O cliente perguntou sobre garantia, nÃ£o pediu reembolso." }
+          ]
+        },
+        { id:"C31", numero:"Caso #031-EE", dificuldade:"media",
+          ficha:{ pedido:"#BR-30021", dataCompra:"27/07", prazoEntrega:"Entregue em 01/08", statusRastreio:"Entregue" },
+          relato:"\"SÃ³ queria deixar registrado que o entregador foi super grosseiro, jogou a caixa no portÃ£o e saiu sem falar nada.\"",
+          pergunta:"Qual rÃ³tulo descreve corretamente este caso?",
+          opcoes:[
+            { label:"Feedback e AvaliaÃ§Ãµes â€º Feedback sobre Transportadora", tier:"perfect", feedback:"Correto! O cliente nÃ£o estÃ¡ pedindo nenhuma aÃ§Ã£o â€” sÃ³ quer registrar um feedback sobre o comportamento do entregador." },
+            { label:"Problema Com o Pedido â€º Item Danificado/Defeituoso", tier:"valid", feedback:"SÃ³ seria ideal se o produto tivesse chegado danificado â€” aqui o cliente sÃ³ reclama do comportamento do entregador, o produto estÃ¡ ok." },
+            { label:"Onde EstÃ¡ Meu Pedido â€º Problemas na Entrega", tier:"wrong", feedback:"Incorreto. A entrega aconteceu normalmente â€” o problema Ã© o comportamento, nÃ£o a entrega em si." },
+            { label:"Merchant & Marketplace â€º A-to-Z Claim â€º Verificar Status da SolicitaÃ§Ã£o", tier:"wrong", feedback:"Incorreto. NÃ£o hÃ¡ uma contestaÃ§Ã£o de vendedor terceiro aqui." }
+          ]
+        },
+        { id:"C32", numero:"Caso #031-FF", dificuldade:"media",
+          ficha:{ pedido:"#BR-30099 (vendedor terceiro)", dataCompra:"22/07", prazoEntrega:"â€”", statusRastreio:"N/A â€” feedback sobre vendedor" },
+          relato:"\"O produto chegou certinho, mas o vendedor demorou 4 dias pra responder minhas mensagens. Quero deixar essa avaliaÃ§Ã£o registrada.\"",
+          pergunta:"Qual rÃ³tulo descreve corretamente este caso?",
+          opcoes:[
+            { label:"Feedback e AvaliaÃ§Ãµes â€º Feedback sobre Vendedor", tier:"perfect", feedback:"Correto! O produto chegou bem â€” Ã© um feedback sobre a demora de resposta do vendedor, nÃ£o uma reclamaÃ§Ã£o de produto." },
+            { label:"Merchant & Marketplace â€º A-to-Z Claim â€º Verificar Status da SolicitaÃ§Ã£o", tier:"valid", feedback:"AceitÃ¡vel, mesma Ã¡rea (vendedor terceiro), mas nÃ£o existe uma contestaÃ§Ã£o/claim aberta aqui â€” Ã© sÃ³ um feedback." },
+            { label:"Problema Com o Pedido â€º Item Errado ou NÃ£o Como Esperado", tier:"wrong", feedback:"Incorreto. O prÃ³prio cliente disse que o produto chegou certinho." },
+            { label:"DevoluÃ§Ãµes e Reembolsos â€º Solicitar Reembolso", tier:"wrong", feedback:"Incorreto. NÃ£o hÃ¡ pedido de reembolso." }
+          ]
+        },
+        { id:"C33", numero:"Caso #031-GG", dificuldade:"dificil",
+          ficha:{ pedido:"#BR-30150", dataCompra:"29/07", prazoEntrega:"Tentativa de entrega hoje", statusRastreio:"Entregador solicitou senha de uso Ãºnico" },
+          relato:"\"O entregador chegou aqui mas disse que precisa de um cÃ³digo pra me entregar o pacote, e eu nÃ£o recebi cÃ³digo nenhum no e-mail ou SMS!\"",
+          pergunta:"Qual rÃ³tulo descreve corretamente este caso?",
+          opcoes:[
+            { label:"Onde EstÃ¡ Meu Pedido â€º Entrega com Senha de Uso Ãšnico", tier:"perfect", feedback:"Correto! Ã‰ especificamente sobre o fluxo de entrega que exige senha/cÃ³digo de uso Ãºnico (OTP) que o cliente nÃ£o recebeu." },
+            { label:"Onde EstÃ¡ Meu Pedido â€º Problemas na Entrega", tier:"valid", feedback:"AceitÃ¡vel, mesma Ã¡rea, mas existe rÃ³tulo especÃ­fico para esse evento logÃ­stico exato (entrega com senha OTP)." },
+            { label:"Problema Com o Pedido â€º Pacote Perdido ou Roubado", tier:"wrong", feedback:"Incorreto. O pacote estÃ¡ com o entregador na porta do cliente, nÃ£o estÃ¡ perdido." },
+            { label:"Conta e Acesso â€º Pergunta de SeguranÃ§a DinÃ¢mica", tier:"wrong", feedback:"Incorreto. Essa senha Ã© de entrega (OTP), nÃ£o Ã© a pergunta de seguranÃ§a de login da conta." }
+          ]
+        },
+        { id:"C34", numero:"Caso #031-HH", dificuldade:"dificil", modalidade:"email",
+          emailDe:"cliente_compras@hotmail.com", emailPara:"atendimento-amazon@amazon.com.br", emailAssunto:"RE: ConfirmaÃ§Ã£o do seu pedido #BR-40012",
+          respostaAnterior:"OlÃ¡! Seu pedido #BR-40012 foi confirmado com sucesso, valor total R$249,90. Prazo de entrega estimado: 6 dias Ãºteis. Obrigado por comprar na Amazon!",
+          ficha:{ pedido:"#BR-40012", dataCompra:"hoje", prazoEntrega:"â€”", statusRastreio:"N/A â€” divergÃªncia de preÃ§o na finalizaÃ§Ã£o" },
+          relato:"Espera, eu vi esse produto por R$189,90 na pÃ¡gina, coloquei no carrinho, mas na confirmaÃ§Ã£o chegou R$249,90! Por que mudou o preÃ§o entre eu ver e finalizar a compra?",
+          pergunta:"Qual rÃ³tulo descreve corretamente a NOVA mensagem do cliente (nÃ£o a confirmaÃ§Ã£o automÃ¡tica anterior)?",
+          opcoes:[
+            { label:"QuestÃµes de Pagamento â€º PreÃ§o Alterado no Site", tier:"perfect", feedback:"Correto! Ã‰ especificamente sobre a divergÃªncia de preÃ§o entre o momento da navegaÃ§Ã£o e a finalizaÃ§Ã£o da compra â€” diferente de comparaÃ§Ã£o com concorrente ou abuso de preÃ§o." },
+            { label:"QuestÃµes de Pagamento â€º ComparaÃ§Ã£o de PreÃ§o", tier:"valid", feedback:"AceitÃ¡vel, tema parecido (preÃ§o), mas comparaÃ§Ã£o de preÃ§o Ã© sobre concorrentes externos â€” aqui a mudanÃ§a foi dentro do prÃ³prio site, durante a mesma compra." },
+            { label:"Problema Com o Pedido â€º PreÃ§o Abusivo", tier:"wrong", feedback:"Incorreto. NÃ£o Ã© uma alta especulativa de preÃ§o â€” Ã© uma divergÃªncia entre o que foi visto e o que foi cobrado na mesma compra." },
+            { label:"DevoluÃ§Ãµes e Reembolsos â€º Solicitar Reembolso", tier:"wrong", feedback:"Incorreto. O cliente estÃ¡ questionando o preÃ§o agora, ainda nÃ£o pediu reembolso." }
+          ]
+        }
+      ]
+    }
+  ],
+
+  bossCase: {
+    id: "BOSS",
+    numero: "Caso #031-COLD (Arquivo Frio)",
+    dificuldade: "boss",
+    ficha: {
+      pedido: "#BR-33087",
+      dataCompra: "22/07",
+      prazoEntrega: "DevoluÃ§Ã£o recebida pela Amazon em 28/07",
+      statusRastreio: "Reembolso ainda nÃ£o processado"
+    },
+    relato: "\"Oi! EntÃ£o, o liquidificador que comprei chegou todo trincado, aÃ­ eu jÃ¡ devolvi e a Amazon recebeu de volta dia 28. SÃ³ que atÃ© agora nÃ£o vi o reembolso cair. Ah, e aproveitando, um cupom de 10% que eu tinha tambÃ©m nÃ£o aplicou numa outra compra que fiz ontem, serÃ¡ que dÃ¡ pra ver isso tambÃ©m?\"",
+    pergunta: "O cliente tocou em 3 assuntos. Qual Ã© o rÃ³tulo do motivo PRINCIPAL deste contato?",
+    opcoes: [
+      { label: "DevoluÃ§Ãµes e Reembolsos â€º Verificar Status do Reembolso", tier: "perfect", feedback: "Correto! O item danificado jÃ¡ foi resolvido (devoluÃ§Ã£o aceita e recebida) â€” o que resta e motiva o contato AGORA Ã© o reembolso que nÃ£o caiu. Esse Ã© o foco real." },
+      { label: "Prime, Assinaturas e PromoÃ§Ãµes â€º PromoÃ§Ã£o NÃ£o Aplicada", tier: "valid", feedback: "Ã‰ um assunto real mencionado, e pode atÃ© merecer um SIC secundÃ¡rio depois â€” mas nÃ£o Ã© o motivo principal que trouxe o cliente ao contato hoje." },
+      { label: "Problema Com o Pedido â€º Item Danificado/Defeituoso", tier: "valid", feedback: "Foi a causa original, mas jÃ¡ estÃ¡ resolvida (devoluÃ§Ã£o aceita). Preencher isso ignora o que o cliente realmente precisa agora: o reembolso." },
+      { label: "QuestÃµes de Pagamento â€º ComparaÃ§Ã£o de PreÃ§o", tier: "wrong", feedback: "Incorreto. ComparaÃ§Ã£o de preÃ§o nÃ£o tem relaÃ§Ã£o com nada citado no relato." }
+    ],
+    licaoFinal: "Quando o cliente muda de assunto, o SIC deve refletir o motivo que estÃ¡ DIRECIONANDO o contato agora â€” nÃ£o a primeira coisa mencionada, nem a mais antiga. Se houver mais de um motivo relevante, atualize o SIC conforme a conversa evolui."
+  },
+
+  protocolAlerts: [
+    { id: "PA1", gatilho: "Depois do Turno 1",
+      texto: "ðŸš¨ VocÃª acabou de entender qual Ã© o problema do cliente. O que vocÃª faz AGORA?",
+      opcoes: [
+        { label: "Preencho o SIC imediatamente, assim que identifico o motivo â€” e sÃ³ depois sigo o atendimento", correta: true, feedback: "Exato! O SIC deve ser preenchido no momento em que vocÃª identifica o problema, nÃ£o no final do contato." },
+        { label: "Deixo para preencher no final do contato, quando tiver certeza de tudo", correta: false, feedback: "Errado. Esperar atÃ© o final aumenta o risco de esquecer ou preencher errado â€” e perde a chance de reclassificar se o assunto mudar." },
+        { label: "SÃ³ preencho se o cliente perguntar sobre isso", correta: false, feedback: "Errado. O SIC nunca depende do cliente pedir â€” Ã© uma responsabilidade sua, sempre." }
+      ]
+    },
+    { id: "PA2", gatilho: "Depois do Turno 2",
+      texto: "ðŸš¨ O cliente pediu para ser transferido para outro time. O que fazer com o SIC ANTES de transferir?",
+      opcoes: [
+        { label: "Preencher o SIC do motivo atual antes de transferir a ligaÃ§Ã£o/chat", correta: true, feedback: "Correto! O time que vai receber o contato depende do SIC preenchido corretamente para entender o histÃ³rico." },
+        { label: "Transferir direto â€” quem receber o contato preenche depois", correta: false, feedback: "Errado. Isso gera perda de contexto e pode fazer o prÃ³ximo time repetir perguntas ao cliente." },
+        { label: "Preencher o SIC sÃ³ depois que o outro time responder", correta: false, feedback: "Errado. Nesse ponto, vocÃª jÃ¡ nÃ£o estarÃ¡ mais no contato â€” o SIC precisa estar preenchido antes de sair." }
+      ]
+    },
+    { id: "PA3", gatilho: "Depois do Turno 3",
+      texto: "ðŸš¨ VocÃª precisa pausar o atendimento (park) para verificar uma informaÃ§Ã£o. O que fazer com o SIC?",
+      opcoes: [
+        { label: "Preencher/atualizar o SIC antes de pausar o contato", correta: true, feedback: "Correto! Assim como na transferÃªncia, o SIC precisa estar correto antes de qualquer pausa â€” o contato pode ser retomado por outro CSA." },
+        { label: "Pausar primeiro, preencher quando eu retomar o atendimento", correta: false, feedback: "Errado. Se outro CSA retomar o contato durante a pausa, ele nÃ£o terÃ¡ o contexto correto." },
+        { label: "Pausas nÃ£o exigem preenchimento de SIC", correta: false, feedback: "Errado. Toda pausa (park) deve ter o SIC jÃ¡ preenchido com o motivo identificado atÃ© aquele momento." }
+      ]
+    },
+    { id: "PA4", gatilho: "Depois do Turno 4",
+      texto: "ðŸš¨ No meio do chat, o cliente muda de assunto â€” primeiro fala de rastreio, depois pede reembolso de outra coisa. O que fazer com o SIC?",
+      opcoes: [
+        { label: "Atualizar o SIC para refletir o motivo principal identificado atÃ© o momento, conforme a conversa evolui", correta: true, feedback: "Correto! O SIC nÃ£o Ã© fixo â€” ele acompanha o motivo real do contato conforme ele se revela." },
+        { label: "Manter o primeiro SIC preenchido, nÃ£o precisa mudar depois", correta: false, feedback: "Errado. Isso classifica errado o motivo real que levou Ã  resoluÃ§Ã£o do contato." },
+        { label: "Deixar em branco porque o assunto mudou", correta: false, feedback: "Errado. Nunca deixe em branco â€” sempre haverÃ¡ um motivo principal para classificar." }
+      ]
+    },
+    { id: "PA5", gatilho: "Depois do Turno 5",
+      texto: "ðŸš¨ VocÃª atendeu esse caso por e-mail (ou por ligaÃ§Ã£o), nÃ£o por chat. O SIC precisa ser preenchido do mesmo jeito?",
+      opcoes: [
+        { label: "Sim â€” o SIC Ã© preenchido da mesma forma, independente do canal (chat, e-mail, telefone)", correta: true, feedback: "Correto! O canal nÃ£o muda a regra: identifique o motivo, preencha o SIC, em qualquer canal de atendimento." },
+        { label: "NÃ£o, e-mail e ligaÃ§Ã£o nÃ£o exigem SIC, sÃ³ chat exige", correta: false, feedback: "Errado. Todo contato â€” independente do canal â€” precisa ter o SIC preenchido corretamente." },
+        { label: "SÃ³ preencho depois se o cliente responder de novo", correta: false, feedback: "Errado. O SIC deve refletir o motivo jÃ¡ identificado no contato atual, nÃ£o depender de uma resposta futura." }
+      ]
+    },
+    { id: "PA6", gatilho: "Antes do Caso Final",
+      texto: "ðŸš¨ O contato jÃ¡ foi encerrado e vocÃª esqueceu de preencher o SIC durante o atendimento. O que fazer?",
+      opcoes: [
+        { label: "Preencher agora, antes de pegar o prÃ³ximo contato â€” mas lembrando que o ideal SEMPRE Ã© preencher DURANTE, nÃ£o depois", correta: true, feedback: "Correto, com ressalva: mesmo corrigindo depois, o hÃ¡bito certo Ã© preencher em tempo real, assim que identifica o motivo â€” nunca deixar para depois por padrÃ£o." },
+        { label: "Deixar em branco, jÃ¡ que o contato encerrou", correta: false, feedback: "Errado. Um contato sem SIC preenchido Ã© um dado perdido para toda a operaÃ§Ã£o." },
+        { label: "Preencher sÃ³ se alguÃ©m da qualidade perguntar depois", correta: false, feedback: "Errado. O preenchimento nÃ£o Ã© opcional nem depende de auditoria â€” Ã© parte do atendimento." }
+      ]
+    }
+  ],
+
+  badges: [
+    { min: 0, max: 40, nome: "ðŸ” Detetive EstagiÃ¡rio", texto: "VocÃª estÃ¡ comeÃ§ando a entender o arquivo. Revise os casos onde errou e tente de novo!" },
+    { min: 41, max: 70, nome: "ðŸ•µï¸ Detetive Pleno", texto: "Bom trabalho! VocÃª jÃ¡ distingue a maioria dos casos, mas ainda confunde alguns vizinhos parecidos." },
+    { min: 71, max: 90, nome: "ðŸ•¶ï¸ Detetive SÃªnior", texto: "Excelente! VocÃª entende a diferenÃ§a entre um SIC aceitÃ¡vel e o SIC ideal." },
+    { min: 91, max: 100, nome: "ðŸ‘‘ Mestre do SIC â€” Lenda da Central", texto: "Perfeito! VocÃª domina o arquivo, os prazos, os eventos logÃ­sticos e sabe exatamente quando preencher o SIC." }
+  ]
+
+};
+</script>
+
+<script>
+// ============================================================
+// SIC DETECTIVE â€” Motor do jogo (com salvamento automÃ¡tico)
+// ============================================================
+function shuffleArray(arr){
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function escapeHtml(str){
+  return String(str==null?'':str)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/\n/g,'<br>');
+}
+
+const AudioService = (function(){
+  let voices = [];
+  function loadVoices(){
+    if (window.speechSynthesis) voices = window.speechSynthesis.getVoices();
+  }
+  if (window.speechSynthesis){
+    loadVoices();
+    window.speechSynthesis.onvoiceschanged = loadVoices;
+    setTimeout(loadVoices, 300);
+    setTimeout(loadVoices, 1000);
+  }
+  function pickVoice(){
+    if (!voices.length) return null;
+    return voices.find(v => /pt-BR/i.test(v.lang)) || voices.find(v => /^pt/i.test(v.lang)) || voices[0];
+  }
+  function isAvailable(){ return !!window.speechSynthesis; }
+  function speak(text, onEnd){
+    if (!window.speechSynthesis) return false;
+    window.speechSynthesis.cancel();
+    const utter = new SpeechSynthesisUtterance(text);
+    const v = pickVoice();
+    if (v) utter.voice = v;
+    utter.rate = 0.96;
+    utter.lang = v ? v.lang : 'pt-BR';
+    if (onEnd) utter.onend = onEnd;
+    window.speechSynthesis.speak(utter);
+    return true;
+  }
+  return { isAvailable, speak };
+})();
+
+const Game = (function(){
+
+  const SAVE_KEY = 'sicDetectiveSave_v2';
+
+  let steps = [];
+  let stepPtr = 0;
+  let score = 0;
+  let streak = 0;
+  let caseAnswered = false;
+  let caseStartTime = 0;
+  let totalCases = 0;
+  let casesDone = 0;
+  let history = [];
+  let shiftResults = {};
+
+  function sortedShifts(){
+    return SIC_GAME_DATA.shifts.slice().sort((a,b)=>a.id-b.id);
+  }
+
+  function buildSteps(){
+    steps = [];
+    const shifts = sortedShifts();
+    shifts.forEach((shift, shiftIdx) => {
+      shift.cases.forEach(c => steps.push({ type:'case', shiftIdx, shiftTitle: shift.title, data: c }));
+      steps.push({ type:'protocol', alert: SIC_GAME_DATA.protocolAlerts[shiftIdx], afterShiftIdx: shiftIdx });
+      steps.push({ type:'shiftSummary', shiftIdx, shiftTitle: shift.title });
+    });
+    steps.push({ type:'protocol', alert: SIC_GAME_DATA.protocolAlerts[5], afterShiftIdx: -1 });
+    steps.push({ type:'bossIntro' });
+    steps.push({ type:'boss', data: SIC_GAME_DATA.bossCase });
+    steps.push({ type:'final' });
+    totalCases = shifts.reduce((acc,s)=>acc+s.cases.length,0) + 1;
+  }
+
+  function el(id){ return document.getElementById(id); }
+
+  function showScreen(id){
+    ['screen-intro','screen-game','screen-protocol','screen-shift-summary','screen-boss-intro','screen-final']
+      .forEach(s => el(s).classList.toggle('hidden', s !== id));
+  }
+
+  // -------- persistÃªncia --------
+  function saveProgress(){
+    try{
+      localStorage.setItem(SAVE_KEY, JSON.stringify({ stepPtr, score, streak, casesDone, history, shiftResults }));
+    }catch(e){ /* ignore */ }
+  }
+  function loadProgress(){
+    try{
+      const raw = localStorage.getItem(SAVE_KEY);
+      return raw ? JSON.parse(raw) : null;
+    }catch(e){ return null; }
+  }
+  function clearProgress(){
+    try{ localStorage.removeItem(SAVE_KEY); }catch(e){ /* ignore */ }
+  }
+
+  function updateHud(shiftTitleText){
+    el('hud-score').textContent = score;
+    el('hud-streak').textContent = 'ðŸ”¥ sequÃªncia: ' + streak;
+    if (shiftTitleText) el('hud-shift').textContent = shiftTitleText.toUpperCase();
+    const pct = Math.min(100, Math.round((casesDone/totalCases)*100));
+    el('hud-progress').style.width = pct + '%';
+  }
+
+  function computeReachedShiftIdx(){
+    const saved = loadProgress();
+    if (!saved || !saved.stepPtr) return 0;
+    buildSteps();
+    let idx = 0;
+    const upTo = Math.min(saved.stepPtr, steps.length - 1);
+    for (let i = 0; i <= upTo; i++){
+      if (steps[i] && typeof steps[i].shiftIdx === 'number') idx = Math.max(idx, steps[i].shiftIdx);
+    }
+    // se jÃ¡ passou do Ãºltimo turno (protocolo final / boss / final), considera tudo concluÃ­do
+    const lastStep = steps[upTo];
+    if (lastStep && (lastStep.type === 'bossIntro' || lastStep.type === 'boss' || lastStep.type === 'final')) {
+      idx = sortedShifts().length; // alÃ©m do Ãºltimo turno
+    }
+    return idx;
+  }
+
+  function buildCabinet(reachedIdx){
+    const idxReached = reachedIdx || 0;
+    const shifts = sortedShifts();
+    const box = el('intro-cabinet');
+    box.innerHTML = '';
+    shifts.forEach((s,i) => {
+      const d = document.createElement('div');
+      let icon = 'ðŸ”’', cls = 'drawer locked';
+      if (i < idxReached) { icon = 'âœ…'; cls = 'drawer done'; }
+      else if (i === idxReached) { icon = 'ðŸ“'; cls = 'drawer'; }
+      d.className = cls;
+      d.innerHTML = '<div class="lockicon">'+icon+'</div><div>'+s.title.replace(/^Turno \d+ â€” /,'')+'</div>';
+      box.appendChild(d);
+    });
+    const boss = document.createElement('div');
+    const bossOpen = idxReached >= shifts.length;
+    boss.className = bossOpen ? 'drawer done' : 'drawer locked';
+    boss.innerHTML = '<div class="lockicon">'+(bossOpen?'âœ…':'ðŸ”’')+'</div><div>Arquivo Frio (Final)</div>';
+    box.appendChild(boss);
+  }
+
+  function checkSavedGame(){
+    buildSteps();
+    const saved = loadProgress();
+    buildCabinet(computeReachedShiftIdx());
+    const banner = el('continue-banner');
+    if (saved && saved.stepPtr > 0 && saved.stepPtr < steps.length){
+      banner.classList.remove('hidden');
+      banner.innerHTML = 'ðŸ’¾ VocÃª tem um caso salvo (progresso: ' + (saved.casesDone||0) + '/' + totalCases + ' casos, ' + (saved.score||0) + ' pts).<br><br>' +
+        '<button class="btn gold" style="margin-right:8px;" onclick="Game.resume()">â–¶ï¸ CONTINUAR</button>' +
+        '<button class="btn secondary" onclick="Game.discardSaved()">ðŸ—‘ï¸ DESCARTAR E COMEÃ‡AR DO ZERO</button>';
+    } else {
+      banner.classList.add('hidden');
+      banner.innerHTML = '';
+    }
+  }
+
+  function start(){
+    buildSteps();
+    score = 0; streak = 0; casesDone = 0; history = []; shiftResults = {};
+    stepPtr = 0;
+    clearProgress();
+    showScreen('screen-game');
+    renderStep();
+  }
+
+  function resume(){
+    buildSteps();
+    const saved = loadProgress();
+    if (!saved){ start(); return; }
+    stepPtr = saved.stepPtr || 0;
+    score = saved.score || 0;
+    streak = saved.streak || 0;
+    casesDone = saved.casesDone || 0;
+    history = saved.history || [];
+    shiftResults = saved.shiftResults || {};
+    renderStep();
+  }
+
+  function discardSaved(){
+    clearProgress();
+    checkSavedGame();
+  }
+
+  function renderStep(){
+    saveProgress();
+    const step = steps[stepPtr];
+    if (!step) return;
+    if (step.type === 'case') renderCase(step);
+    else if (step.type === 'protocol') renderProtocol(step);
+    else if (step.type === 'shiftSummary') renderShiftSummary(step);
+    else if (step.type === 'bossIntro') showScreen('screen-boss-intro');
+    else if (step.type === 'boss') renderCase(step);
+    else if (step.type === 'final') renderFinal();
+  }
+
+  // ---------------- CASE RENDER ----------------
+  function renderCase(step){
+    showScreen('screen-game');
+    caseAnswered = false;
+    caseStartTime = Date.now();
+    const c = step.data;
+    updateHud(step.shiftTitle);
+
+    el('hud-counter').textContent = 'Caso ' + (casesDone+1) + ' de ' + totalCases;
+
+    const diffMap = { facil:'ðŸŸ¢ FÃ¡cil', media:'ðŸŸ¡ MÃ©dia', dificil:'ðŸ”´ DifÃ­cil', boss:'âš« Arquivo Frio' };
+    el('case-diff').textContent = diffMap[c.dificuldade] || '';
+
+    el('case-numero').textContent = c.numero;
+    el('case-stamp').className = 'stamp';
+    el('case-stamp').textContent = '';
+
+    const ficha = c.ficha || {};
+    el('case-ficha').innerHTML = [
+      ['Pedido', ficha.pedido], ['Data da Compra', ficha.dataCompra],
+      ['Prazo de Entrega', ficha.prazoEntrega], ['Status do Rastreio', ficha.statusRastreio]
+    ].map(([k,v]) => '<div><span>'+k+':</span> <b>'+(v||'â€”')+'</b></div>').join('');
+
+    const modalidade = c.modalidade || 'chat';
+    const modMap = { chat:'ðŸ’¬ CANAL: CHAT', email:'ðŸ“§ CANAL: E-MAIL', ligacao:'ðŸ“ž CANAL: LIGAÃ‡ÃƒO' };
+    el('case-modalidade').textContent = modMap[modalidade] || '';
+
+    const relatoEl = el('case-relato');
+    const extraEl = el('case-extra');
+    extraEl.innerHTML = '';
+
+    if (modalidade === 'email'){
+      relatoEl.style.display = 'none';
+      extraEl.innerHTML =
+        '<div class="email-card">' +
+          '<div class="email-head"><b>De:</b> ' + escapeHtml(c.emailDe) + '<br><b>Para:</b> ' + escapeHtml(c.emailPara) + '<br><b>Assunto:</b> ' + escapeHtml(c.emailAssunto) + '</div>' +
+          (c.respostaAnterior ? '<div class="email-thread-old">â–¸ Encaminhado â€” resposta anterior:<br>' + escapeHtml(c.respostaAnterior) + '</div>' : '') +
+          '<div class="email-body"><span class="tag-nova">NOVA MENSAGEM DO CLIENTE</span><br>' + escapeHtml(c.relato) + '</div>' +
+        '</div>';
+    } else if (modalidade === 'ligacao'){
+      relatoEl.style.display = 'none';
+      const btnId = 'audio-btn-' + c.id;
+      extraEl.innerHTML =
+        '<div class="call-card">' +
+          '<div class="call-head">â˜Žï¸ LIGAÃ‡ÃƒO EM ANDAMENTO â€” TRANSCRIÃ‡ÃƒO AO VIVO</div>' +
+          '<div class="call-transcript">"' + escapeHtml(c.relato) + '"</div>' +
+          '<button type="button" class="audio-btn" id="' + btnId + '">ðŸ”Š Ouvir LigaÃ§Ã£o</button>' +
+          '<div class="audio-note">ðŸŽ§ Numa ligaÃ§Ã£o real vocÃª nÃ£o pode reler â€” ouÃ§a com atenÃ§Ã£o.</div>' +
+        '</div>';
+      const audioBtn = document.getElementById(btnId);
+      if (audioBtn){
+        if (!AudioService.isAvailable()){
+          audioBtn.textContent = 'ðŸ”‡ Ãudio nÃ£o suportado neste navegador';
+          audioBtn.disabled = true;
+        } else {
+          audioBtn.addEventListener('click', () => {
+            audioBtn.classList.add('playing');
+            audioBtn.textContent = 'ðŸ”Š Reproduzindo...';
+            AudioService.speak(c.relato, () => {
+              audioBtn.classList.remove('playing');
+              audioBtn.textContent = 'ðŸ”Š Ouvir de Novo';
+            });
+          });
+        }
+      }
+    } else {
+      relatoEl.style.display = 'block';
+      relatoEl.textContent = c.relato;
+    }
+
+    el('case-pergunta').textContent = c.pergunta;
+
+    const opBox = el('case-opcoes');
+    opBox.innerHTML = '';
+    const shuffledOpcoes = shuffleArray(c.opcoes);
+    shuffledOpcoes.forEach((op, idx) => {
+      const btn = document.createElement('button');
+      btn.className = 'opcao';
+      btn.type = 'button';
+      btn.textContent = op.label;
+      btn.dataset.idx = idx;
+      btn.addEventListener('click', () => answerCase(step, idx, shuffledOpcoes));
+      opBox.appendChild(btn);
+    });
+
+    el('case-feedback').className = 'feedback-box';
+    el('case-feedback').textContent = '';
+    el('btn-next').classList.add('hidden');
+  }
+
+  function answerCase(step, idx, opcoesList){
+    if (caseAnswered) return;
+    caseAnswered = true;
+    const isBoss = step.type === 'boss';
+    const c = step.data;
+    const op = (opcoesList || c.opcoes)[idx];
+    const elapsed = (Date.now() - caseStartTime) / 1000;
+    const baseKey = isBoss ? 'boss' : step.shiftIdx;
+
+    const basePerfect = isBoss ? 200 : 100;
+    const baseValid = isBoss ? 100 : 50;
+
+    let pts = 0, speedBonus = 0, coldCaseBonus = 0;
+    if (op.tier === 'perfect'){
+      pts = basePerfect;
+      speedBonus = elapsed <= 8 ? 30 : (elapsed <= 15 ? 15 : 0);
+      streak += 1;
+      if (isBoss) coldCaseBonus = 50;
+    } else {
+      streak = 0;
+      if (op.tier === 'valid') pts = baseValid;
+    }
+    let streakBonus = 0;
+    if (op.tier === 'perfect' && !isBoss && streak > 0 && streak % 3 === 0) streakBonus = 50;
+
+    const totalPts = pts + speedBonus + streakBonus + coldCaseBonus;
+    score += totalPts;
+    casesDone += 1;
+
+    if (!shiftResults[baseKey]) shiftResults[baseKey] = {perfect:0, valid:0, wrong:0, pts:0};
+    shiftResults[baseKey][op.tier === 'perfect' ? 'perfect' : (op.tier === 'valid' ? 'valid' : 'wrong')] += 1;
+    shiftResults[baseKey].pts += totalPts;
+    history.push({ numero: c.numero, label: op.label, tier: op.tier, pontos: totalPts, shiftIdx: baseKey });
+
+    document.querySelectorAll('#case-opcoes .opcao').forEach((b,i) => {
+      b.disabled = true;
+      if (i === idx) b.classList.add('sel-' + op.tier);
+    });
+
+    const stampEl = el('case-stamp');
+    stampEl.classList.add('show', 'st-' + op.tier);
+    stampEl.textContent = op.tier === 'perfect' ? 'APROVADO' : (op.tier === 'valid' ? 'ACEITÃVEL' : 'ARQUIVO ERRADO');
+
+    let bonusTxt = '';
+    if (op.tier === 'perfect'){
+      bonusTxt = ' (+' + basePerfect + ' pts base';
+      if (speedBonus) bonusTxt += ' Â· +' + speedBonus + ' velocidade';
+      if (streakBonus) bonusTxt += ' Â· +' + streakBonus + ' sequÃªncia de ouro ðŸ”¥';
+      if (coldCaseBonus) bonusTxt += ' Â· +' + coldCaseBonus + ' bÃ´nus Arquivo Frio ðŸ—‚ï¸';
+      bonusTxt += ')';
+    } else if (op.tier === 'valid'){
+      bonusTxt = ' (+' + baseValid + ' pts)';
+    } else {
+      bonusTxt = ' (+0 pts)';
+    }
+
+    const fb = el('case-feedback');
+    fb.className = 'feedback-box show fb-' + op.tier;
+    fb.textContent = op.feedback + bonusTxt + (isBoss ? ('\n\nðŸ“Œ LIÃ‡ÃƒO: ' + c.licaoFinal) : '');
+    fb.style.whiteSpace = 'pre-line';
+
+    el('btn-next').classList.remove('hidden');
+    updateHud();
+    saveProgress();
+  }
+
+  // ---------------- SHIFT SUMMARY ----------------
+  function renderShiftSummary(step){
+    showScreen('screen-shift-summary');
+    const res = shiftResults[step.shiftIdx] || {perfect:0, valid:0, wrong:0, pts:0};
+    el('shift-summary-title').textContent = step.shiftTitle + ' â€” encerrado';
+    const entries = history.filter(h => h.shiftIdx === step.shiftIdx);
+    let html = '<p>ðŸŸ¢ Perfeitos: <b>' + res.perfect + '</b> &nbsp; ðŸŸ¡ AceitÃ¡veis: <b>' + res.valid + '</b> &nbsp; ðŸ”´ Errados: <b>' + res.wrong + '</b></p>';
+    html += '<p>Pontos ganhos neste turno: <b>' + res.pts + '</b></p><hr>';
+    entries.forEach(e => {
+      const icon = e.tier === 'perfect' ? 'ðŸŸ¢' : (e.tier === 'valid' ? 'ðŸŸ¡' : 'ðŸ”´');
+      html += '<div>' + icon + ' ' + e.numero + ' â€” ' + e.label + ' (' + e.pontos + ' pts)</div>';
+    });
+    el('shift-summary-body').innerHTML = html;
+  }
+
+  function continueAfterShift(){
+    stepPtr += 1;
+    renderStep();
+  }
+
+  // ---------------- FINAL ----------------
+  function renderFinal(){
+    showScreen('screen-final');
+    clearProgress();
+    el('final-score').textContent = score + ' pts';
+
+    const maxBase = totalCases * 100 + SIC_GAME_DATA.protocolAlerts.length * 50;
+    const pct = Math.min(999, Math.round((score / maxBase) * 100));
+
+    const badge = SIC_GAME_DATA.badges.find(b => pct >= b.min && pct <= b.max) || SIC_GAME_DATA.badges[SIC_GAME_DATA.badges.length - 1];
+    el('final-badge').textContent = badge.nome;
+    el('final-text').textContent = badge.texto + ' (aproveitamento: ' + pct + '%)';
+
+    let totalPerfect = 0, totalValid = 0, totalWrong = 0;
+    history.forEach(h => { if (h.tier === 'perfect') totalPerfect++; else if (h.tier === 'valid') totalValid++; else totalWrong++; });
+    el('final-breakdown').innerHTML =
+      '<p>ðŸŸ¢ Casos perfeitos: <b>' + totalPerfect + '</b></p>' +
+      '<p>ðŸŸ¡ Casos aceitÃ¡veis (nÃ£o ideais): <b>' + totalValid + '</b></p>' +
+      '<p>ðŸ”´ Casos errados: <b>' + totalWrong + '</b></p>';
+  }
+
+  function restart(){
+    clearProgress();
+    checkSavedGame();
+    showScreen('screen-intro');
+  }
+
+  function next(){
+    stepPtr += 1;
+    renderStep();
+  }
+
+  // ---------------- PROTOCOL ALERT ----------------
+  function renderProtocol(step){
+    showScreen('screen-protocol');
+    const alert = step.alert;
+    el('protocol-texto').textContent = alert.texto;
+    const box = el('protocol-opcoes');
+    box.innerHTML = '';
+    el('protocol-feedback').className = 'feedback-box';
+    el('protocol-feedback').textContent = '';
+    el('btn-protocol-next').classList.add('hidden');
+
+    let answered = false;
+    alert.opcoes.forEach((op, idx) => {
+      const btn = document.createElement('button');
+      btn.className = 'siren-opt';
+      btn.type = 'button';
+      btn.textContent = op.label;
+      btn.addEventListener('click', () => {
+        if (answered) return;
+        answered = true;
+        document.querySelectorAll('.siren-opt').forEach((b,i) => {
+          b.style.pointerEvents = 'none';
+          if (i === idx) b.classList.add(op.correta ? 'correct' : 'incorrect');
+        });
+        const pts = op.correta ? 50 : -20;
+        score = Math.max(0, score + pts);
+        const fb = el('protocol-feedback');
+        fb.className = 'feedback-box show';
+        fb.style.background = op.correta ? '#1e4a1e' : '#5c1414';
+        fb.textContent = op.feedback + (op.correta ? ' (+50 pts)' : ' (-20 pts)');
+        el('btn-protocol-next').classList.remove('hidden');
+        saveProgress();
+      });
+      box.appendChild(btn);
+    });
+  }
+
+  function afterProtocol(){
+    stepPtr += 1;
+    renderStep();
+  }
+
+  function init(){
+    checkSavedGame();
+  }
+
+  return {
+    init, start, resume, discardSaved, restart,
+    next, afterProtocol, continueAfterShift,
+    startBoss: next
+  };
+
+})();
+
+document.addEventListener('DOMContentLoaded', () => Game.init());
+</script>
+</body>
+</html>

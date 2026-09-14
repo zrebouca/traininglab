@@ -1,0 +1,666 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>OperaÃ§Ã£o AHT: Caso Arquivado</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0a0f;color:#e2e8f0;font-family:'Courier New',monospace;min-height:100vh}
+#app{max-width:960px;margin:0 auto;padding:20px}
+#si{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;text-align:center;padding:40px}
+.lt{font-size:2.6rem;font-weight:900;color:#f59e0b;text-shadow:0 0 30px #f59e0b88;letter-spacing:4px;margin-bottom:8px}
+.ls{font-size:.85rem;color:#94a3b8;letter-spacing:6px;margin-bottom:40px}
+.it{max-width:580px;color:#cbd5e1;line-height:1.9;margin-bottom:36px;font-size:.9rem}
+.it em{color:#f59e0b;font-style:normal;font-weight:700}
+.bmain{background:linear-gradient(135deg,#f59e0b,#d97706);color:#000;font-family:'Courier New',monospace;font-size:.95rem;font-weight:900;padding:13px 40px;border:none;cursor:pointer;letter-spacing:3px;clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%);transition:all .2s}
+.bmain:hover{filter:brightness(1.15);transform:scale(1.04)}
+.ver{font-size:.6rem;color:#334155;margin-top:24px;letter-spacing:2px}
+#hud{display:none;position:sticky;top:0;z-index:100;background:#0a0a0fee;border-bottom:1px solid #1e293b;padding:10px 16px;backdrop-filter:blur(4px)}
+.hi{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+.hf{font-size:.75rem;color:#64748b}.hf b{color:#f59e0b}
+.ht{font-size:1.15rem;color:#f59e0b;font-weight:900;letter-spacing:2px}
+.hh{font-size:1rem;letter-spacing:2px}
+.hinv{font-size:.68rem;color:#475569;cursor:pointer;padding:3px 8px;border:1px solid #1e293b;transition:all .2s}
+.hinv:hover{color:#f59e0b;border-color:#f59e0b55}
+.pb-w{background:#1e293b;height:2px;margin-top:6px}.pb{background:linear-gradient(90deg,#f59e0b,#d97706);height:2px;transition:width .6s}
+.fase{display:none;animation:fi .4s ease}.fase.active{display:block}
+@keyframes fi{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.fase-card{background:#0f172a;border:1px solid #1e293b;padding:20px;margin-bottom:16px}
+.sb{display:inline-block;background:#1e293b;border:1px solid #f59e0b33;color:#f59e0b;font-size:.6rem;letter-spacing:3px;padding:3px 10px;margin-bottom:10px}
+.diff{color:#94a3b8;font-size:.68rem;float:right;margin-top:2px}
+.stit{font-size:1.25rem;font-weight:900;color:#f1f5f9;margin-bottom:6px;clear:both}
+.sdesc{color:#64748b;font-size:.83rem;line-height:1.6;margin-bottom:14px}
+/* ROOM / SCENE */
+.room{position:relative;background:#070d1a;border:1px solid #1e293b;min-height:240px;overflow:hidden;margin:12px 0;border-radius:2px}
+.rg{position:absolute;inset:0;background-image:linear-gradient(#0f172a 1px,transparent 1px),linear-gradient(90deg,#0f172a 1px,transparent 1px);background-size:36px 36px;opacity:.4}
+.room-lbl{position:absolute;top:8px;left:10px;font-size:.58rem;color:#334155;letter-spacing:2px;z-index:5}
+.obj{position:absolute;cursor:pointer;z-index:10;text-align:center;transition:transform .15s}
+.obj:hover{transform:scale(1.15)}
+.oi{font-size:1.8rem;display:block;line-height:1;transition:filter .2s}
+.ol{font-size:.55rem;color:#475569;letter-spacing:1px;margin-top:2px}
+.obj.found .oi{filter:grayscale(1) opacity(.3)}
+.obj.found .ol{color:#22c55e}
+/* POPUP */
+.pop-ov{display:none;position:fixed;inset:0;background:#000000dd;z-index:200;align-items:center;justify-content:center}
+.pop-ov.open{display:flex}
+.pop{background:#0f172a;border:1px solid #f59e0b55;padding:24px;max-width:480px;width:90%;position:relative;animation:fi .2s ease}
+.pop h3{color:#f59e0b;font-size:.88rem;letter-spacing:2px;margin-bottom:12px;text-transform:uppercase}
+.pop p{color:#cbd5e1;font-size:.83rem;line-height:1.7;margin-bottom:8px}
+.pop ul{color:#94a3b8;font-size:.82rem;line-height:1.8;padding-left:16px;margin-bottom:8px}
+.pop-x{position:absolute;top:10px;right:12px;background:none;border:none;color:#475569;font-size:1rem;cursor:pointer;transition:color .2s}
+.pop-x:hover{color:#f59e0b}
+.ev{display:inline-block;background:#f59e0b15;border:1px solid #f59e0b44;color:#f59e0b;font-size:.62rem;padding:2px 8px;margin-top:8px;letter-spacing:1px}
+/* QUIZ */
+.tbox{background:#070d1a;border:1px solid #1e293b;padding:14px;margin:10px 0}
+.tlbl{font-size:.6rem;color:#475569;letter-spacing:3px;margin-bottom:6px;text-transform:uppercase}
+.tq{font-size:.88rem;color:#e2e8f0;line-height:1.65;margin-bottom:12px}
+.opts{display:flex;flex-direction:column;gap:7px}
+.opt{background:#1e293b;border:1px solid #2d3748;color:#94a3b8;font-family:'Courier New',monospace;font-size:.8rem;padding:9px 12px;text-align:left;cursor:pointer;transition:all .2s;width:100%}
+.opt:hover:not([disabled]){border-color:#f59e0b55;color:#cbd5e1;background:#1e293bdd}
+.opt.correct{background:#14532d33;border-color:#22c55e;color:#86efac}
+.opt.wrong{background:#7f1d1d33;border-color:#ef4444;color:#fca5a5}
+.fb{display:none;margin-top:10px;padding:11px;font-size:.82rem;line-height:1.7;border-left:3px solid}
+.fb.ok{background:#14532d15;border-color:#22c55e;color:#86efac}
+.fb.err{background:#7f1d1d15;border-color:#ef4444;color:#fca5a5}
+.fb.show{display:block}
+.bnext{display:none;margin-top:12px;background:linear-gradient(135deg,#f59e0b,#d97706);color:#000;font-family:'Courier New',monospace;font-size:.82rem;font-weight:900;padding:9px 22px;border:none;cursor:pointer;letter-spacing:2px;clip-path:polygon(6px 0,100% 0,calc(100% - 6px) 100%,0 100%);transition:filter .2s}
+.bnext:hover{filter:brightness(1.1)}.bnext.show{display:inline-block}
+/* TRANSCRIPT */
+.tx{background:#020812;border:1px solid #0f172a;padding:12px;font-size:.76rem;line-height:2;margin:9px 0;max-height:210px;overflow-y:auto;border-left:3px solid #1e293b}
+.tb{color:#60a5fa;font-weight:700}.tc{color:#a3e635;font-weight:700}.tk{color:#94a3b8}
+.terr{background:#7f1d1d55;border-bottom:2px dashed #ef4444;color:#fca5a5!important;cursor:pointer;padding:0 2px;border-radius:2px;transition:all .2s}
+.terr:hover{background:#7f1d1daa}
+.terr.fnd{background:#14532d44;border-bottom:2px solid #22c55e;color:#86efac!important;cursor:default}
+/* DRAG */
+.dz{min-height:44px;background:#020812;border:1px dashed #1e293b;padding:6px;margin:5px 0;display:flex;flex-wrap:wrap;gap:5px;align-items:flex-start;transition:border-color .2s}
+.dz.hl{border-color:#f59e0b88;background:#f59e0b08}
+.di{background:#1e293b;border:1px solid #334155;color:#cbd5e1;font-size:.72rem;padding:5px 10px;cursor:grab;user-select:none;transition:all .15s;border-radius:2px}
+.di:hover{border-color:#64748b}.di.dragging{opacity:.4}
+/* CLASSIFY */
+.cls-w{display:flex;gap:10px;margin:10px 0}
+.cls-c{flex:1;min-width:140px}
+.cls-c h4{font-size:.64rem;letter-spacing:2px;padding:5px 8px;text-align:center;margin-bottom:6px;text-transform:uppercase}
+.cls-v h4{color:#22c55e;background:#14532d18;border:1px solid #22c55e33}
+.cls-i h4{color:#ef4444;background:#7f1d1d18;border:1px solid #ef444433}
+.cls-d{min-height:76px;background:#020812;border:1px dashed #1e293b;padding:5px;transition:border-color .2s}
+.cls-d.hl{border-color:#f59e0b88}
+/* SPOTS */
+.spot{position:absolute;cursor:pointer;z-index:15;font-size:1.2rem;transition:all .2s;line-height:1;padding:4px}
+.spot:hover{filter:drop-shadow(0 0 8px #ef4444cc);transform:scale(1.25)}
+.spot.fnd{pointer-events:none;opacity:.12}
+.found-c{font-size:.76rem;color:#64748b;margin-top:8px}.found-c b{color:#f59e0b}
+/* ORDER */
+.ord-bank{display:flex;flex-wrap:wrap;gap:6px;padding:9px;background:#020812;border:1px solid #1e293b;margin-bottom:8px;min-height:42px}
+.ord-s{min-height:38px;background:#020812;border:1px dashed #1e293b;padding:4px 8px;margin:3px 0;display:flex;align-items:center;font-size:.7rem;color:#334155;transition:all .2s}
+.ord-s.filled{border-color:#f59e0b44;color:#cbd5e1;background:#f59e0b05}.ord-s.ok-s{border-color:#22c55e;background:#14532d18;color:#86efac}.ord-s.err-s{border-color:#ef4444;background:#7f1d1d18;color:#fca5a5}
+.tip-box{background:#f59e0b08;border-left:2px solid #f59e0b55;padding:7px 11px;margin:8px 0;font-size:.78rem;color:#94a3b8;line-height:1.65}.tip-box b{color:#f59e0b}
+/* ENIGMA */
+.enigma-w{background:#020812;border:1px solid #1e293b;padding:16px;margin:10px 0;text-align:center}
+.en-label{font-size:.6rem;color:#475569;letter-spacing:3px;margin-bottom:12px;text-transform:uppercase}
+.clue-grid{display:flex;gap:16px;flex-wrap:wrap;justify-content:center;margin:12px 0}
+.clue{background:#1e293b;border:1px solid #334155;padding:10px 14px;font-size:.8rem;color:#94a3b8;min-width:130px;text-align:center}
+.clue b{display:block;font-size:.65rem;color:#f59e0b;letter-spacing:2px;margin-bottom:4px;text-transform:uppercase}
+.ci-w{display:flex;gap:8px;align-items:center;justify-content:center;margin-top:14px}
+.ci{background:#020812;border:1px solid #334155;color:#f59e0b;font-family:'Courier New',monospace;font-size:1.4rem;padding:8px 14px;width:130px;letter-spacing:6px;text-align:center;outline:none;transition:border-color .2s}
+.ci:focus{border-color:#f59e0b}
+.bck{background:#1e293b;border:1px solid #334155;color:#64748b;font-family:'Courier New',monospace;font-size:.78rem;padding:8px 14px;cursor:pointer;transition:all .2s}
+.bck:hover{border-color:#f59e0b55;color:#94a3b8}
+/* FLASHCARD */
+.cc{background:#1e293b;border:1px solid #1e293b;padding:10px 13px;margin:5px 0;cursor:pointer;transition:border-color .2s}
+.cc:hover{border-color:#f59e0b33}
+.cq{font-size:.8rem;color:#94a3b8;line-height:1.5}
+.ca{font-size:.78rem;color:#f59e0b;margin-top:6px;display:none;padding-top:6px;border-top:1px solid #f59e0b22}
+.cc.rev .ca{display:block}
+/* INV PANEL */
+.inv-p{display:none;position:fixed;bottom:16px;right:16px;background:#0f172a;border:1px solid #f59e0b44;padding:14px;min-width:190px;z-index:150;box-shadow:0 4px 24px #00000066;animation:fi .2s ease}
+.inv-p.open{display:block}
+.inv-t{font-size:.6rem;color:#f59e0b;letter-spacing:3px;margin-bottom:8px;text-transform:uppercase}
+.inv-i{font-size:.71rem;color:#94a3b8;padding:3px 0;border-bottom:1px solid #1e293b;display:flex;align-items:center;gap:6px}
+.inv-i::before{content:"â–¸";color:#f59e0b44}
+.inv-0{font-size:.7rem;color:#2d3748;font-style:italic}
+/* END */
+#se{display:none;min-height:100vh;align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:40px}
+#se.active{display:flex}
+.et{font-size:2rem;font-weight:900;color:#f59e0b;text-shadow:0 0 30px #f59e0b88;margin-bottom:12px}
+.es{color:#64748b;font-size:.88rem;margin-bottom:24px;line-height:1.9;max-width:500px}
+.estats{background:#0f172a;border:1px solid #1e293b;padding:20px;margin-bottom:24px;min-width:260px}
+.sr{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #0f172a;font-size:.83rem}
+.sr:last-child{border-bottom:none}.sl{color:#475569}.sv{color:#f59e0b;font-weight:700}
+.reconhecimento{display:inline-block;background:#f59e0b15;border:1px solid #f59e0b44;color:#f59e0b;padding:8px 20px;font-size:.85rem;letter-spacing:2px;margin-bottom:20px}
+.badge{display:inline-block;font-size:2rem;margin-bottom:8px}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- TELA INICIAL -->
+<div id="si">
+  <div class="lt">ðŸ•µï¸ OPERAÃ‡ÃƒO AHT</div>
+  <div class="ls">CASO ARQUIVADO</div>
+  <div class="it">
+    A Central de CS da Amazon ficou <em>comprometida</em>.<br>
+    MÃ©tricas caindo, transcripts suspeitos, SICs em branco.<br><br>
+    VocÃª Ã© o <em>Detetive de Atendimento</em> convocado para investigar.<br>
+    Resolva as <em>15 fases</em> e descubra o que estÃ¡ errado â€” antes que o BTB exploda.
+  </div>
+  <button class="bmain" onclick="startGame()">â–¶ INICIAR INVESTIGAÃ‡ÃƒO</button>
+  <div class="ver">v1.0 Â· AHT TRAINING Â· reconhecimento 35min</div>
+</div>
+
+<!-- HUD -->
+<div id="hud">
+  <div class="hi">
+    <span class="hf">FASE <b id="hfn">1</b>/15</span>
+    <span class="ht" id="htit">â€”</span>
+    <span class="hh" id="hstr">â­</span>
+    <span class="hinv" onclick="toggleInv()">ðŸ—‚ INVENTÃRIO</span>
+    <span class="hf">â± <b id="htimer">00:00</b></span>
+  </div>
+  <div class="pb-w"><div class="pb" id="hpb" style="width:0%"></div></div>
+</div>
+
+<!-- FASES -->
+<div id="fases">
+
+<!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+     FASE 1 â€” MESA ABANDONADA (clique e encontre)
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+<div class="fase" id="f1">
+  <div class="fase-card">
+    <span class="sb">FASE 01</span><span class="diff">â­ INICIANTE</span>
+    <div class="stit">Mesa Abandonada</div>
+    <div class="sdesc">O CSA saiu sem preencher o SIC. A mesa estÃ¡ bagunÃ§ada. Encontre os <b style="color:#f59e0b">3 itens</b> que indicam qual SIC deveria ter sido usado â€” depois escolha o correto.</div>
+    <div class="room" id="r1">
+      <div class="rg"></div>
+      <span class="room-lbl">ESTAÃ‡ÃƒO DE TRABALHO #07</span>
+      <!-- objetos clicÃ¡veis -->
+      <div class="obj" id="o1a" style="left:8%;top:55%" onclick="clickObj('o1a','f1','Rastreamento no chat','O cliente enviou o cÃ³digo de rastreio. Isso indica que o contato era sobre localizaÃ§Ã£o de pedido.')">
+        <span class="oi">ðŸ’¬</span><span class="ol">CHAT LOG</span>
+      </div>
+      <div class="obj" id="o1b" style="left:32%;top:30%" onclick="clickObj('o1b','f1','Produto listado: Smart TV 55\"','O produto estava identificado na tela â€” TV de alto valor, categoria eletrÃ´nicos.')">
+        <span class="oi">ðŸ–¥ï¸</span><span class="ol">TELA AC3</span>
+      </div>
+      <div class="obj" id="o1c" style="left:62%;top:48%" onclick="clickObj('o1c','f1','Post-it: cliente perguntou \"cadÃª meu pedido?\"','Pergunta clÃ¡ssica de WISMO â€” Where Is My Order.')">
+        <span class="oi">ðŸ“</span><span class="ol">POST-IT</span>
+      </div>
+      <div class="obj" id="o1d" style="left:80%;top:60%" onclick="clickObj('o1d','f1','Caneca de cafÃ© vazia','SÃ³ cafÃ©. NÃ£o indica nada sobre o SIC.')">
+        <span class="oi">â˜•</span><span class="ol">CANECA</span>
+      </div>
+      <div class="obj" id="o1e" style="left:46%;top:65%" onclick="clickObj('o1e','f1','Livro: Guia de PolÃ­ticas CS','Material de consulta. NÃ£o indica SIC especÃ­fico.')">
+        <span class="oi">ðŸ“š</span><span class="ol">GUIA</span>
+      </div>
+      <div class="found-c" id="fc1" style="position:absolute;bottom:8px;right:10px">Pistas encontradas: <b id="fc1n">0</b>/3</div>
+    </div>
+    <div class="tbox" id="f1q" style="display:none">
+      <div class="tlbl">EVIDÃŠNCIAS COLETADAS â€” QUAL O SIC CORRETO?</div>
+      <div class="tq">Com base nos itens encontrados na mesa, qual SIC o CSA deveria ter preenchido?</div>
+      <div class="opts">
+        <button class="opt" onclick="answer('f1','a')">A) Payment Related Issues</button>
+        <button class="opt" onclick="answer('f1','b')">B) Check Order Status / Tracking</button>
+        <button class="opt" onclick="answer('f1','c')">C) Return Request</button>
+        <button class="opt" onclick="answer('f1','d')">D) Account Issues</button>
+      </div>
+      <div class="fb ok" id="fb1ok">âœ… <b>Correto, Detetive!</b> "Check Order Status / Tracking" Ã© o SIC para contatos de WISMO â€” cliente querendo saber onde estÃ¡ o pedido. As 3 pistas apontavam exatamente para isso: chat de rastreio, TV na tela do AC3 e o post-it "cadÃª meu pedido?".<div class="ev">+ PISTA: SIC em branco Ã© auditÃ¡vel e impacta qualidade</div></div>
+      <div class="fb err" id="fb1err">âŒ NÃ£o foi dessa vez. Revise as pistas: o cliente perguntou "cadÃª meu pedido?" â€” isso Ã© <b>Check Order Status / Tracking</b>. O SIC de pagamento seria para problemas com cobranÃ§a, nÃ£o localizaÃ§Ã£o.</div>
+      <button class="bnext" id="bn1" onclick="nextFase(2)">PRÃ“XIMA FASE â†’</button>
+    </div>
+    <div class="tip-box" id="f1tip" style="display:none"><b>ðŸ’¡ POLÃTICA:</b> SIC deve ser preenchido no momento em que vocÃª identifica o motivo do contato â€” nÃ£o sÃ³ no encerramento. Contatos com SIC em branco sÃ£o invÃ¡lidos na auditoria.</div>
+  </div>
+</div>
+
+<!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+     FASE 2 â€” CHAT CONGELADO (spot the error)
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+
+<div class="fase" id="f2">
+  <div class="fase-card">
+    <span class="sb">FASE 02</span><span class="diff">&#11088; INICIANTE</span>
+    <div class="stit">Chat Congelado</div>
+    <div class="sdesc">Este transcript foi flagado como BTB. Encontre o <b style="color:#f59e0b">erro cr&#237;tico</b> &#8212; clique na parte suspeita do texto.</div>
+    <div class="tx" id="tx2">
+      <span class="tb">&#129302; Bot:</span> <span class="tk">Ol&#225;! Seja bem-vindo(a) &#224; Amazon. Em que posso ajud&#225;-lo hoje?</span><br>
+      <span class="tc">&#128100; Cliente:</span> <span class="tk">Oi, cancelei meu pedido hoje cedo e quero saber quando recebo o dinheiro de volta</span><br>
+      <span class="tb">&#129489; CSA:</span> <span class="tk">Ol&#225;! Tudo bem? Deixa eu verificar aqui pra voc&#234;.</span><br>
+      <span class="tb">&#129489; CSA:</span> <span class="tk">Vi aqui que o cancelamento foi processado. O reembolso vai cair em <span class="terr" id="err2a" onclick="spotErr('err2a','f2',false)">5 a 12 dias &#250;teis</span> no seu cart&#227;o.</span><br>
+      <span class="tc">&#128100; Cliente:</span> <span class="tk">Nossa, &#233; muito tempo! Tem certeza?</span><br>
+      <span class="tb">&#129489; CSA:</span> <span class="tk">Sim, esse &#233; o prazo padr&#227;o. <span class="terr" id="err2b" onclick="spotErr('err2b','f2',true)">Qualquer d&#250;vida me avalie bem no final!</span></span><br>
+      <span class="tc">&#128100; Cliente:</span> <span class="tk">T&#225; bom ent&#227;o, obrigada</span><br>
+      <span class="tb">&#129489; CSA:</span> <span class="tk">Disponha! Tenha um &#243;timo dia.</span>
+    </div>
+    <div class="tlbl" style="margin-top:8px;font-size:.6rem;color:#475569;letter-spacing:2px">CLIQUE NA PARTE ERRADA DO TRANSCRIPT ACIMA</div>
+    <div class="fb ok" id="fb2ok" style="display:none;padding:11px;font-size:.82rem;line-height:1.7;background:#14532d15;border:1px solid #22c55e33;color:#86efac;border-left:3px solid #22c55e">
+      &#9989; <b>Exato!</b> Pedir avalia&#231;&#227;o ao cliente &#233; um erro de CCX grave &#8212; gera avalia&#231;&#245;es for&#231;adas e pode reverter o impacto positivo do atendimento.<br><br>
+      <b>&#128204; Tamb&#233;m aten&#231;&#227;o ao prazo de reembolso:</b> ele varia por forma de pagamento:<br>
+      &#8226; <b>Pix:</b> 1 dia &#250;til<br>
+      &#8226; <b>Boleto banc&#225;rio:</b> 3 dias &#250;teis (mediante dados banc&#225;rios)<br>
+      &#8226; <b>Cart&#227;o de d&#233;bito:</b> 5 dias &#250;teis<br>
+      &#8226; <b>Cart&#227;o de cr&#233;dito:</b> 1 a 2 faturas (processamento interno imediato)<br>
+      &#8226; <b>Vale-presente Amazon:</b> at&#233; 3 horas<br>
+      &#8226; <b>Pontos Livelo:</b> 48 horas
+    </div>
+    <div class="fb err" id="fb2err" style="display:none;padding:11px;font-size:.82rem;line-height:1.7;background:#7f1d1d15;border:1px solid #ef444433;color:#fca5a5;border-left:3px solid #ef4444">
+      &#10060; Este trecho tamb&#233;m precisa de aten&#231;&#227;o (o prazo correto varia por forma de pagamento), mas n&#227;o &#233; o erro <b>cr&#237;tico</b> deste transcript. Procure algo que viola diretamente a orienta&#231;&#227;o de CCX. Tente novamente!
+    </div>
+    <button class="bnext" id="bn2" onclick="nextFase(3)" style="display:none;margin-top:12px;background:linear-gradient(135deg,#f59e0b,#d97706);color:#000;font-family:'Courier New',monospace;font-size:.82rem;font-weight:900;padding:9px 22px;border:none;cursor:pointer;letter-spacing:2px;clip-path:polygon(6px 0,100% 0,calc(100% - 6px) 100%,0 100%)">PR&#211;XIMA FASE &#8594;</button>
+  </div>
+</div>
+<div class="fase" id="f3">
+  <div class="fase-card">
+    <span class="sb">FASE 03</span><span class="diff">â­ INICIANTE</span>
+    <div class="stit">Timer do ACW</div>
+    <div class="sdesc">O ACW estÃ¡ contando. Monte a <b style="color:#f59e0b">sequÃªncia correta de encerramento</b> â€” arraste os blocos para as posiÃ§Ãµes na ordem certa.</div>
+    <div class="tlbl">BANCO DE AÃ‡Ã•ES (arraste para a sequÃªncia)</div>
+    <div class="ord-bank" id="ob3" ondragover="event.preventDefault()" ondrop="returnToBank(event,'ob3')">
+      <div class="di" draggable="true" id="d3a" ondragstart="dragStart(event)" ondragend="dragEnd(event)">Confirmar que o cliente ficou satisfeito</div>
+      <div class="di" draggable="true" id="d3b" ondragstart="dragStart(event)" ondragend="dragEnd(event)">Registrar SIC no AC3</div>
+      <div class="di" draggable="true" id="d3c" ondragstart="dragStart(event)" ondragend="dragEnd(event)">Agradecer e encerrar o chat</div>
+      <div class="di" draggable="true" id="d3d" ondragstart="dragStart(event)" ondragend="dragEnd(event)">Anotar resumo no ACW</div>
+      <div class="di" draggable="true" id="d3e" ondragstart="dragStart(event)" ondragend="dragEnd(event)">Resolver o problema do cliente</div>
+    </div>
+    <div class="tlbl">SEQUÃŠNCIA CORRETA</div>
+    <div class="ord-s" id="os3_1" data-pos="1" ondragover="dragOver(event)" ondrop="dropInSlot(event,'os3_1','f3')">1. Arraste aqui</div>
+    <div class="ord-s" id="os3_2" data-pos="2" ondragover="dragOver(event)" ondrop="dropInSlot(event,'os3_2','f3')">2. Arraste aqui</div>
+    <div class="ord-s" id="os3_3" data-pos="3" ondragover="dragOver(event)" ondrop="dropInSlot(event,'os3_3','f3')">3. Arraste aqui</div>
+    <div class="ord-s" id="os3_4" data-pos="4" ondragover="dragOver(event)" ondrop="dropInSlot(event,'os3_4','f3')">4. Arraste aqui</div>
+    <div class="ord-s" id="os3_5" data-pos="5" ondragover="dragOver(event)" ondrop="dropInSlot(event,'os3_5','f3')">5. Arraste aqui</div>
+    <button class="bck" id="bv3" onclick="validateOrder('f3')" style="margin-top:10px;display:none">âœ” VERIFICAR SEQUÃŠNCIA</button>
+    <div class="fb ok" id="fb3ok">âœ… <b>SequÃªncia perfeita!</b> A ordem correta Ã©: resolver â†’ confirmar satisfaÃ§Ã£o â†’ registrar SIC â†’ anotar ACW â†’ encerrar. SIC antes do ACW garante que o motivo do contato seja registrado com precisÃ£o.<div class="ev">+ PISTA: ACW ideal â‰¤ 60 segundos â€” organize antes de encerrar o chat</div></div>
+    <div class="fb err" id="fb3err">âŒ A sequÃªncia ainda estÃ¡ errada. Lembre: primeiro resolva o problema, depois confirme com o cliente, registre o SIC, anote o ACW e sÃ³ entÃ£o encerre.</div>
+    <button class="bnext" id="bn3" onclick="nextFase(4)">PRÃ“XIMA FASE â†’</button>
+  </div>
+</div>
+
+<!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+     FASE 4 â€” GAVETA TRANCADA (enigma numÃ©rico)
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+<div class="fase" id="f4">
+  <div class="fase-card">
+    <span class="sb">FASE 04</span><span class="diff">â­â­ INTERMEDIÃRIO</span>
+    <div class="stit">Gaveta Trancada</div>
+    <div class="sdesc">A gaveta com o relatÃ³rio de AHT estÃ¡ trancada. Decodifique a senha de 4 dÃ­gitos usando as <b style="color:#f59e0b">pistas na cena</b>.</div>
+    <div class="room" id="r4" style="min-height:200px">
+      <div class="rg"></div>
+      <span class="room-lbl">SALA DE AUDITORIA</span>
+      <div class="obj" id="o4a" style="left:10%;top:40%" onclick="clickObj('o4a','f4','Meta de AHT: 8,70 min','A meta de AHT da equipe. Converta para segundos: 8,70 Ã— 60 = 522s. Os dois primeiros dÃ­gitos da senha sÃ£o 52.')">
+        <span class="oi">ðŸ“Š</span><span class="ol">META AHT</span>
+      </div>
+      <div class="obj" id="o4b" style="left:38%;top:50%" onclick="clickObj('o4b','f4','ACW mÃ¡ximo: 60 segundos','O limite de ACW. Os dois Ãºltimos dÃ­gitos sÃ£o 60.')">
+        <span class="oi">â±ï¸</span><span class="ol">TIMER ACW</span>
+      </div>
+      <div class="obj" id="o4c" style="left:65%;top:35%" onclick="clickObj('o4c','f4','CartÃ£o de visita: sillca (OM)','O OM supervisiona o time. Pista de contexto â€” nÃ£o Ã© um nÃºmero.')">
+        <span class="oi">ðŸ’¼</span><span class="ol">CARTÃƒO</span>
+      </div>
+      <div class="obj" id="o4d" style="left:80%;top:55%" onclick="clickObj('o4d','f4','Post-it na gaveta: \"meta Ã— mÃ¡ximo\"','A fÃ³rmula! Meta AHT em segundos (522) + ACW mÃ¡ximo (60) = os 4 dÃ­gitos sÃ£o 52 e 60.')">
+        <span class="oi">ðŸ”’</span><span class="ol">GAVETA</span>
+      </div>
+    </div>
+    <div class="enigma-w" id="en4">
+      <div class="en-label">DECODIFICAR SENHA</div>
+      <div class="clue-grid">
+        <div class="clue"><b>PISTA 1</b>Meta AHT â†’ segundos (Ã·60â†’Ã—60)<br><small style="color:#475569">2 primeiros dÃ­gitos</small></div>
+        <div class="clue"><b>PISTA 2</b>ACW mÃ¡ximo (s)<br><small style="color:#475569">2 Ãºltimos dÃ­gitos</small></div>
+      </div>
+      <div class="ci-w">
+        <input class="ci" id="ci4" maxlength="4" placeholder="____" oninput="this.value=this.value.replace(/\D/g,'')">
+        <button class="bck" onclick="checkCode('f4','5260','ci4')">DESBLOQUEAR</button>
+      </div>
+      <div class="fb ok" id="fb4ok" style="margin-top:10px;padding:11px;font-size:.82rem;line-height:1.7;background:#14532d15;border:1px solid #22c55e33;color:#86efac;border-left:3px solid #22c55e">âœ… <b>Gaveta aberta!</b> Meta AHT = 8,70 min = 522s â†’ primeiros 2 dÃ­gitos: <b>52</b>. ACW mÃ¡ximo = 60s â†’ Ãºltimos 2 dÃ­gitos: <b>60</b>. Senha: <b>5260</b>.<div class="ev">+ PISTA: Dentro da gaveta hÃ¡ um relatÃ³rio mostrando que ACW acima de 60s Ã© o principal driver de AHT elevado</div></div>
+      <div class="fb err" id="fb4err" style="margin-top:10px;padding:11px;font-size:.82rem;line-height:1.7;background:#7f1d1d15;border:1px solid #ef444433;color:#fca5a5;border-left:3px solid #ef4444">âŒ CÃ³digo incorreto. Dica: META AHT = 8,70 minutos. Converta para segundos. Pegue os 2 primeiros dÃ­gitos. O ACW mÃ¡ximo = 60s. Junte os dois.</div>
+      <button class="bnext" id="bn4" onclick="nextFase(5)">PRÃ“XIMA FASE â†’</button>
+    </div>
+  </div>
+</div>
+
+<!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+     FASE 5 â€” TRANSCRIPT COM 3 ERROS (multi-spot)
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+<div class="fase" id="f5">
+  <div class="fase-card">
+    <span class="sb">FASE 05</span><span class="diff">â­â­ INTERMEDIÃRIO</span>
+    <div class="stit">Os 3 Erros</div>
+    <div class="sdesc">Este transcript foi marcado como BTB em <b>3 dimensÃµes</b> diferentes. Encontre e clique nos <b style="color:#f59e0b">3 trechos com erro</b>.</div>
+    <div class="tx" id="tx5">
+      <span class="tb">ðŸ¤– Bot:</span> <span class="tk">OlÃ¡! Em que posso ajudÃ¡-lo?</span><br>
+      <span class="tc">ðŸ‘¤ Cliente:</span> <span class="tk">Quero devolver um produto defeituoso que comprei hÃ¡ 40 dias</span><br>
+      <span class="tb">ðŸ§‘ CSA:</span> <span class="tk">Oi, tudo bem? Vou verificar.</span><br>
+      <span class="tb">ðŸ§‘ CSA:</span> <span class="tk"><span class="terr" id="err5a" onclick="spotErr('err5a','f5-a',true)">Infelizmente o prazo de devoluÃ§Ã£o de 30 dias jÃ¡ passou</span>, entÃ£o nÃ£o consigo processar a devoluÃ§Ã£o.</span><br>
+      <span class="tc">ðŸ‘¤ Cliente:</span> <span class="tk">Mas Ã© defeituoso! Tenho direito pelo CDC!</span><br>
+      <span class="tb">ðŸ§‘ CSA:</span> <span class="tk"><span class="terr" id="err5b" onclick="spotErr('err5b','f5-b',true)">Entendo sua frustraÃ§Ã£o. Mas infelizmente nÃ£o conseguimos intervir com produtos de terceiros.</span></span><br>
+      <span class="tc">ðŸ‘¤ Cliente:</span> <span class="tk">VocÃªs sÃ£o responsÃ¡veis! Ã‰ Lei!</span><br>
+      <span class="tb">ðŸ§‘ CSA:</span> <span class="tk">Vou verificar se consigo fazer uma exceÃ§Ã£o.</span><br>
+      <span class="tb">ðŸ§‘ CSA:</span> <span class="tk">Consegui! Vou processar o reembolso agora. <span class="terr" id="err5c" onclick="spotErr('err5c','f5-c',true)">Se ficar satisfeito, por favor me avalie bem!</span></span><br>
+      <span class="tc">ðŸ‘¤ Cliente:</span> <span class="tk">Ok, obrigado</span>
+    </div>
+    <div class="found-c" id="fc5">Erros encontrados: <b id="fc5n">0</b>/3</div>
+    <div class="fb ok" id="fb5ok" style="margin-top:10px;padding:11px;font-size:.82rem;line-height:1.7;background:#14532d15;border:1px solid #22c55e33;color:#86efac;border-left:3px solid #22c55e">
+      âœ… <b>Caso resolvido!</b> Os 3 erros:<br>
+      1ï¸âƒ£ <b>Prazo incorreto</b> â€” produtos com defeito tÃªm garantia legal de 90 dias (CDC Art.26), nÃ£o 30.<br>
+      2ï¸âƒ£ <b>Responsabilidade negada</b> â€” Amazon tem responsabilidade solidÃ¡ria no marketplace.<br>
+      3ï¸âƒ£ <b>Pedido de avaliaÃ§Ã£o</b> â€” nunca solicite avaliaÃ§Ã£o ao cliente; construa um fechamento memorÃ¡vel.<div class="ev">+ PISTA: Esses 3 padrÃµes aparecem em 40% dos BTBs auditados na W32</div></div>
+    <button class="bnext" id="bn5" onclick="nextFase(6)">PRÃ“XIMA FASE â†’</button>
+  </div>
+</div>
+
+</div><!-- /fases -->
+
+<!-- TELA FINAL (placeholder para versÃ£o completa) -->
+<div id="se">
+  <div class="badge">ðŸ†</div>
+  <div class="et">CASO ENCERRADO</div>
+  <div class="es">VocÃª completou as fases de investigaÃ§Ã£o.<br>O relatÃ³rio estÃ¡ pronto para o OM.</div>
+  <div class="estats">
+    <div class="sr"><span class="sl">Fases concluÃ­das</span><span class="sv" id="se_f">â€”</span></div>
+    <div class="sr"><span class="sl">Acertos diretos</span><span class="sv" id="se_a">â€”</span></div>
+    <div class="sr"><span class="sl">Tempo total</span><span class="sv" id="se_t">â€”</span></div>
+  </div>
+  <div class="reconhecimento">ðŸ… reconhecimento: 35 MINUTOS (versÃ£o completa)</div>
+  <button class="bmain" onclick="location.reload()">â†© JOGAR NOVAMENTE</button>
+</div>
+
+<!-- POPUP -->
+<div class="pop-ov" id="pov" onclick="if(event.target===this)closePop()">
+  <div class="pop">
+    <button class="pop-x" onclick="closePop()">âœ•</button>
+    <h3 id="ph">â€”</h3>
+    <p id="pp">â€”</p>
+    <div class="ev" id="pev" style="display:none"></div>
+  </div>
+</div>
+
+<!-- INVENTÃRIO -->
+<div class="inv-p" id="invp">
+  <div class="inv-t">ðŸ—‚ INVENTÃRIO</div>
+  <div id="inv-list"><div class="inv-0">Nenhuma pista coletada ainda.</div></div>
+</div>
+
+</div><!-- /app -->
+
+<script>
+// â”€â”€ STATE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+var state = {
+  fase: 0,
+  startTime: null,
+  timerInt: null,
+  inv: [],
+  score: { direct: 0, total: 0 },
+  f1clues: 0,
+  f5errs: 0,
+  f5found: { 'f5-a': false, 'f5-b': false, 'f5-c': false },
+  f3order: { os3_1: null, os3_2: null, os3_3: null, os3_4: null, os3_5: null },
+  f4done: false,
+  dragItem: null,
+  answered: {}
+};
+
+var TITLES = {
+  1:'Mesa Abandonada',2:'Chat Congelado',3:'Timer do ACW',
+  4:'Gaveta Trancada',5:'Os 3 Erros',6:'Fases 6-15 em breve...'
+};
+var STARS = {1:'â­',2:'â­',3:'â­',4:'â­â­',5:'â­â­'};
+var F3_CORRECT = ['d3e','d3a','d3b','d3d','d3c'];
+
+// â”€â”€ INIT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+function startGame() {
+  document.getElementById('si').style.display = 'none';
+  document.getElementById('hud').style.display = 'block';
+  state.startTime = Date.now();
+  state.timerInt = setInterval(updateTimer, 1000);
+  goFase(1);
+}
+
+function goFase(n) {
+  document.querySelectorAll('.fase').forEach(function(f){ f.classList.remove('active'); });
+  var el = document.getElementById('f' + n);
+  if(el) { el.classList.add('active'); }
+  state.fase = n;
+  document.getElementById('hfn').textContent = n;
+  document.getElementById('htit').textContent = TITLES[n] || 'â€”';
+  document.getElementById('hstr').textContent = STARS[n] || 'â­â­â­';
+  document.getElementById('hpb').style.width = Math.round((n/15)*100) + '%';
+  window.scrollTo({top:0, behavior:'smooth'});
+  // fase 3 init
+  if(n === 3) initF3();
+}
+
+function nextFase(n) {
+  if(n > 5) {
+    // Para fases 6-15 ainda nÃ£o implementadas nesta versÃ£o
+    showEnd();
+    return;
+  }
+  goFase(n);
+}
+
+// â”€â”€ TIMER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+function updateTimer() {
+  var s = Math.floor((Date.now() - state.startTime) / 1000);
+  var m = Math.floor(s/60);
+  var ss = s % 60;
+  document.getElementById('htimer').textContent =
+    (m<10?'0':'')+m+':'+(ss<10?'0':'')+ss;
+}
+
+// â”€â”€ POPUP â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+function clickObj(id, faseId, title, desc) {
+  // marca como encontrado
+  var el = document.getElementById(id);
+  if(!el || el.classList.contains('found')) return;
+  el.classList.add('found');
+  // adiciona ao inventÃ¡rio
+  addInv(title);
+  openPop(title, desc);
+  // lÃ³gica especÃ­fica por fase
+  if(faseId === 'f1') {
+    var relevant = ['o1a','o1b','o1c'];
+    if(relevant.indexOf(id) !== -1) {
+      state.f1clues++;
+      document.getElementById('fc1n').textContent = state.f1clues;
+      if(state.f1clues >= 3) {
+        setTimeout(function(){
+          document.getElementById('f1q').style.display = 'block';
+          document.getElementById('f1tip').style.display = 'block';
+        }, 600);
+      }
+    }
+  }
+}
+
+function openPop(title, desc) {
+  document.getElementById('ph').textContent = title;
+  document.getElementById('pp').textContent = desc;
+  document.getElementById('pov').classList.add('open');
+}
+function closePop() { document.getElementById('pov').classList.remove('open'); }
+
+// â”€â”€ INVENTORY â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+function addInv(item) {
+  if(state.inv.indexOf(item) !== -1) return;
+  state.inv.push(item);
+  renderInv();
+}
+function renderInv() {
+  var list = document.getElementById('inv-list');
+  if(!state.inv.length) {
+    list.innerHTML = '<div class="inv-0">Nenhuma pista coletada ainda.</div>';
+    return;
+  }
+  list.innerHTML = state.inv.map(function(i){
+    return '<div class="inv-i">' + i + '</div>';
+  }).join('');
+}
+function toggleInv() {
+  document.getElementById('invp').classList.toggle('open');
+}
+
+// â”€â”€ ANSWER (mÃºltipla escolha) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+function answer(faseId, opt) {
+  if(state.answered[faseId]) return;
+  state.answered[faseId] = true;
+  var correct = { f1: 'b' };
+  var isOk = opt === correct[faseId];
+  var opts = document.querySelectorAll('#'+faseId+' .opt');
+  var letters = ['a','b','c','d'];
+  opts.forEach(function(btn, i){
+    btn.disabled = true;
+    if(letters[i] === correct[faseId]) btn.classList.add('correct');
+    else if(letters[i] === opt && !isOk) btn.classList.add('wrong');
+  });
+  if(isOk) {
+    state.score.direct++;
+    show('fb1ok'); show('bn1');
+  } else {
+    show('fb1err'); show('bn1');
+  }
+  state.score.total++;
+}
+
+// â”€â”€ SPOT THE ERROR â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+function spotErr(errId, tag, isCorrect) {
+  var el = document.getElementById(errId);
+  if(!el) return;
+  // fase 2
+  if(errId.startsWith('err2')) {
+    if(isCorrect) {
+      el.classList.add('fnd');
+      el.style.cursor = 'default';
+      show('fb2ok');
+      show('bn2');
+    } else {
+      show('fb2err');
+      setTimeout(function(){ hide('fb2err'); }, 2200);
+    }
+    return;
+  }
+  // fase 5
+  if(errId.startsWith('err5')) {
+    if(state.f5found[tag]) return;
+    state.f5found[tag] = true;
+    el.classList.add('fnd');
+    el.style.cursor = 'default';
+    state.f5errs++;
+    document.getElementById('fc5n').textContent = state.f5errs;
+    if(state.f5errs >= 3) {
+      show('fb5ok');
+      show('bn5');
+    }
+  }
+}
+
+// â”€â”€ DRAG & DROP (fase 3) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+function initF3() {
+  // reset
+  var bank = document.getElementById('ob3');
+  ['d3a','d3b','d3c','d3d','d3e'].forEach(function(id){
+    var el = document.getElementById(id);
+    if(el && el.parentNode !== bank) bank.appendChild(el);
+  });
+  for(var k in state.f3order) state.f3order[k] = null;
+  ['os3_1','os3_2','os3_3','os3_4','os3_5'].forEach(function(sid){
+    var sl = document.getElementById(sid);
+    sl.classList.remove('filled','ok-s','err-s');
+    sl.textContent = sl.dataset.pos + '. Arraste aqui';
+  });
+  hide('bv3'); hide('fb3ok'); hide('fb3err'); hide('bn3');
+}
+function dragStart(e) {
+  state.dragItem = e.target.id;
+  e.target.classList.add('dragging');
+  e.dataTransfer.setData('text/plain', e.target.id);
+}
+function dragEnd(e) { e.target.classList.remove('dragging'); }
+function dragOver(e) {
+  e.preventDefault();
+  e.currentTarget.classList.add('hl');
+}
+function dropInSlot(e, slotId, faseId) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('hl');
+  var itemId = e.dataTransfer.getData('text/plain');
+  var item = document.getElementById(itemId);
+  if(!item) return;
+  var slot = document.getElementById(slotId);
+  // se slot jÃ¡ tem item, manda de volta pro banco
+  var existing = slot.dataset.item;
+  if(existing) {
+    var exEl = document.getElementById(existing);
+    if(exEl) document.getElementById('ob3').appendChild(exEl);
+  }
+  // coloca item no slot
+  slot.dataset.item = itemId;
+  slot.textContent = '';
+  slot.appendChild(item);
+  slot.classList.add('filled');
+  state.f3order[slotId] = itemId;
+  // checa se todos preenchidos
+  var allFilled = Object.values(state.f3order).every(function(v){ return v !== null; });
+  if(allFilled) show('bv3');
+}
+function returnToBank(e, bankId) {
+  e.preventDefault();
+  // drag to bank â€” retorna item
+}
+function validateOrder(faseId) {
+  if(faseId !== 'f3') return;
+  var order = ['os3_1','os3_2','os3_3','os3_4','os3_5'].map(function(sid){
+    return state.f3order[sid];
+  });
+  var isOk = JSON.stringify(order) === JSON.stringify(F3_CORRECT);
+  ['os3_1','os3_2','os3_3','os3_4','os3_5'].forEach(function(sid, i){
+    var sl = document.getElementById(sid);
+    sl.classList.remove('ok-s','err-s');
+    sl.classList.add(order[i] === F3_CORRECT[i] ? 'ok-s' : 'err-s');
+  });
+  if(isOk) {
+    state.score.direct++;
+    show('fb3ok'); show('bn3'); hide('fb3err');
+  } else {
+    show('fb3err'); hide('fb3ok'); hide('bn3');
+  }
+  state.score.total++;
+}
+
+// â”€â”€ ENIGMA (fase 4) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+function checkCode(faseId, correct, inputId) {
+  var val = document.getElementById(inputId).value.trim();
+  if(val === correct) {
+    show('fb4ok'); hide('fb4err'); show('bn4');
+    document.getElementById(inputId).disabled = true;
+    state.score.direct++;
+    state.f4done = true;
+  } else {
+    show('fb4err'); hide('fb4ok');
+    document.getElementById(inputId).classList.add('wrong');
+    setTimeout(function(){
+      document.getElementById(inputId).classList.remove('wrong');
+      document.getElementById(inputId).value = '';
+      hide('fb4err');
+    }, 1800);
+  }
+  state.score.total++;
+}
+
+// â”€â”€ END SCREEN â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+function showEnd() {
+  document.querySelectorAll('.fase').forEach(function(f){ f.classList.remove('active'); });
+  clearInterval(state.timerInt);
+  var s = Math.floor((Date.now() - state.startTime) / 1000);
+  var m = Math.floor(s/60); var ss = s % 60;
+  document.getElementById('se_f').textContent = '5/15 (parcial)';
+  document.getElementById('se_a').textContent = state.score.direct + '/' + state.score.total;
+  document.getElementById('se_t').textContent = (m<10?'0':'')+m+':'+(ss<10?'0':'')+ss;
+  document.getElementById('se').classList.add('active');
+}
+
+// â”€â”€ UTILS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+function show(id) {
+  var el = document.getElementById(id);
+  if(el) { el.style.display = ''; el.classList.add('show'); }
+}
+function hide(id) {
+  var el = document.getElementById(id);
+  if(el) { el.style.display = 'none'; el.classList.remove('show'); }
+}
+</script>
+</body>
+</html>

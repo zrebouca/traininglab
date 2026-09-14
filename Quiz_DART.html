@@ -1,0 +1,1164 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DART ou nÃ£o? â€” Treinamento CS VAR BR</title>
+<style>
+  :root {
+    --bg: #0f172a;
+    --card: #1e293b;
+    --card2: #0f172a;
+    --indigo: #6366f1;
+    --indigo-light: #818cf8;
+    --green: #4ade80;
+    --red: #f87171;
+    --yellow: #fbbf24;
+    --text: #f1f5f9;
+    --muted: #94a3b8;
+    --border: #334155;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', Arial, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    padding: 16px;
+  }
+
+  /* ===== TELA INICIAL ===== */
+  #screen-intro {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    max-width: 420px;
+    gap: 20px;
+  }
+
+  .owl { font-size: 64px; margin-bottom: 4px; }
+
+  #screen-intro h1 {
+    font-size: 26px;
+    font-weight: 900;
+    color: #fff;
+    line-height: 1.2;
+  }
+
+  #screen-intro h1 span { color: var(--indigo-light); }
+
+  #screen-intro p {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.7;
+  }
+
+  .hint-row {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    margin-top: 8px;
+  }
+
+  .hint-box {
+    background: var(--card);
+    border-radius: 12px;
+    padding: 14px 18px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    flex: 1;
+    max-width: 150px;
+  }
+
+  .hint-box .emoji { font-size: 28px; }
+  .hint-box .label { font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
+  .hint-box.yes .label { color: var(--green); }
+  .hint-box.no .label { color: var(--red); }
+  .hint-box .sub { font-size: 11px; color: var(--muted); }
+
+  .btn-start {
+    background: var(--indigo);
+    color: #fff;
+    border: none;
+    border-radius: 50px;
+    padding: 14px 40px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+    margin-top: 8px;
+    letter-spacing: 0.5px;
+  }
+  .btn-start:hover { background: #4f46e5; transform: scale(1.03); }
+
+  /* ===== TELA QUIZ ===== */
+  #screen-quiz { display: none; width: 100%; max-width: 420px; flex-direction: column; align-items: center; gap: 16px; }
+
+  .progress-bar-wrap {
+    width: 100%;
+    background: var(--border);
+    border-radius: 50px;
+    height: 5px;
+    overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background: var(--indigo);
+    border-radius: 50px;
+    transition: width 0.4s ease;
+  }
+
+  .q-counter {
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    align-self: flex-start;
+  }
+
+  /* CARD */
+  .card-wrap {
+    width: 100%;
+    perspective: 1000px;
+    position: relative;
+    height: 320px;
+  }
+
+  .card {
+    width: 100%;
+    height: 100%;
+    background: var(--card);
+    border-radius: 20px;
+    padding: 28px 24px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    position: absolute;
+    top: 0; left: 0;
+    cursor: grab;
+    user-select: none;
+    transition: transform 0.1s;
+    border: 1px solid var(--border);
+    box-shadow: 0 8px 40px rgba(0,0,0,0.4);
+  }
+
+  .card:active { cursor: grabbing; }
+
+  .card.fly-right {
+    animation: flyRight 0.35s ease forwards;
+  }
+  .card.fly-left {
+    animation: flyLeft 0.35s ease forwards;
+  }
+
+  @keyframes flyRight {
+    to { transform: translateX(150%) rotate(20deg); opacity: 0; }
+  }
+  @keyframes flyLeft {
+    to { transform: translateX(-150%) rotate(-20deg); opacity: 0; }
+  }
+
+  /* Stamp overlays */
+  .stamp {
+    position: absolute;
+    top: 20px;
+    font-size: 15px;
+    font-weight: 900;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    border: 3px solid;
+    border-radius: 8px;
+    padding: 5px 12px;
+    opacity: 0;
+    transform: rotate(-20deg);
+    transition: opacity 0.15s;
+    pointer-events: none;
+  }
+  .stamp.yes-stamp { left: 16px; color: var(--green); border-color: var(--green); transform: rotate(-15deg); }
+  .stamp.no-stamp  { right: 16px; color: var(--red);   border-color: var(--red);  transform: rotate(15deg); }
+  .stamp.show { opacity: 1; }
+
+  .card-category {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--indigo-light);
+    background: rgba(99,102,241,0.15);
+    padding: 3px 10px;
+    border-radius: 20px;
+    width: fit-content;
+  }
+
+  .card-scenario {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.5;
+    flex: 1;
+  }
+
+  .card-meta {
+    font-size: 12px;
+    color: var(--muted);
+    font-style: italic;
+    line-height: 1.4;
+  }
+
+  /* HINT de deslize */
+  .swipe-hint {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    padding: 0 4px;
+    font-size: 12px;
+    font-weight: 700;
+  }
+  .swipe-hint .left-hint { color: var(--red); }
+  .swipe-hint .right-hint { color: var(--green); }
+
+  /* BOTÃ•ES */
+  .btn-row {
+    display: flex;
+    gap: 24px;
+    justify-content: center;
+    width: 100%;
+  }
+
+  .btn-action {
+    width: 68px;
+    height: 68px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    font-size: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.15s, box-shadow 0.15s;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+  }
+
+  .btn-action.no-btn  { background: #1f1010; border: 2px solid var(--red); }
+  .btn-action.yes-btn { background: #0d1f10; border: 2px solid var(--green); }
+  .btn-action:hover { transform: scale(1.12); }
+  .btn-action:active { transform: scale(0.95); }
+
+  .score-row {
+    display: flex;
+    gap: 12px;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .score-pill {
+    background: var(--card);
+    border-radius: 50px;
+    padding: 6px 14px;
+    font-size: 12px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .score-pill .dot { width: 8px; height: 8px; border-radius: 50%; }
+  .score-pill.correct .dot { background: var(--green); }
+  .score-pill.wrong .dot { background: var(--red); }
+  .score-pill span { color: var(--muted); }
+  .score-pill strong { color: var(--text); }
+
+  /* ===== FEEDBACK OVERLAY ===== */
+  #feedback-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.85);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+  }
+
+  #feedback-overlay.show { display: flex; }
+
+  .feedback-box {
+    background: var(--card);
+    border-radius: 20px;
+    padding: 28px 24px;
+    max-width: 400px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    border: 1px solid var(--border);
+  }
+
+  .feedback-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .feedback-icon { font-size: 28px; }
+
+  .feedback-title {
+    font-size: 17px;
+    font-weight: 800;
+  }
+
+  .feedback-title.correct { color: var(--green); }
+  .feedback-title.wrong   { color: var(--red); }
+
+  .feedback-answer {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .feedback-explanation {
+    font-size: 13px;
+    color: #cbd5e1;
+    line-height: 1.6;
+    background: var(--card2);
+    border-radius: 10px;
+    padding: 12px 14px;
+    border-left: 3px solid var(--indigo);
+  }
+
+  .feedback-policy {
+    font-size: 11px;
+    color: var(--muted);
+    font-style: italic;
+  }
+
+  .btn-next {
+    background: var(--indigo);
+    color: #fff;
+    border: none;
+    border-radius: 50px;
+    padding: 13px 32px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    align-self: center;
+    transition: background 0.2s, transform 0.1s;
+    width: 100%;
+    margin-top: 4px;
+  }
+  .btn-next:hover { background: #4f46e5; }
+
+  /* ===== TELA FINAL ===== */
+  #screen-result {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 20px;
+    max-width: 420px;
+    width: 100%;
+  }
+
+  .result-badge {
+    font-size: 64px;
+  }
+
+  .result-title {
+    font-size: 24px;
+    font-weight: 900;
+    color: #fff;
+  }
+
+  .result-subtitle {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.7;
+  }
+
+  .result-score-box {
+    background: var(--card);
+    border-radius: 16px;
+    padding: 20px 28px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .result-score-big {
+    font-size: 48px;
+    font-weight: 900;
+    color: var(--indigo-light);
+  }
+
+  .result-score-label {
+    font-size: 12px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .result-breakdown {
+    display: flex;
+    gap: 12px;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .breakdown-item {
+    flex: 1;
+    background: var(--card);
+    border-radius: 12px;
+    padding: 14px 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .breakdown-num { font-size: 24px; font-weight: 900; }
+  .breakdown-num.g { color: var(--green); }
+  .breakdown-num.r { color: var(--red); }
+  .breakdown-num.s { color: var(--indigo-light); }
+  .breakdown-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+
+  .streak-info {
+    font-size: 12px;
+    color: var(--yellow);
+    font-weight: 700;
+  }
+
+  .btn-restart {
+    background: transparent;
+    color: var(--indigo-light);
+    border: 2px solid var(--indigo);
+    border-radius: 50px;
+    padding: 12px 32px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s;
+    width: 100%;
+  }
+  .btn-restart:hover { background: rgba(99,102,241,0.15); }
+
+  .reconhecimento-banner {
+    background: linear-gradient(135deg, #1a1040, #2d1b69);
+    border: 1px solid var(--indigo);
+    border-radius: 14px;
+    padding: 16px 20px;
+    width: 100%;
+    font-size: 13px;
+    line-height: 1.6;
+    color: #c7d2fe;
+  }
+  .reconhecimento-banner strong { color: #fff; font-size: 15px; display: block; margin-bottom: 4px; }
+
+</style>
+</head>
+<body>
+
+<!-- ===== TELA INICIAL ===== -->
+<div id="screen-intro">
+  <div class="owl">ðŸ¦‰</div>
+  <h1>DART ou <span>nÃ£o DART?</span></h1>
+  <p>VocÃª vai receber <strong style="color:#c7d2fe">35 situaÃ§Ãµes reais</strong> do dia a dia.<br>Decida: o CSA deve contatar o DART ou resolver sozinho?</p>
+
+  <div class="hint-row">
+    <div class="hint-box no">
+      <div class="emoji">ðŸ‘ˆ</div>
+      <div class="label">NÃƒO DART</div>
+      <div class="sub">Resolve sozinho</div>
+    </div>
+    <div class="hint-box yes">
+      <div class="emoji">ðŸ‘‰</div>
+      <div class="label">CONTATA DART</div>
+      <div class="sub">Precisa de suporte</div>
+    </div>
+  </div>
+
+  <p style="font-size:12px;">Deslize o card ou use os botÃµes âŒ / âœ…<br>VocÃª pode usar o teclado tambÃ©m: â† e â†’</p>
+
+  <button class="btn-start" onclick="startQuiz()">ComeÃ§ar treinamento</button>
+</div>
+
+<!-- ===== TELA QUIZ ===== -->
+<div id="screen-quiz">
+  <div class="q-counter" id="q-counter">SituaÃ§Ã£o 1 de 20</div>
+  <div class="progress-bar-wrap">
+    <div class="progress-bar-fill" id="progress-bar" style="width:5%"></div>
+  </div>
+
+  <div class="card-wrap">
+    <div class="card" id="main-card"
+      onmousedown="dragStart(event)"
+      ontouchstart="touchStart(event)">
+      <div class="stamp yes-stamp" id="stamp-yes">âœ… DART</div>
+      <div class="stamp no-stamp" id="stamp-no">âŒ NÃ£o</div>
+      <div class="card-category" id="card-cat">Categoria</div>
+      <div class="card-scenario" id="card-scenario">CenÃ¡rio aqui</div>
+      <div class="card-meta" id="card-meta"></div>
+    </div>
+  </div>
+
+  <div class="swipe-hint">
+    <span class="left-hint">â† NÃ£o contata</span>
+    <span class="right-hint">Contata DART â†’</span>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn-action no-btn"  onclick="answer(false)" title="NÃƒO contata DART">âŒ</button>
+    <button class="btn-action yes-btn" onclick="answer(true)"  title="Contata DART">âœ…</button>
+  </div>
+
+  <div class="score-row">
+    <div class="score-pill correct">
+      <div class="dot"></div>
+      <span>Acertos:</span>
+      <strong id="score-correct">0</strong>
+    </div>
+    <div class="score-pill wrong">
+      <div class="dot"></div>
+      <span>Erros:</span>
+      <strong id="score-wrong">0</strong>
+    </div>
+    <div class="score-pill" style="background:var(--card);">
+      <div class="dot" style="background:var(--yellow);"></div>
+      <span>Streak:</span>
+      <strong id="score-streak" style="color:var(--yellow);">0</strong>
+    </div>
+  </div>
+</div>
+
+<!-- ===== FEEDBACK OVERLAY ===== -->
+<div id="feedback-overlay">
+  <div class="feedback-box">
+    <div class="feedback-header">
+      <div class="feedback-icon" id="fb-icon">âœ…</div>
+      <div>
+        <div class="feedback-title" id="fb-title">Correto!</div>
+        <div class="feedback-answer" id="fb-answer"></div>
+      </div>
+    </div>
+    <div class="feedback-explanation" id="fb-explanation"></div>
+    <div class="feedback-policy" id="fb-policy"></div>
+    <button class="btn-next" id="btn-next" onclick="nextQuestion()">PrÃ³xima situaÃ§Ã£o â†’</button>
+  </div>
+</div>
+
+<!-- ===== TELA FINAL ===== -->
+<div id="screen-result">
+  <div class="result-badge" id="result-badge">ðŸ†</div>
+  <div class="result-title" id="result-title">Especialista DART!</div>
+  <div class="result-subtitle" id="result-subtitle"></div>
+
+  <div class="result-score-box">
+    <div class="result-score-label">Sua pontuaÃ§Ã£o</div>
+    <div class="result-score-big" id="result-score-big">0</div>
+    <div class="result-score-label" id="result-score-label2">pontos</div>
+  </div>
+
+  <div class="result-breakdown">
+    <div class="breakdown-item">
+      <div class="breakdown-num g" id="res-correct">0</div>
+      <div class="breakdown-label">Acertos</div>
+    </div>
+    <div class="breakdown-item">
+      <div class="breakdown-num r" id="res-wrong">0</div>
+      <div class="breakdown-label">Erros</div>
+    </div>
+    <div class="breakdown-item">
+      <div class="breakdown-num s" id="res-streak">0</div>
+      <div class="breakdown-label">Best streak</div>
+    </div>
+  </div>
+
+  <div class="streak-info" id="streak-info"></div>
+
+  <div class="reconhecimento-banner" id="reconhecimento-banner" style="display:none;">
+    <strong>ðŸŽ‰ ParabÃ©ns! VocÃª ganhou reconhecimento!</strong>
+    Tire um print desta tela e envie por mensagem privada para concorrer aos <strong>35 minutos de reconhecimento</strong>. Apenas o primeiro envio conta!
+  </div>
+
+  <button class="btn-restart" onclick="restart()">ðŸ”„ Jogar novamente</button>
+</div>
+
+<script>
+// ============================================================
+//  QUESTÃ•ES â€” 20 cenÃ¡rios baseados nas polÃ­ticas reais
+// ============================================================
+const questions = [
+  {
+    category: "Quando contatar o DART",
+    scenario: "Um CSA nÃ£o tem certeza se a soluÃ§Ã£o que vai oferecer estÃ¡ correta. NÃ£o quer fazer uma promessa falsa ao cliente. Ele jÃ¡ completou a pesquisa e seguiu o AC3 atÃ© o fim.",
+    meta: "CSA verificou tudo e ainda tem dÃºvida genuÃ­na sobre a soluÃ§Ã£o.",
+    dart: true,
+    explanation: "DÃºvidas sobre a soluÃ§Ã£o sÃ£o um dos motivos vÃ¡lidos para contatar o DART â€” desde que o CSA tenha concluÃ­do a pesquisa e seguido o AC3. Ã‰ melhor consultar do que criar expectativas falsas.",
+    policy: "PolÃ­tica: 'Quando entrar em contato com o DART' â€” Motivo 1: DÃºvidas sobre a soluÃ§Ã£o."
+  },
+  {
+    category: "Quando NÃƒO contatar o DART",
+    scenario: "O cliente estÃ¡ insatisfeito com a polÃ­tica de reembolso. O DART jÃ¡ orientou anteriormente com a soluÃ§Ã£o correta, mas o cliente insiste em falar com alguÃ©m que 'possa fazer diferente'.",
+    meta: "O DART jÃ¡ deu a soluÃ§Ã£o correta. O cliente quer outro resultado.",
+    dart: false,
+    explanation: "NÃƒO contatar o DART para buscar um resultado diferente quando ele jÃ¡ forneceu a soluÃ§Ã£o correta e alinhada com a polÃ­tica. Ceder nesse caso seria contornar as regras.",
+    policy: "PolÃ­tica: 'Quando NÃƒO entrar em contato com o DART' â€” Motivo 1: Buscar resultado diferente."
+  },
+  {
+    category: "Rastreamento / Escalar",
+    scenario: "O cliente entrou em contato duas vezes com problemas na mesma transportadora: um pedido atrasou em agosto e outro em setembro. Agora quer que a transportadora nÃ£o seja mais usada.",
+    meta: "Dois pedidos afetados pela mesma transportadora. Cliente solicita despriorizaÃ§Ã£o.",
+    dart: true,
+    explanation: "Com pelo menos 2 pedidos afetados pela mesma transportadora, Ã© vÃ¡lido encaminhar ao DART para tentar a despriorizaÃ§Ã£o. Nunca criar expectativa de que vai acontecer â€” aguardar a confirmaÃ§Ã£o.",
+    policy: "PolÃ­tica: 'Rastreamento de pedidos / Quando escalar' â€” Caso 1: Problemas repetidos com a mesma transportadora."
+  },
+  {
+    category: "Rastreamento / Quando NÃƒO escalar",
+    scenario: "O cliente diz que o sistema mostra 'Entregue', mas ele nÃ£o recebeu o pacote. Quer que o DART investigue junto Ã  transportadora.",
+    meta: "Pedido marcado como entregue, cliente nÃ£o recebeu.",
+    dart: false,
+    explanation: "Pedidos marcados como entregues mas nÃ£o recebidos NÃƒO devem ser escalados ao DART. O CSA resolve pelo fluxo padrÃ£o (verificar vizinhos/portaria, e se a data de rastreamento passou â†’ reembolso).",
+    policy: "PolÃ­tica: 'Rastreamento de pedidos / Quando escalar' â€” Casos que NÃƒO devem ser escalados: 'Pedidos que aparecem como entregues, mas o cliente diz que nÃ£o recebeu'."
+  },
+  {
+    category: "ConcessÃµes",
+    scenario: "Um CSA precisa emitir um reembolso que ultrapassa o limite de concessÃ£o que ele tem autorizaÃ§Ã£o para processar sozinho no AC3.",
+    meta: "ConcessÃ£o acima do limite de autorizaÃ§Ã£o do CSA.",
+    dart: true,
+    explanation: "ConcessÃµes alÃ©m do limite de autorizaÃ§Ã£o do CSA devem ser enviadas ao DART pelo sistema â€” nunca perguntar ao TM ou supervisor DART diretamente.",
+    policy: "PolÃ­tica: 'Quando entrar em contato com o DART' â€” Motivo 3: ConcessÃµes alÃ©m dos limites."
+  },
+  {
+    category: "Quando NÃƒO contatar o DART",
+    scenario: "O cliente estÃ¡ nervoso e o CSA estÃ¡ com dificuldade de lidar com a situaÃ§Ã£o. Para resolver mais rÃ¡pido, pensa em contatar o DART sem ter concluÃ­do o fluxo do AC3.",
+    meta: "CSA quer usar o DART como atalho por causa da pressÃ£o do cliente.",
+    dart: false,
+    explanation: "O DART NÃƒO Ã© um atalho para situaÃ§Ãµes difÃ­ceis. O CSA deve sempre concluir o fluxo do AC3 primeiro. Usar o DART sem seguir o processo Ã© descumprimento de polÃ­tica.",
+    policy: "PolÃ­tica: 'Quando NÃƒO entrar em contato com o DART' â€” Motivo 4: Atalho para resoluÃ§Ã£o mais rÃ¡pida."
+  },
+  {
+    category: "Comportamento ofensivo do vendedor",
+    scenario: "O cliente relatou que o vendedor parceiro o ameaÃ§ou por mensagem apÃ³s uma avaliaÃ§Ã£o negativa. O CSA verifica e nÃ£o encontra tÃ­quete aberto para esse vendedor.",
+    meta: "AmeaÃ§a documentada, sem tÃ­quete aberto no banco DART BR.",
+    dart: true,
+    explanation: "Comportamento ofensivo com ameaÃ§a ao cliente deve ser encaminhado ao DART para investigaÃ§Ã£o via tÃ­quete. Como nÃ£o hÃ¡ tÃ­quete aberto, o CSA deve criar um novo com todas as informaÃ§Ãµes necessÃ¡rias.",
+    policy: "PolÃ­tica: 'TransferÃªncia / Comportamento ofensivo do vendedor' â€” Caso 1: AmeaÃ§as ou assÃ©dio do vendedor."
+  },
+  {
+    category: "Comportamento ofensivo do vendedor",
+    scenario: "O cliente reclama que o vendedor enviou muitas mensagens depois da compra pedindo para mudar a avaliaÃ§Ã£o de 1 estrela para 5 estrelas em troca de um desconto.",
+    meta: "Vendedor oferecendo desconto em troca de mudanÃ§a de avaliaÃ§Ã£o.",
+    dart: true,
+    explanation: "Solicitar mudanÃ§a de avaliaÃ§Ã£o ou negociar desconto em troca de avaliaÃ§Ã£o Ã© comportamento ofensivo de vendedor. Deve ser reportado ao DART para investigaÃ§Ã£o.",
+    policy: "PolÃ­tica: 'TransferÃªncia / Comportamento ofensivo do vendedor' â€” DefiniÃ§Ã£o: 'O vendedor solicita que o cliente altere uma avaliaÃ§Ã£o ou negocia um desconto em troca de uma avaliaÃ§Ã£o'."
+  },
+  {
+    category: "Comportamento ofensivo do vendedor",
+    scenario: "O cliente diz que o vendedor foi grosseiro no chat da ferramenta de comunicaÃ§Ã£o, mas nÃ£o fez ameaÃ§as nem usou palavrÃµes â€” sÃ³ reclamou das polÃ­ticas da Amazon.",
+    meta: "ReclamaÃ§Ã£o sobre polÃ­ticas da Amazon dentro da ferramenta de comunicaÃ§Ã£o.",
+    dart: false,
+    explanation: "Reclamar das polÃ­ticas com o cliente na ferramenta de comunicaÃ§Ã£o Ã© comportamento ofensivo, mas neste caso o CSA deve orientar o cliente a reportar via autoatendimento â€” nÃ£o transferir ao DART diretamente.",
+    policy: "PolÃ­tica: 'TransferÃªncia / Comportamento ofensivo do vendedor' â€” Caso 3: Outras violaÃ§Ãµes nas regras de comunicaÃ§Ã£o â†’ autoatendimento, nÃ£o DART."
+  },
+  {
+    category: "DMARC / E-mail",
+    scenario: "O cliente nÃ£o consegue receber resposta da Amazon porque o e-mail dele falhou na verificaÃ§Ã£o DMARC. O cliente nÃ£o consegue atualizar sua conta por conta prÃ³pria.",
+    meta: "Falha DMARC + cliente sem acesso para atualizar sozinho.",
+    dart: false,
+    explanation: "Neste caso, o correto Ã© transferir para a equipe de AlteraÃ§Ã£o de Conta â€” nÃ£o para o DART. O DART nÃ£o Ã© responsÃ¡vel por ajustes de conta com falha de DMARC.",
+    policy: "PolÃ­tica: 'DART / Tratamento de contatos DMARC' â€” AÃ§Ã£o: Transferir para equipe de alteraÃ§Ã£o de conta."
+  },
+  {
+    category: "DiscrepÃ¢ncia de polÃ­tica",
+    scenario: "Um CSA identifica uma contradiÃ§Ã£o entre o que o fluxo do AC3 mostra e o que uma polÃ­tica do CS Assistant diz. Os dois estÃ£o em conflito e ele nÃ£o sabe qual seguir.",
+    meta: "Conflito real entre fluxo AC3 e polÃ­tica publicada.",
+    dart: true,
+    explanation: "DiscrepÃ¢ncias entre fluxo de trabalho e polÃ­ticas devem ser avaliadas pelo DART. NÃ£o Ã© papel do CSA resolver sozinho uma contradiÃ§Ã£o sistÃªmica â€” escalar para anÃ¡lise Ã© o correto.",
+    policy: "PolÃ­tica: 'Quando entrar em contato com o DART' â€” Motivo 2: DiscrepÃ¢ncias de fluxo de trabalho ou polÃ­tica."
+  },
+  {
+    category: "Quando NÃƒO contatar o DART",
+    scenario: "O CSA contactou o DART e nÃ£o gostou do supervisor que atendeu. Quer desconectar e reconectar para ser atendido por outro supervisor especÃ­fico.",
+    meta: "CSA quer escolher qual supervisor DART vai atender.",
+    dart: false,
+    explanation: "Nunca entrar em contato novamente com o DART para ser atendido por um supervisor especÃ­fico ou para evitar um supervisor. Isso coloca o contato no final da fila e Ã© contra a polÃ­tica.",
+    policy: "PolÃ­tica: 'Quando NÃƒO entrar em contato com o DART' â€” Motivo 5: Encontrar supervisor especÃ­fico."
+  },
+  {
+    category: "Rastreamento / Quando NÃƒO escalar",
+    scenario: "O cliente quer cancelar o pedido que jÃ¡ estÃ¡ em trÃ¢nsito com a transportadora. Pede que o DART bloqueie a entrega.",
+    meta: "Pedido em trÃ¢nsito. Cliente quer cancelamento/bloqueio de entrega.",
+    dart: false,
+    explanation: "Cancelamento de pedido e bloqueio de entrega sÃ£o casos que NÃƒO devem ser escalados ao DART. O CSA resolve pelo fluxo padrÃ£o.",
+    policy: "PolÃ­tica: 'Rastreamento de pedidos / Quando escalar' â€” Casos que NÃƒO devem ser escalados: 'Cancelamento do pedido ou bloqueio da entrega'."
+  },
+  {
+    category: "DespriorizaÃ§Ã£o de transportadora",
+    scenario: "O cliente liga reclamando da transportadora e pede para nunca mais usar a mesma. Ã‰ o primeiro contato do cliente sobre esse assunto â€” nunca teve problema antes.",
+    meta: "Primeira reclamaÃ§Ã£o. Nenhum problema anterior registrado.",
+    dart: false,
+    explanation: "A despriorizaÃ§Ã£o sÃ³ pode ser solicitada ao DART se o cliente teve problemas em pelo menos DOIS pedidos. Na primeira ocorrÃªncia, o CSA deve pedir que o cliente dÃª uma chance Ã  transportadora.",
+    policy: "PolÃ­tica: 'Envio / DespriorizaÃ§Ã£o da transportadora' â€” Exige pelo menos 2 pedidos afetados pela mesma transportadora."
+  },
+  {
+    category: "AnotaÃ§Ãµes DART",
+    scenario: "ApÃ³s um contato com o DART, o CSA quer registrar a soluÃ§Ã£o acordada e as aÃ§Ãµes tomadas na anotaÃ§Ã£o. Qual o formato obrigatÃ³rio?",
+    meta: "CSA precisa anotar o contato DART no sistema.",
+    dart: true,
+    explanation: "As anotaÃ§Ãµes de contatos DART devem sempre comeÃ§ar e terminar com ***DART***. Isso evita que as anotaÃ§Ãµes sejam incluÃ­das em solicitaÃ§Ãµes de dados do cliente. O conteÃºdo deve incluir: ID do contato, solicitaÃ§Ã£o do CSA e aÃ§Ã£o tomada.",
+    policy: "PolÃ­tica: 'DART / AnotaÃ§Ãµes' â€” Formato: ***DART*** ... ***DART*** em todos os registros."
+  },
+  {
+    category: "Quando NÃƒO contatar o DART",
+    scenario: "O cliente estÃ¡ na fila esperando o DART. O CSA acha que estÃ¡ demorando demais e quer desconectar e reconectar para tentar uma fila mais rÃ¡pida.",
+    meta: "Tentativa de 'furar fila' do DART desconectando e reconectando.",
+    dart: false,
+    explanation: "Nunca desconectar e reconectar para tentar contornar a espera. Isso coloca o contato no final da fila â€” o tempo de espera vai aumentar, nÃ£o diminuir.",
+    policy: "PolÃ­tica: 'Quando NÃƒO entrar em contato com o DART' â€” Motivo 3: Contornar a espera/fila."
+  },
+  {
+    category: "Rastreamento avanÃ§ado",
+    scenario: "O cliente recebeu rastreamento TBR00 e quer o cÃ³digo de redespacho dos Correios para a Total Express. Essa informaÃ§Ã£o nÃ£o estÃ¡ disponÃ­vel no AC3.",
+    meta: "Cliente quer cÃ³digo de redespacho Total Express â€” nÃ£o disponÃ­vel no AC3.",
+    dart: true,
+    explanation: "Quando o cliente precisa do cÃ³digo de rastreamento de redespacho dos Correios para a Total Express e isso nÃ£o estÃ¡ disponÃ­vel no AC3, o CSA pode consultar o DART.",
+    policy: "PolÃ­tica: 'Rastreamento de pedidos / Quando escalar' â€” Caso 2: CÃ³digo de rastreamento de redespacho dos Correios para Total Express."
+  },
+  {
+    category: "Comportamento ofensivo do vendedor",
+    scenario: "O cliente relata que uma empresa de cobranÃ§a de dÃ­vidas entrou em contato com ele por telefone referente a um pedido que jÃ¡ foi reembolsado via Garantia de A a Z.",
+    meta: "CobranÃ§a indevida por empresa de cobranÃ§a apÃ³s reembolso Garantia A-Z.",
+    dart: true,
+    explanation: "Este Ã© um caso grave: o vendedor acionou uma empresa de cobranÃ§a contra o cliente. O CSA deve contatar o TM/DART para aprovaÃ§Ã£o antes de transferir ao ECR. Ã‰ uma situaÃ§Ã£o de escalaÃ§Ã£o obrigatÃ³ria.",
+    policy: "PolÃ­tica: 'TransferÃªncia / Comportamento ofensivo do vendedor' â€” Caso 6: Cliente contatado por empresa de cobranÃ§a sobre pedido jÃ¡ reembolsado."
+  },
+  {
+    category: "Quando NÃƒO contatar o DART",
+    scenario: "O AC3 jÃ¡ apresentou a soluÃ§Ã£o de reembolso para o cliente. O CSA discorda da soluÃ§Ã£o e acha que o cliente merece mais. Quer consultar o DART para ver se consegue uma exceÃ§Ã£o.",
+    meta: "CSA quer concessÃ£o alÃ©m da polÃ­tica por empatia com o cliente.",
+    dart: false,
+    explanation: "NÃƒO consultar o DART para buscar concessÃµes fora da polÃ­tica porque o cliente estÃ¡ insatisfeito. O AC3 jÃ¡ apresentou a soluÃ§Ã£o correta. Usar o DART como vÃ¡lvula de escape para clientes difÃ­ceis Ã© contra a polÃ­tica.",
+    policy: "PolÃ­tica: 'Quando NÃƒO entrar em contato com o DART' â€” Motivo 2: Buscar concessÃµes ou exceÃ§Ãµes alternativas."
+  },
+  {
+    category: "DiscordÃ¢ncia com soluÃ§Ã£o DART",
+    scenario: "O DART forneceu uma orientaÃ§Ã£o, mas o CSA encontrou uma polÃ­tica no CS Assistant que claramente contradiz a soluÃ§Ã£o dada. Tem evidÃªncias documentadas.",
+    meta: "CSA tem evidÃªncias de que a soluÃ§Ã£o do DART nÃ£o estÃ¡ alinhada com a polÃ­tica.",
+    dart: true,
+    explanation: "Se o CSA tem evidÃªncias de que a soluÃ§Ã£o do DART contraria a polÃ­tica, ele DEVE entrar em contato novamente para pedir uma segunda opiniÃ£o â€” isso Ã© um dos motivos vÃ¡lidos para recontato.",
+    policy: "PolÃ­tica: 'Quando entrar em contato com o DART' â€” Motivo 4: DiscordÃ¢ncia com soluÃ§Ã£o do DART quando hÃ¡ evidÃªncias de desalinhamento com a polÃ­tica."
+  },
+
+  // â”€â”€ BLOCO 1 â€” Templates especÃ­ficos (questÃµes 21â€“25) â”€â”€
+  // â”€â”€ BLOCO 2 â€” Templates especÃ­ficos (questÃµes 26â€“30) â”€â”€
+
+  {
+    category: "Template DART â€” Switcheroo",
+    scenario: "O cliente recebeu um pacote com um produto completamente diferente do que pediu. A caixa tambÃ©m nÃ£o bate com o produto correto. O CSA precisa escalar ao DART. Qual template usar?",
+    meta: "Produto errado recebido. Caixa nÃ£o corresponde ao pedido.",
+    dart: true,
+    explanation: "Este Ã© um caso de Switcheroo â€” produto trocado na entrega. O template correto Ã© 'AC3 | Switcheroo', que exige: login, ID do pedido, o que o cliente recebeu e se os dados da caixa recebida batem com os do cliente.",
+    policy: "Template: 'AC3 | Switcheroo' â€” Campos obrigatÃ³rios: login, ID do pedido, o que o cliente recebeu, dados da caixa batem? Sim/NÃ£o."
+  },
+  {
+    category: "Template DART â€” Pedido Travado",
+    scenario: "O cliente entrou em contato porque o pedido estÃ¡ com status 'Atrasado, ainda nÃ£o enviado' mesmo depois da data estimada de entrega ter passado hÃ¡ mais de 3 dias. O AC3 nÃ£o permite emitir concessÃ£o â€” aparece o erro 'Ok, parece que seu produto ainda nÃ£o foi enviado'.",
+    meta: "Pedido atrasado + AC3 bloqueado com mensagem de erro especÃ­fica.",
+    dart: true,
+    explanation: "Existe um template especÃ­fico para esse erro: 'AC3 | ERRO: Ok, parece que seu produto ainda nÃ£o foi enviado'. Campos: login, ID do pedido, tipo de concessÃ£o, pesquisa e aÃ§Ãµes realizadas, resumo. NÃ£o confundir com o template de pedido travado genÃ©rico.",
+    policy: "Template: 'AC3 | ERRO: Ok, parece que seu produto ainda nÃ£o foi enviado' â€” para pedidos com status atrasado + erro ao emitir concessÃ£o no AC3."
+  },
+  {
+    category: "Template DART â€” Etiqueta de DevoluÃ§Ã£o",
+    scenario: "O cliente precisa devolver um produto volumoso, mas o AC3 nÃ£o estÃ¡ gerando a etiqueta automaticamente. O CSA vai escalar ao DART. Qual informaÃ§Ã£o Ã© OBRIGATÃ“RIA incluir no template que nÃ£o seria necessÃ¡ria numa consulta geral?",
+    meta: "DevoluÃ§Ã£o sem etiqueta automÃ¡tica â€” escalar ao DART.",
+    dart: true,
+    explanation: "O template 'AC3 | SolicitaÃ§Ã£o de etiqueta manual de devoluÃ§Ã£o prÃ©-paga' exige campos extras alÃ©m dos bÃ¡sicos: tipo (RMA postagem ou Coleta), ASIN, DIMENSÃ•ES DO PRODUTO (verificar no anÃºncio) e endereÃ§o do vendedor ou FC. As dimensÃµes sÃ£o crÃ­ticas e frequentemente esquecidas.",
+    policy: "Template: 'AC3 | SolicitaÃ§Ã£o de etiqueta manual de devoluÃ§Ã£o prÃ©-paga' â€” campo crÃ­tico: dimensÃµes do pacote (verificar no anÃºncio do produto)."
+  },
+  {
+    category: "Template DART â€” Reembolso de Alto Valor",
+    scenario: "O cliente quer reembolso de um pedido de R$1.800. O AC3 libera a opÃ§Ã£o, mas o valor Ã© alto. O CSA vai escalar. Qual template usar e quais campos extras ele exige em relaÃ§Ã£o a uma consulta geral?",
+    meta: "Reembolso de valor elevado â€” precisa de aprovaÃ§Ã£o DART.",
+    dart: true,
+    explanation: "O template correto Ã© 'AC3 | Reembolso de alto valor'. Ele exige campos adicionais que a consulta geral nÃ£o tem: ID da conta, ID do contato e valor exato do reembolso. Esses campos sÃ£o obrigatÃ³rios para que o DART autorize a concessÃ£o.",
+    policy: "Template: 'AC3 | Reembolso de alto valor' â€” campos extras vs. consulta geral: ID da conta, ID do contato e valor do reembolso."
+  },
+  {
+    category: "Template DART â€” Coleta",
+    scenario: "O cliente tem um produto grande para devolver e solicitou coleta em domicÃ­lio. O CSA vai usar o template de Coleta para escalar ao DART. Qual campo especÃ­fico desse template NÃƒO existe em outros templates de devoluÃ§Ã£o?",
+    meta: "DevoluÃ§Ã£o por coleta em domicÃ­lio â€” escalar ao DART.",
+    dart: true,
+    explanation: "O template 'AC3 | Coleta' exige as dimensÃµes do pacote e o endereÃ§o do FC ou vendedor â€” informaÃ§Ãµes logÃ­sticas necessÃ¡rias para organizar a coleta. Esses campos nÃ£o aparecem em templates de consulta geral ou reembolso simples.",
+    policy: "Template: 'AC3 | Coleta' â€” campos Ãºnicos: motivo da coleta, dimensÃµes do pacote e endereÃ§o do FC ou vendedor."
+  },
+
+  // â”€â”€ BLOCO 2 â€” Templates especÃ­ficos (questÃµes 26â€“30) â”€â”€
+
+  {
+    category: "Template DART â€” Promos e Cupons",
+    scenario: "O cliente comprou um produto com cupom de desconto mas o valor nÃ£o foi aplicado no pedido. O CSA verificou os T&C com o cliente e vai escalar ao DART. O template de Promos/Cupons exige um campo que o CSA frequentemente esquece de incluir. Qual Ã©?",
+    meta: "Cupom nÃ£o aplicado â€” T&C verificados. Vai escalar ao DART.",
+    dart: true,
+    explanation: "O template 'AC3 | Promos/cupons' exige confirmar explicitamente se foram encaminhados prints (Sim/NÃ£o) E se os Termos e CondiÃ§Ãµes foram verificados com o cliente (Sim/NÃ£o). Escalar sem esses campos faz o DART rejeitar ou devolver o ticket.",
+    policy: "Template: 'AC3 | Promos/cupons' â€” campos crÃ­ticos: prints encaminhados? Sim/NÃ£o + T&C verificados com cliente? Sim/NÃ£o."
+  },
+  {
+    category: "Template DART â€” Cancelamento Prime",
+    scenario: "O cliente nÃ£o consegue cancelar a assinatura Prime pelo autoatendimento. O CSA vai escalar ao DART usando o template de Cancelamento de Assinatura Prime. Qual informaÃ§Ã£o Ã© obrigatÃ³ria alÃ©m do login e ID do pedido digital?",
+    meta: "Cliente sem acesso ao cancelamento Prime pelo autoatendimento.",
+    dart: true,
+    explanation: "O template 'AC3 | Cancelamento da Assinatura Prime' exige confirmar: se o e-mail de auto ajuda foi enviado (Sim/NÃ£o) e o motivo pelo qual o cliente nÃ£o consegue pelo autoatendimento. Sem isso, o DART nÃ£o tem contexto para agir.",
+    policy: "Template: 'AC3 | Cancelamento da Assinatura Prime' â€” obrigatÃ³rio: e-mail de auto ajuda enviado? Sim/NÃ£o + motivo pelo qual autoatendimento falhou."
+  },
+  {
+    category: "Template DART â€” Reembolso de Prime",
+    scenario: "O cliente pede reembolso de 3 meses de assinatura Prime que nÃ£o utilizou. O CSA vai escalar ao DART. Qual template usar â€” e ele difere de uma consulta geral em quÃª?",
+    meta: "Reembolso de mÃºltiplos meses de assinatura Prime nÃ£o utilizada.",
+    dart: true,
+    explanation: "O template correto Ã© 'AC3 | Reembolsos de meses anteriores da Assinatura Prime'. Difere da consulta geral porque usa ID de pedido DIGITAL (nÃ£o de produto fÃ­sico) e exige informar a quantidade de meses solicitados e o motivo especÃ­fico da solicitaÃ§Ã£o.",
+    policy: "Template: 'AC3 | Reembolsos de meses anteriores da Assinatura Prime' â€” campos Ãºnicos: ID de pedido digital, quantidade de meses solicitados e motivo."
+  },
+  {
+    category: "Template DART â€” EquiparaÃ§Ã£o de PreÃ§o",
+    scenario: "O cliente comprou um produto por R$350 e agora vÃª o mesmo item por R$290 no site. Quer o reembolso da diferenÃ§a. O CSA vai escalar ao DART. Quais sÃ£o os 3 valores monetÃ¡rios obrigatÃ³rios nesse template?",
+    meta: "Pedido de equiparaÃ§Ã£o de preÃ§o â€” produto mais barato agora no site.",
+    dart: true,
+    explanation: "O template 'AC3 | EquiparaÃ§Ã£o de preÃ§o' exige 3 valores obrigatÃ³rios: (1) valor pago pelo cliente no pedido, (2) valor atual do produto no site e (3) valor da equiparaÃ§Ã£o COM frete incluÃ­do. Os 3 precisam estar preenchidos corretamente.",
+    policy: "Template: 'AC3 | EquiparaÃ§Ã£o de preÃ§o' â€” 3 campos monetÃ¡rios: valor pago, valor atual no site e valor da equiparaÃ§Ã£o com frete."
+  },
+  {
+    category: "Template DART â€” NF / Nota Fiscal",
+    scenario: "O cliente precisa adicionar o CNPJ da empresa na nota fiscal de um pedido jÃ¡ entregue. O CSA vai usar o template de observaÃ§Ãµes de NF. Qual campo desse template o cliente precisa fornecer?",
+    meta: "AlteraÃ§Ã£o de dados na nota fiscal â€” pedido jÃ¡ entregue.",
+    dart: true,
+    explanation: "O template 'AC3 | Solicitar observaÃ§Ãµes de NF' exige a chave de acesso da nota fiscal â€” informaÃ§Ã£o que DEVE ser solicitada ao cliente. Sem ela, o DART nÃ£o consegue localizar e editar o documento fiscal correto.",
+    policy: "Template: 'AC3 | Solicitar observaÃ§Ãµes de NF' â€” campo crÃ­tico fornecido pelo cliente: chave de acesso da NF."
+  },
+
+  // â”€â”€ BLOCO 3 â€” Templates especÃ­ficos (questÃµes 31â€“35) â”€â”€
+
+  {
+    category: "Template DART â€” IDV / KYC",
+    scenario: "O CSA tentou processar uma concessÃ£o, mas o AC3 exibiu uma mensagem de erro com cÃ³digo. O status de KYC da conta estÃ¡ como 'Falha'. O CSA precisa escalar ao DART. Qual template usar e o que ele exige de diferente?",
+    meta: "ConcessÃ£o bloqueada por falha de KYC â€” AC3 exibiu mensagem de erro.",
+    dart: true,
+    explanation: "O template correto Ã© 'AC3 | Escalar Caso IDV'. AlÃ©m do login e ID do pedido, exige: status do KYC na conta (Pendente/ConcluÃ­do/Falha) e, se houve mensagem de erro, o ID do contato do print. Sem o status KYC e o ID do print, o DART nÃ£o consegue agir.",
+    policy: "Template: 'AC3 | Escalar Caso IDV' â€” campos Ãºnicos: status KYC (Pendente/ConcluÃ­do/Falha) e ID do contato do print em caso de erro."
+  },
+  {
+    category: "Template DART â€” CEP",
+    scenario: "O cliente mudou de cidade e precisa atualizar o CEP cadastrado na conta, mas o sistema nÃ£o estÃ¡ permitindo a alteraÃ§Ã£o pelo autoatendimento. O CSA vai escalar ao DART.",
+    meta: "AtualizaÃ§Ã£o de CEP bloqueada pelo autoatendimento.",
+    dart: true,
+    explanation: "Existe um template especÃ­fico para isso: 'AC3 | Escalar atualizaÃ§Ã£o de CEP'. Ele exige: login, ID do contato, ID da conta, CEP antigo e CEP novo. NÃ£o usar template de consulta geral â€” esse tem campos especÃ­ficos que o DART precisa para executar a aÃ§Ã£o.",
+    policy: "Template: 'AC3 | Escalar atualizaÃ§Ã£o de CEP' â€” campos: login, ID contato, ID conta, CEP antigo e CEP novo."
+  },
+  {
+    category: "Template DART â€” Reenvio de DevoluÃ§Ã£o",
+    scenario: "O cliente devolveu o produto, o FC jÃ¡ recebeu a devoluÃ§Ã£o, mas o pedido de substituiÃ§Ã£o ainda nÃ£o foi liberado e o AC3 nÃ£o permite liberar o reenvio. O CSA vai escalar. Qual template usar?",
+    meta: "DevoluÃ§Ã£o chegou ao FC mas reenvio nÃ£o foi liberado. AC3 bloqueado.",
+    dart: true,
+    explanation: "O template correto Ã© 'AC3 | Liberar reenvio de pedido de devoluÃ§Ã£o'. Exige: ID do pedido devolvido, ID do pedido de substituiÃ§Ã£o, pesquisa e aÃ§Ãµes realizadas. O resumo padrÃ£o jÃ¡ descreve a situaÃ§Ã£o: 'pedido devolvido, chegou ao FC, AC3 nÃ£o permite liberar'.",
+    policy: "Template: 'AC3 | Liberar reenvio de pedido de devoluÃ§Ã£o' â€” campos: ID pedido devolvido + ID pedido de substituiÃ§Ã£o + pesquisa realizada."
+  },
+  {
+    category: "Template DART â€” Transportadora cobrando frete",
+    scenario: "A transportadora entrou em contato com o cliente cobrando o valor do frete de uma devoluÃ§Ã£o que jÃ¡ deveria ter sido prÃ©-paga pela Amazon. O cliente estÃ¡ preocupado com a cobranÃ§a indevida.",
+    meta: "Transportadora cobrando frete que deveria ser prÃ©-pago pela Amazon.",
+    dart: true,
+    explanation: "Existe um template especÃ­fico: 'AC3 | Transportadora solicitando frete'. Exige: ID da conta, ID do contato, ID do pedido, ID do print (evidÃªncia da cobranÃ§a), rastreio e valor cobrado. Todos os campos sÃ£o obrigatÃ³rios para investigar a cobranÃ§a.",
+    policy: "Template: 'AC3 | Transportadora solicitando frete' â€” campos: ID conta, ID contato, ID pedido, ID print, rastreio e valor."
+  },
+  {
+    category: "Template DART â€” AprovaÃ§Ã£o de EscalaÃ§Ã£o",
+    scenario: "O cliente estÃ¡ muito insatisfeito e pediu para falar com um supervisor. O CSA jÃ¡ tentou todas as opÃ§Ãµes disponÃ­veis no AC3 e quer pedir aprovaÃ§Ã£o para escalar. O que o template de aprovaÃ§Ã£o de escalaÃ§Ã£o exige que muitos CSAs esquecem de incluir?",
+    meta: "Cliente insistindo em falar com supervisor â€” CSA esgotou as opÃ§Ãµes.",
+    dart: true,
+    explanation: "O template 'AC3 | AprovaÃ§Ã£o de escalaÃ§Ã£o' exige 3 campos crÃ­ticos alÃ©m do bÃ¡sico: (1) motivo da escalaÃ§Ã£o + o que o cliente espera que o supervisor faÃ§a, (2) pesquisa e aÃ§Ãµes realizadas â€” o que o CSA jÃ¡ fez, e (3) opÃ§Ãµes E resposta jÃ¡ oferecidas ao cliente. Sem esses 3, o DART geralmente rejeita a solicitaÃ§Ã£o.",
+    policy: "Template: 'AC3 | AprovaÃ§Ã£o de escalaÃ§Ã£o' â€” campos crÃ­ticos: motivo + expectativa do cliente, pesquisa realizada e opÃ§Ãµes jÃ¡ oferecidas."
+  }
+];
+
+// ============================================================
+//  STATE
+// ============================================================
+let current = 0;
+let correct = 0;
+let wrong = 0;
+let streak = 0;
+let bestStreak = 0;
+let points = 0;
+let userAnswer = null;
+
+// Drag state
+let dragStartX = 0;
+let dragging = false;
+let cardEl;
+
+// ============================================================
+//  INIT
+// ============================================================
+function startQuiz() {
+  document.getElementById('screen-intro').style.display = 'none';
+  const sq = document.getElementById('screen-quiz');
+  sq.style.display = 'flex';
+  renderCard();
+}
+
+function renderCard() {
+  if (current >= questions.length) { showResult(); return; }
+
+  const q = questions[current];
+  document.getElementById('q-counter').textContent = `SituaÃ§Ã£o ${current + 1} de ${questions.length}`;
+
+  document.getElementById('progress-bar').style.width = `${((current) / questions.length) * 100}%`;
+
+  document.getElementById('card-cat').textContent = q.category;
+  document.getElementById('card-scenario').textContent = q.scenario;
+  document.getElementById('card-meta').textContent = q.meta;
+
+  // Reset stamps
+  document.getElementById('stamp-yes').classList.remove('show');
+  document.getElementById('stamp-no').classList.remove('show');
+
+  // Reset card position
+  cardEl = document.getElementById('main-card');
+  cardEl.style.transform = '';
+  cardEl.className = 'card';
+
+  // Re-attach drag
+  cardEl.onmousedown = dragStart;
+  cardEl.ontouchstart = touchStart;
+}
+
+// ============================================================
+//  ANSWER
+// ============================================================
+function answer(isDart) {
+  if (userAnswer !== null) return;
+  userAnswer = isDart;
+
+  const q = questions[current];
+  const isCorrect = (isDart === q.dart);
+
+  // Animate card
+  cardEl.className = 'card ' + (isDart ? 'fly-right' : 'fly-left');
+
+  // Update scores
+  if (isCorrect) {
+    correct++;
+    streak++;
+    bestStreak = Math.max(bestStreak, streak);
+    let pts = 10;
+    if (streak >= 3) pts += Math.min((streak - 2) * 3, 15);
+    points += pts;
+  } else {
+    wrong++;
+    streak = 0;
+  }
+
+  document.getElementById('score-correct').textContent = correct;
+  document.getElementById('score-wrong').textContent = wrong;
+  document.getElementById('score-streak').textContent = streak;
+
+  // Show feedback after card flies
+  setTimeout(() => showFeedback(isCorrect, isDart, q), 360);
+}
+
+function showFeedback(isCorrect, isDart, q) {
+  const overlay = document.getElementById('feedback-overlay');
+
+  document.getElementById('fb-icon').textContent = isCorrect ? 'âœ…' : 'âŒ';
+  const titleEl = document.getElementById('fb-title');
+  titleEl.textContent = isCorrect ? 'Correto!' : 'NÃ£o foi dessa vez...';
+  titleEl.className = 'feedback-title ' + (isCorrect ? 'correct' : 'wrong');
+
+  document.getElementById('fb-answer').textContent =
+    q.dart ? 'âœ… Deveria CONTATAR o DART' : 'âŒ NÃƒO deveria contatar o DART';
+
+  document.getElementById('fb-explanation').textContent = q.explanation;
+  document.getElementById('fb-policy').textContent = q.policy;
+
+  const btnNext = document.getElementById('btn-next');
+  btnNext.textContent = current + 1 >= questions.length ? 'Ver resultado ðŸ†' : 'PrÃ³xima situaÃ§Ã£o â†’';
+
+  overlay.classList.add('show');
+}
+
+function nextQuestion() {
+  document.getElementById('feedback-overlay').classList.remove('show');
+  userAnswer = null;
+  current++;
+  if (current >= questions.length) {
+    showResult();
+  } else {
+    renderCard();
+  }
+}
+
+// ============================================================
+//  RESULT
+// ============================================================
+function showResult() {
+  document.getElementById('screen-quiz').style.display = 'none';
+  const sr = document.getElementById('screen-result');
+  sr.style.display = 'flex';
+
+  const pct = Math.round((correct / questions.length) * 100);
+
+  let badge, title, subtitle;
+  if (pct >= 90) {
+    badge = 'ðŸ†'; title = 'Especialista DART!';
+    subtitle = `VocÃª domina as polÃ­ticas do DART. ${pct}% de acerto â€” vocÃª estÃ¡ no nÃ­vel dos melhores do time.`;
+  } else if (pct >= 70) {
+    badge = 'â­'; title = 'Bom trabalho!';
+    subtitle = `${pct}% de acerto. VocÃª conhece bem a maioria das situaÃ§Ãµes â€” revise os erros para chegar ao prÃ³ximo nÃ­vel.`;
+  } else if (pct >= 50) {
+    badge = 'ðŸ“š'; title = 'Quase lÃ¡!';
+    subtitle = `${pct}% de acerto. Ainda hÃ¡ pontos para reforÃ§ar â€” releia as polÃ­ticas de 'Quando contatar o DART' e tente novamente.`;
+  } else {
+    badge = 'ðŸ’¡'; title = 'Hora de estudar!';
+    subtitle = `${pct}% de acerto. NÃ£o desanima â€” revise os PDFs e jogue de novo. Todo erro Ã© aprendizado!`;
+  }
+
+  document.getElementById('result-badge').textContent = badge;
+  document.getElementById('result-title').textContent = title;
+  document.getElementById('result-subtitle').textContent = subtitle;
+  document.getElementById('result-score-big').textContent = points;
+  document.getElementById('res-correct').textContent = correct;
+  document.getElementById('res-wrong').textContent = wrong;
+  document.getElementById('res-streak').textContent = bestStreak;
+
+  if (bestStreak >= 3) {
+    document.getElementById('streak-info').textContent =
+      `ðŸ”¥ Melhor sequÃªncia: ${bestStreak} respostas certas seguidas!`;
+  }
+
+  if (pct >= 90) {
+    document.getElementById('reconhecimento-banner').style.display = 'block';
+  }
+
+  document.getElementById('progress-bar').style.width = '100%';
+}
+
+// ============================================================
+//  RESTART
+// ============================================================
+function restart() {
+  current = 0; correct = 0; wrong = 0;
+  streak = 0; bestStreak = 0; points = 0;
+  userAnswer = null;
+
+  document.getElementById('screen-result').style.display = 'none';
+  document.getElementById('score-correct').textContent = '0';
+  document.getElementById('score-wrong').textContent = '0';
+  document.getElementById('score-streak').textContent = '0';
+  document.getElementById('progress-bar').style.width = '5%';
+  document.getElementById('reconhecimento-banner').style.display = 'none';
+
+  const sq = document.getElementById('screen-quiz');
+  sq.style.display = 'flex';
+  renderCard();
+}
+
+// ============================================================
+//  DRAG / SWIPE
+// ============================================================
+function dragStart(e) {
+  if (e.touches) return;
+  dragging = true;
+  dragStartX = e.clientX;
+  document.onmousemove = dragMove;
+  document.onmouseup = dragEnd;
+}
+
+function touchStart(e) {
+  dragging = true;
+  dragStartX = e.touches[0].clientX;
+  document.ontouchmove = touchMove;
+  document.ontouchend = touchEnd;
+}
+
+function dragMove(e) {
+  if (!dragging) return;
+  const dx = e.clientX - dragStartX;
+  applyDragStyle(dx);
+}
+
+function touchMove(e) {
+  if (!dragging) return;
+  const dx = e.touches[0].clientX - dragStartX;
+  applyDragStyle(dx);
+}
+
+function applyDragStyle(dx) {
+  const rot = dx / 18;
+  cardEl.style.transform = `translateX(${dx}px) rotate(${rot}deg)`;
+  const threshold = 60;
+  const stampY = document.getElementById('stamp-yes');
+  const stampN = document.getElementById('stamp-no');
+  if (dx > threshold) {
+    stampY.classList.add('show'); stampN.classList.remove('show');
+  } else if (dx < -threshold) {
+    stampN.classList.add('show'); stampY.classList.remove('show');
+  } else {
+    stampY.classList.remove('show'); stampN.classList.remove('show');
+  }
+}
+
+function dragEnd(e) {
+  if (!dragging) return;
+  dragging = false;
+  document.onmousemove = null; document.onmouseup = null;
+  const dx = e.clientX - dragStartX;
+  if (dx > 80) answer(true);
+  else if (dx < -80) answer(false);
+  else {
+    cardEl.style.transform = '';
+    document.getElementById('stamp-yes').classList.remove('show');
+    document.getElementById('stamp-no').classList.remove('show');
+  }
+}
+
+function touchEnd(e) {
+  if (!dragging) return;
+  dragging = false;
+  document.ontouchmove = null; document.ontouchend = null;
+  const dx = e.changedTouches[0].clientX - dragStartX;
+  if (dx > 80) answer(true);
+  else if (dx < -80) answer(false);
+  else {
+    cardEl.style.transform = '';
+    document.getElementById('stamp-yes').classList.remove('show');
+    document.getElementById('stamp-no').classList.remove('show');
+  }
+}
+
+// ============================================================
+//  KEYBOARD
+// ============================================================
+document.addEventListener('keydown', e => {
+  if (document.getElementById('screen-quiz').style.display === 'flex') {
+    if (e.key === 'ArrowRight') answer(true);
+    if (e.key === 'ArrowLeft')  answer(false);
+    if ((e.key === 'Enter' || e.key === ' ') && document.getElementById('feedback-overlay').classList.contains('show')) {
+      nextQuestion();
+    }
+  }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Como Reduzir o AHT</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Segoe UI',Arial,sans-serif;background:#f1f5f9;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:32px 16px}
+  .card{background:#fff;border-radius:20px;max-width:700px;width:100%;box-shadow:0 8px 40px rgba(0,0,0,.12);overflow:hidden}
+  .header{background:linear-gradient(135deg,#4f46e5,#7c3aed);padding:36px 32px 28px;color:#fff}
+  .header-emoji{font-size:2.8rem;margin-bottom:10px;display:block}
+  .header h1{font-size:1.75rem;font-weight:800;letter-spacing:-.5px;margin-bottom:6px}
+  .header p{font-size:1rem;opacity:.88;font-weight:500}
+  .tag{display:inline-block;background:rgba(255,255,255,.22);border-radius:20px;padding:3px 14px;font-size:.78rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:14px}
+  .body{padding:28px 32px 20px}
+  .desc{font-size:1rem;color:#334155;line-height:1.65;margin-bottom:24px}
+  .section-label{font-size:.72rem;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:#4f46e5;margin-bottom:12px}
+  /* Accordion */
+  .accordion{margin-bottom:24px}
+  .acc-item{border:1px solid #e2e8f0;border-radius:12px;margin-bottom:8px;overflow:hidden}
+  .acc-btn{width:100%;background:#f8fafc;border:none;padding:14px 18px;text-align:left;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:.93rem;font-weight:600;color:#1e293b;transition:background .2s}
+  .acc-btn:hover{background:#f1f5f9}
+  .acc-btn.open{background:#4f46e5;color:#fff}
+  .acc-arrow{font-size:.8rem;transition:transform .25s;flex-shrink:0}
+  .acc-btn.open .acc-arrow{transform:rotate(180deg)}
+  .acc-body{max-height:0;overflow:hidden;transition:max-height .3s ease,padding .3s ease;padding:0 18px;font-size:.9rem;color:#334155;line-height:1.65;background:#fff}
+  .acc-body.open{max-height:400px;padding:14px 18px}
+  .footer{border-top:1px solid #f1f5f9;padding:14px 32px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+  .footer-brand{font-size:.75rem;color:#94a3b8;font-weight:600}
+  .footer-author{font-size:.72rem;color:#cbd5e1}
+  @media print{body{background:#fff;padding:0} .card{box-shadow:none;border-radius:0;max-width:100%} .acc-body{max-height:none!important;padding:14px 18px!important}}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="header">
+    <span class="tag">Treinamento CS BR</span>
+    <span class="header-emoji">&#x23F1;&#xFE0F;</span>
+    <h1>Como Reduzir o AHT</h1>
+    <p>Eficiência no Atendimento</p>
+  </div>
+  <div class="body">
+    <p class="desc">O AHT (Average Handle Time) mede o tempo médio de cada atendimento. Reduzi-lo sem perder qualidade é um dos principais desafios do CS — e possível com as técnicas certas.</p>
+    <p class="section-label">Explore os Tópicos</p>
+    <div class="accordion" id="acc">
+            <div class="acc-item">
+        <button class="acc-btn"><span>O que é o AHT e como é calculado?</span><span class="acc-arrow">&#x25BC;</span></button>
+        <div class="acc-body">O AHT é calculado somando o tempo de conversa ativa com o tempo de pós-atendimento (wrap-up), dividido pelo número de contatos. Mesmo uma pausa desnecessária de 2 minutos por contato, multiplicada por 40 contatos/dia, representa mais de 1h20 de tempo improdutivo.</div>
+      </div>
+      <div class="acc-item">
+        <button class="acc-btn"><span>Quais são as principais causas de AHT elevado?</span><span class="acc-arrow">&#x25BC;</span></button>
+        <div class="acc-body">As causas mais comuns são: não ler o histórico antes de começar, fazer perguntas já respondidas pelo cliente, redigir respostas do zero em vez de usar templates, pausas excessivas sem comunicação, e encerramento longo ou repetitivo. DART desnecessário também dobra o AHT do contato.</div>
+      </div>
+      <div class="acc-item">
+        <button class="acc-btn"><span>Como o AHT se correlaciona com outras métricas?</span><span class="acc-arrow">&#x25BC;</span></button>
+        <div class="acc-body">AHT alto geralmente acompanha HRR alto (muitas pausas/transferências) e pode reduzir o CCX quando o cliente sente demora sem progresso. Por outro lado, reduzir AHT demais com encerramentos prematuros gera BTB. O equilíbrio é: resolver rápido sem cortar o atendimento antes da hora.</div>
+      </div>
+      <div class="acc-item">
+        <button class="acc-btn"><span>Técnicas práticas para reduzir o AHT</span><span class="acc-arrow">&#x25BC;</span></button>
+        <div class="acc-body"><b>1.</b> Leia o histórico completo antes de cumprimentar.<br><b>2.</b> Identifique a demanda nas 2 primeiras mensagens.<br><b>3.</b> Use templates e blurbs prontos — não escreva do zero.<br><b>4.</b> Comunique pausas: "Vou verificar aqui, um momento."<br><b>5.</b> Confirme a resolução em uma única mensagem clara antes de encerrar.</div>
+      </div>
+      <div class="acc-item">
+        <button class="acc-btn"><span>O que NÃO fazer ao tentar reduzir o AHT</span><span class="acc-arrow">&#x25BC;</span></button>
+        <div class="acc-body">Não encerre o contato antes de confirmar a resolução. Não transfira para diminuir seu próprio tempo — isso aumenta o HRR do time. Não ignore demandas secundárias apenas para fechar mais rápido. Velocidade sem qualidade gera recontato, que é o pior inimigo do AHT médio.</div>
+      </div>
+    </div>
+  </div>
+  <div class="footer">
+    <span class="footer-brand">Amazon CS BR &mdash; Time de Qualidade</span>
+    <span class="footer-author">Desenvolvido por Mateus Rebouças (zrebouca — Team Manager) &middot; 2026</span>
+  </div>
+</div>
+<script>
+document.querySelectorAll('.acc-btn').forEach(function(btn){
+  btn.addEventListener('click',function(){
+    var body=this.nextElementSibling;
+    var isOpen=body.classList.contains('open');
+    document.querySelectorAll('.acc-body').forEach(function(b){b.classList.remove('open')});
+    document.querySelectorAll('.acc-btn').forEach(function(b){b.classList.remove('open')});
+    if(!isOpen){body.classList.add('open');this.classList.add('open')}
+  });
+});
+</script>
+</body>
+</html>

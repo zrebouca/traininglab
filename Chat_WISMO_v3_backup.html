@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Chat Simulator - WISMO | CS OPs-VAR BR</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0f172a;color:#f1f5f9;font-family:"Segoe UI",Arial,sans-serif;min-height:100vh;font-size:15px}
+#app{max-width:1060px;margin:0 auto;padding:20px}
+#si{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;text-align:center;padding:40px}
+.lt{font-size:2.5rem;font-weight:900;color:#7dd3fc;letter-spacing:3px;margin-bottom:6px}
+.ls{font-size:.85rem;color:#94a3b8;letter-spacing:5px;margin-bottom:18px}
+.sic-info{background:#1e293b;border:1px solid #334155;padding:9px 22px;font-size:.78rem;color:#7dd3fc;letter-spacing:1px;margin-bottom:22px;border-radius:4px}
+.it{max-width:560px;color:#cbd5e1;line-height:2;margin-bottom:18px;font-size:.92rem}
+.it em{color:#7dd3fc;font-style:normal;font-weight:700}
+.bmain{background:linear-gradient(135deg,#0ea5e9,#0369a1);color:#fff;font-size:.95rem;font-weight:700;padding:14px 44px;border:none;cursor:pointer;letter-spacing:2px;border-radius:4px;transition:all .2s}
+.bmain:hover{filter:brightness(1.15);transform:translateY(-2px)}
+.ver{font-size:.65rem;color:#475569;margin-top:20px;letter-spacing:2px}
+#hud{display:none;position:sticky;top:0;z-index:100;background:#0f172aee;border-bottom:2px solid #1e293b;padding:10px 18px;backdrop-filter:blur(8px)}
+.hi{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+.hf{font-size:.78rem;color:#94a3b8}.hf b{color:#7dd3fc;font-size:.92rem}
+.htimer{font-size:1.3rem;font-weight:900;color:#7dd3fc;min-width:40px;text-align:right;font-family:"Courier New",monospace}
+.htimer.warn{color:#fbbf24}
+.htimer.crit{color:#f87171;animation:pulse .35s infinite alternate}
+@keyframes pulse{from{opacity:1}to{opacity:.4}}
+.sc-prog{display:flex;gap:5px;margin-top:6px}
+.sc-dot{width:36px;height:5px;background:#1e293b;border-radius:3px;transition:all .3s}
+.sc-dot.done{background:#34d399}.sc-dot.active{background:#7dd3fc}.sc-dot.fail{background:#f87171}
+.pb-w{background:#1e293b;height:3px;margin-top:7px;border-radius:2px}
+.pb{background:linear-gradient(90deg,#38bdf8,#0ea5e9);height:3px;border-radius:2px;transition:width .5s}
+#sim{display:none;margin-top:14px}
+.sim-wrap{display:grid;grid-template-columns:290px 1fr;gap:16px}
+@media(max-width:700px){.sim-wrap{grid-template-columns:1fr}}
+.order-panel{background:#1e293b;border:1px solid #334155;padding:16px;border-radius:8px}
+.op-title{font-size:.72rem;color:#7dd3fc;letter-spacing:3px;font-weight:700;border-bottom:1px solid #334155;padding-bottom:7px;margin-bottom:10px}
+.op-row{display:flex;justify-content:space-between;font-size:.78rem;padding:5px 0;border-bottom:1px solid #0f172a66}
+.op-label{color:#94a3b8;flex-shrink:0;margin-right:6px}
+.op-val{color:#f1f5f9;font-weight:600;text-align:right}
+.op-val.ok{color:#34d399}.op-val.warn{color:#fbbf24}.op-val.bad{color:#f87171}
+.tl-title{font-size:.68rem;color:#64748b;letter-spacing:2px;margin:12px 0 7px;text-transform:uppercase}
+.tl-item{display:flex;gap:9px;margin-bottom:7px;font-size:.75rem}
+.tl-dot{width:9px;height:9px;border-radius:50%;margin-top:3px;flex-shrink:0}
+.tl-dot.done{background:#34d399}.tl-dot.pend{background:#fbbf24}.tl-dot.fail{background:#f87171}
+.tl-txt{color:#cbd5e1;line-height:1.4}.tl-date{color:#64748b;font-size:.67rem}
+.chat-panel{background:#1e293b;border:1px solid #334155;border-radius:8px;display:flex;flex-direction:column}
+.chat-header{background:#0f172a;padding:9px 14px;font-size:.75rem;color:#94a3b8;border-radius:8px 8px 0 0;border-bottom:1px solid #334155}
+.chat-header b{color:#7dd3fc}
+/* badge de fase */
+.phase-badge{display:inline-block;padding:2px 10px;border-radius:10px;font-size:.68rem;font-weight:700;letter-spacing:1px;margin-left:8px}
+.phase-badge.open{background:#1e3a5f;color:#7dd3fc;border:1px solid #38bdf844}
+.phase-badge.resolve{background:#1a2e1a;color:#34d399;border:1px solid #34d39944}
+.chat-msgs{padding:14px;min-height:200px;max-height:270px;overflow-y:auto;display:flex;flex-direction:column;gap:9px}
+.msg{max-width:86%;padding:9px 13px;font-size:.82rem;line-height:1.65;border-radius:6px}
+.msg.client{background:#0f172a;color:#f1f5f9;align-self:flex-start;border-left:3px solid #7dd3fc}
+.msg.agent-sent{background:#083344;color:#e0f2fe;align-self:flex-end;border-right:3px solid #0ea5e9}
+.msg.sys{background:#0f172a;color:#64748b;align-self:center;font-size:.7rem;letter-spacing:1px;border:1px solid #334155;padding:5px 12px;border-radius:20px}
+.typing{display:none;align-self:flex-start;padding:7px 13px;background:#0f172a;font-size:.75rem;color:#64748b;border-left:3px solid #7dd3fc;border-radius:4px}
+.typing span{animation:blink 1s infinite}.typing span:nth-child(2){animation-delay:.2s}.typing span:nth-child(3){animation-delay:.4s}
+@keyframes blink{0%,100%{opacity:.2}50%{opacity:1}}
+/* input */
+.input-wrap{padding:12px 14px;border-top:2px solid #334155;background:#0f172a;border-radius:0 0 8px 8px}
+.input-hint{font-size:.72rem;color:#64748b;margin-bottom:8px;letter-spacing:.5px}
+.input-hint em{color:#7dd3fc;font-style:normal}
+.input-hint.phase-open em{color:#7dd3fc}
+.input-hint.phase-resolve em{color:#34d399}
+.input-row{display:flex;gap:8px;align-items:flex-end}
+.chat-input{flex:1;background:#1e293b;border:2px solid #334155;color:#f1f5f9;padding:10px 14px;font-size:.85rem;font-family:"Segoe UI",Arial,sans-serif;border-radius:6px;resize:none;min-height:64px;line-height:1.5;transition:border .2s}
+.chat-input:focus{outline:none;border-color:#38bdf8}
+.chat-input::placeholder{color:#475569}
+.btn-send{background:linear-gradient(135deg,#0ea5e9,#0369a1);color:#fff;font-size:.85rem;font-weight:700;padding:10px 20px;border:none;cursor:pointer;border-radius:6px;white-space:nowrap;transition:all .2s;align-self:stretch}
+.btn-send:hover{filter:brightness(1.15)}
+.btn-send:disabled{background:#1e293b;color:#475569;cursor:not-allowed}
+/* kw reveal */
+.kw-reveal{display:none;padding:10px 14px;background:#082f49;border-top:1px solid #38bdf822;font-size:.75rem;color:#7dd3fc;line-height:1.9}
+.kw-reveal b{color:#bae6fd;display:block;margin-bottom:5px}
+.kw-tag{display:inline-block;padding:2px 9px;border-radius:10px;margin:2px 3px 2px 0;font-size:.7rem;border:1px solid}
+.kw-tag.found{background:#052e16;color:#34d399;border-color:#34d39944}
+.kw-tag.miss{background:#2d0a0a;color:#f87171;border-color:#f8717144}
+.kw-ideal{font-size:.75rem;color:#94a3b8;font-style:italic;margin-top:6px;line-height:1.7;display:block}
+/* feedback */
+.feedback-box{display:none;padding:12px 14px;font-size:.82rem;line-height:1.7;border-left:4px solid;border-radius:0 6px 6px 0;margin:0 14px 10px}
+.feedback-box.ok{border-color:#34d399;background:#052e16;color:#a7f3d0}
+.feedback-box.partial{border-color:#fbbf24;background:#1c1400;color:#fde68a}
+.feedback-box.bad{border-color:#f87171;background:#2d0a0a;color:#fecaca}
+.fb-title{font-size:.75rem;font-weight:700;letter-spacing:1px;margin-bottom:5px}
+.score-bar{display:flex;gap:4px;margin:6px 0}
+.score-dot{width:14px;height:14px;border-radius:50%;background:#1e293b;transition:background .3s}
+.score-dot.on{background:#34d399}
+/* botão continuar fase */
+.btn-continue{display:none;background:linear-gradient(135deg,#0369a1,#075985);color:#fff;font-size:.82rem;font-weight:700;padding:10px 0;border:none;cursor:pointer;letter-spacing:1px;margin:6px 14px 0;transition:all .2s;border-radius:6px;width:calc(100% - 28px)}
+.btn-continue:hover{filter:brightness(1.15)}
+/* CCX */
+.ccx-wrap{display:none;padding:12px 14px;background:#082f49;border-top:1px solid #38bdf822;text-align:center}
+.ccx-title{font-size:.72rem;color:#7dd3fc;letter-spacing:2px;margin-bottom:8px;font-weight:700}
+.stars{display:flex;justify-content:center;gap:7px;margin-bottom:5px}
+.star{font-size:1.6rem;opacity:.25;transition:all .4s;color:#fbbf24}.star.lit{opacity:1}
+.ccx-comment{font-size:.78rem;color:#94a3b8;font-style:italic;line-height:1.6}
+.btn-next{display:none;background:linear-gradient(135deg,#0ea5e9,#0369a1);color:#fff;font-size:.85rem;font-weight:700;padding:11px 0;border:none;cursor:pointer;letter-spacing:1px;margin:10px 14px 14px;transition:all .2s;border-radius:6px;width:calc(100% - 28px)}
+.btn-next:hover{filter:brightness(1.15)}
+/* tela final */
+#sf{flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:40px;text-align:center;display:none}
+.sf-badge{font-size:4rem;margin-bottom:10px}
+.sf-rank{font-size:1.9rem;font-weight:900;letter-spacing:3px;margin-bottom:4px}
+.sf-sub{font-size:.82rem;color:#94a3b8;letter-spacing:3px;margin-bottom:28px}
+.sf-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;max-width:500px;width:100%;margin-bottom:26px}
+.sf-stat{background:#1e293b;border:1px solid #334155;padding:18px 8px;border-radius:8px}
+.sf-stat-val{font-size:1.6rem;font-weight:900;color:#7dd3fc}
+.sf-stat-lbl{font-size:.67rem;color:#64748b;letter-spacing:2px;margin-top:5px}
+.sf-npt{background:#082f49;border:2px solid #38bdf8;padding:14px 36px;font-size:1rem;color:#7dd3fc;letter-spacing:2px;margin-bottom:22px;font-weight:900;border-radius:6px}
+.sf-msg{max-width:480px;color:#94a3b8;font-size:.85rem;line-height:1.9;margin-bottom:22px}
+.btn-sec{background:transparent;border:2px solid #38bdf8;color:#7dd3fc;font-size:.82rem;padding:10px 28px;cursor:pointer;letter-spacing:1px;border-radius:4px;transition:all .2s}
+.btn-sec:hover{background:#082f49}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- TELA INICIAL -->
+<div id="si">
+  <div class="lt">&#128172; CHAT SIMULATOR</div>
+  <div class="ls">WISMO &mdash; WHERE'S MY STUFF?</div>
+  <div class="sic-info">SIC: Check Order Status / Tracking &nbsp;|&nbsp; 876 contatos/semana &nbsp;|&nbsp; AHT 9,4 min &nbsp;|&nbsp; W31 2026</div>
+  <div class="it">
+    Voc&#234; &#233; o CSA. O cliente acabou de entrar no chat.<br>
+    Cada atendimento tem <em>2 fases</em>: abertura + resolu&#231;&#227;o.<br>
+    <em>Digite</em> seu blurb no campo — o sistema avalia em tempo real.<br>
+    Blurb completo e emp&#225;tico = <em>CCX 5 estrelas.</em>
+  </div>
+  <div class="it" style="font-size:.8rem;color:#64748b">5 cen&#225;rios &nbsp;&#183;&nbsp; 2 fases cada &nbsp;&#183;&nbsp; Avalia&#231;&#227;o autom&#225;tica &nbsp;&#183;&nbsp; NPT por desempenho</div>
+  <button class="bmain" onclick="startGame()">&#9654;&#65039; INICIAR ATENDIMENTO</button>
+  <div class="ver">CHAT SIMULATOR v3.0 &nbsp;|&nbsp; WISMO &nbsp;|&nbsp; CS OPs-VAR BR &nbsp;|&nbsp; W31 2026</div>
+</div>
+
+<!-- HUD -->
+<div id="hud">
+  <div class="hi">
+    <span class="hf">CEN&#193;RIO <b id="hsc">1</b>/5</span>
+    <span style="font-size:.92rem;font-weight:900;color:#7dd3fc;letter-spacing:2px">WISMO <span id="hphase" class="phase-badge open">ABERTURA</span></span>
+    <div style="display:flex;gap:18px;align-items:center">
+      <span class="hf">PONTOS <b id="hpts">0</b></span>
+      <span class="hf">CCX <b id="hccx">-</b></span>
+      <span class="htimer" id="htimer">45</span>
+    </div>
+  </div>
+  <div class="sc-prog" id="scprog"></div>
+  <div class="pb-w"><div class="pb" id="hpb" style="width:0%"></div></div>
+</div>
+
+<!-- SIMULADOR -->
+<div id="sim">
+  <div class="sim-wrap">
+    <div class="order-panel">
+      <div class="op-title">&#128203; DADOS DO PEDIDO</div>
+      <div id="ordrows"></div>
+      <div class="tl-title">&#9203; Linha do Tempo</div>
+      <div id="tlines"></div>
+    </div>
+    <div class="chat-panel">
+      <div class="chat-header">
+        Atendimento ativo &nbsp;&#183;&nbsp; <b id="custname">Cliente</b> &nbsp;&#183;&nbsp; SIC: WISMO &nbsp;&#183;&nbsp; <span style="color:#34d399">&#9679; online</span>
+      </div>
+      <div class="chat-msgs" id="chatmsgs">
+        <div class="typing" id="typing">
+          <span>&#9679;</span><span>&#9679;</span><span>&#9679;</span>&nbsp; digitando...
+        </div>
+      </div>
+      <div class="input-wrap" id="inputwrap">
+        <div class="input-hint" id="inputhint">&#9997;&#65039; Fase 1 &mdash; <em>Escreva sua abertura de atendimento</em> &nbsp;&#183;&nbsp; <em>Ctrl+Enter</em> para enviar</div>
+        <div class="input-row">
+          <textarea class="chat-input" id="chatinput" rows="3" placeholder="Ol&#225; [Nome]! Seja bem-vindo(a) &#224; Amazon..."></textarea>
+          <button class="btn-send" id="btnsend" onclick="submitResponse()">&#10148; ENVIAR</button>
+        </div>
+      </div>
+      <div class="kw-reveal" id="kwreveal"></div>
+      <div class="feedback-box" id="fbbox">
+        <div class="fb-title" id="fbtitle"></div>
+        <div id="fbtext"></div>
+        <div class="score-bar" id="scorebar"></div>
+      </div>
+      <button class="btn-continue" id="btncontinue" onclick="startPhase2()">&#128640; FASE 2 &mdash; RESOLVER O CASO &#8594;</button>
+      <div class="ccx-wrap" id="ccxwrap">
+        <div class="ccx-title">&#11088; AVALIA&#199;&#195;O DO CLIENTE</div>
+        <div class="stars" id="stars"></div>
+        <div class="ccx-comment" id="ccxcomment"></div>
+      </div>
+      <button class="btn-next" id="btnnext" onclick="nextScenario()">PR&#211;XIMO CLIENTE &#8594;</button>
+    </div>
+  </div>
+</div>
+
+<!-- TELA FINAL -->
+<div id="sf">
+  <div class="sf-badge" id="sfbadge"></div>
+  <div class="sf-rank" id="sfrank"></div>
+  <div class="sf-sub" id="sfsub"></div>
+  <div class="sf-stats">
+    <div class="sf-stat"><div class="sf-stat-val" id="sfpts">0</div><div class="sf-stat-lbl">PONTOS</div></div>
+    <div class="sf-stat"><div class="sf-stat-val" id="sfcert">0/5</div><div class="sf-stat-lbl">ACERTOS</div></div>
+    <div class="sf-stat"><div class="sf-stat-val" id="sfccx">-</div><div class="sf-stat-lbl">CCX M&#201;DIO</div></div>
+  </div>
+  <div class="sf-npt" id="sfnpt"></div>
+  <div class="sf-msg" id="sfmsg"></div>
+  <div style="font-size:.72rem;color:#475569;margin-bottom:14px">NPT: tire screenshot e envie via Chime</div>
+  <button class="btn-sec" onclick="location.reload()">&#8635; NOVO TURNO</button>
+</div>
+
+<script>
+var SCENARIOS=[
+{
+  id:1,custName:"Ana Lima",sub:"Ausente na entrega",
+  order:{num:"#114-8823761",status:"Tentativa frustrada",prev:"12/08",carrier:"Correios",items:"Fone Bluetooth",payment:"Aprovado"},
+  timeline:[
+    {s:"done",date:"06/08",txt:"Pedido confirmado"},
+    {s:"done",date:"08/08",txt:"Enviado pelo vendedor"},
+    {s:"done",date:"10/08",txt:"Coletado pelos Correios"},
+    {s:"fail",date:"12/08",txt:"Tentativa — cliente ausente"}
+  ],
+  /* ── FASE 1: ABERTURA ── */
+  openingMsg:{t:"sys",m:"Cliente entrou no chat — aguardando atendimento"},
+  opening:{
+    criteria:[
+      {label:"Saudação (olá / boa tarde / bem-vindo)",keys:["olá","oi","bom dia","boa tarde","boa noite","bem-vindo","bem vindo"],pts:2},
+      {label:"Usou o nome da cliente",keys:["ana"],pts:2},
+      {label:"Apresentou-se como Amazon / CSA",keys:["amazon","atendimento","aqui é","meu nome","sou"],pts:1},
+      {label:"Ofereceu ajuda / se colocou à disposição",keys:["posso ajudar","como posso","em que posso","o que posso","ajudo","disposi"],pts:2},
+      {label:"Tom cordial — sem robótico",keys:["prazer","obrigado","fico feliz","que bom","tudo bem","tudo certo"],pts:1}
+    ],
+    maxPts:8,
+    placeholder:"Olá Ana! Seja bem-vinda à Amazon...",
+    hint:"Fase 1 — Escreva sua abertura de atendimento",
+    example:"Olá, Ana! Seja muito bem-vinda ao atendimento Amazon. É um prazer recebê-la aqui! Como posso te ajudar hoje?",
+    feedbacks:{
+      great:"Abertura excelente! Nome, saudação calorosa e oferta de ajuda clara. O cliente já se sente acolhido antes de expor o problema.",
+      partial:"Boa abertura! Faltou usar o nome da cliente OU a oferta de ajuda ficou genérica. Pequenos detalhes fazem grande diferença no primeiro contato.",
+      bad:"Abertura incompleta. Toda abertura precisa ter: (1) saudação, (2) nome do cliente, (3) oferta de ajuda. Sem isso, o atendimento começa frio."
+    }
+  },
+  /* ── FASE 2: MENSAGENS DO CLIENTE ── */
+  msgs:[
+    {t:"client",m:"Oi! Meu pedido deveria ter chegado hoje mas não veio. O que aconteceu?"},
+    {t:"client",m:"Já estou esperando 3 dias além da previsão..."}
+  ],
+  criteria:[
+    {label:"Empatia / reconheceu frustração",keys:["entendo","compreendo","lamento","frustr","situação"],pts:1},
+    {label:"Identificou tentativa frustrada",keys:["ausente","tentativa","não estava","14h","correios tentou"],pts:2},
+    {label:"Opção agência / retirada",keys:["agência","retirar","correios","buscar","posto"],pts:2},
+    {label:"Opção reagendamento",keys:["reagendar","nova entrega","agendar","remarcar","segunda tentativa"],pts:2},
+    {label:"Encerramento / disposição",keys:["ajudo","dúvida","disposição","qualquer coisa","precisar"],pts:1}
+  ],
+  maxPts:8,
+  feedbacks:{
+    great:"Blurb perfeito! Empático, identificou o motivo real (ausência) e deu 2 saídas concretas. WISMO resolvido no primeiro contato.",
+    partial:"Boa tentativa! Faltou mencionar retirada na agência OU reagendamento — sem alternativa concreta o cliente vai recontatar.",
+    bad:"Resposta incompleta. O cliente precisa saber: (1) o que aconteceu — tentativa às 14h, (2) o que fazer agora — retirar ou reagendar."
+  },
+  exampleBlurb:"Ana, entendo a frustração! Verifiquei seu pedido: houve uma tentativa de entrega hoje às 14h, mas você não estava em casa. O pacote está na agência dos Correios mais próxima — pode retirar com documento ou posso reagendar para amanhã. O que prefere?"
+},
+{
+  id:2,custName:"Carlos Mendes",sub:"Not Yet Shipped",
+  order:{num:"#114-5512334",status:"Processando",prev:"A definir",carrier:"Pendente",items:"Tablet Samsung 10.4",payment:"PIX confirmado"},
+  timeline:[
+    {s:"done",date:"11/08",txt:"Pedido realizado"},
+    {s:"done",date:"11/08",txt:"PIX confirmado"},
+    {s:"pend",date:"?",txt:"Envio pelo vendedor — pendente"},
+    {s:"pend",date:"?",txt:"Coleta transportadora — pendente"}
+  ],
+  openingMsg:{t:"sys",m:"Primeiro contato — sem histórico anterior"},
+  opening:{
+    criteria:[
+      {label:"Saudação adequada ao horário",keys:["olá","boa tarde","boa noite","bom dia","oi","bem-vindo","bem vindo"],pts:2},
+      {label:"Usou o nome do cliente",keys:["carlos"],pts:2},
+      {label:"Apresentação Amazon / CSA",keys:["amazon","atendimento","aqui é","meu nome","sou"],pts:1},
+      {label:"Oferta de ajuda explícita",keys:["posso ajudar","como posso","em que posso","ajudo","disposi"],pts:2},
+      {label:"Tom acolhedor",keys:["prazer","fico feliz","que bom","tudo bem","seja bem","obrigado"],pts:1}
+    ],
+    maxPts:8,
+    placeholder:"Boa tarde, Carlos! Seja bem-vindo...",
+    hint:"Fase 1 — Abertura de atendimento",
+    example:"Boa tarde, Carlos! Seja muito bem-vindo ao atendimento Amazon. Fico feliz em te atender! Em que posso ajudar?",
+    feedbacks:{
+      great:"Abertura impecável! Saudação, nome, Amazon e oferta de ajuda — tudo no lugar. Cliente já se sente bem atendido.",
+      partial:"Quase lá! Usar o nome 'Carlos' na abertura gera conexão imediata. Tente incluir sempre.",
+      bad:"Abertura muito fria. Lembre: nome + saudação + oferta de ajuda é o mínimo para um primeiro contato positivo."
+    }
+  },
+  msgs:[
+    {t:"client",m:"Boa tarde! Comprei um tablet ontem com PIX e até agora não recebi e-mail de envio."},
+    {t:"client",m:"O pagamento já foi confirmado. Ainda não saiu?"}
+  ],
+  criteria:[
+    {label:"PIX confirmado / tranquilizou",keys:["confirmado","registrado","constando","recebemos","pix aprovado","pix ok"],pts:2},
+    {label:"Prazo do vendedor (2 dias úteis)",keys:["2 dias","dois dias","dias úteis","vendedor","postar","prazo"],pts:2},
+    {label:"Prazo entrega começa após envio",keys:["após envio","depois do envio","a partir do envio","postagem"],pts:2},
+    {label:"Encerramento proativo",keys:["acompanhar","monitorar","atualizo","aviso","precisar","ajudo"],pts:2}
+  ],
+  maxPts:8,
+  feedbacks:{
+    great:"Excelente! Tranquilizou sem prometer o que não sabe, explicou o fluxo correto e se colocou à disposição.",
+    partial:"Faltou explicar que o prazo de entrega só começa após o envio — isso evita novo contato daqui a 2 dias.",
+    bad:"Resposta insuficiente. Carlos precisa saber: (1) PIX confirmado, (2) vendedor tem até 2 dias para postar, (3) prazo começa após envio."
+  },
+  exampleBlurb:"Boa tarde, Carlos! Seu pagamento PIX foi confirmado — o pedido está em processamento. O vendedor tem até 2 dias úteis para postar. O prazo de entrega só começa a contar após o envio. Assim que sair, você recebe o e-mail de rastreamento!"
+},
+{
+  id:3,custName:"Fernanda Souza",sub:"Pacote devolvido à origem",
+  order:{num:"#114-9934871",status:"Devolvido ao remetente",prev:"--",carrier:"Loggi",items:"Vestido Festa G",payment:"Cartão crédito"},
+  timeline:[
+    {s:"done",date:"01/08",txt:"Pedido realizado"},
+    {s:"done",date:"03/08",txt:"Enviado — Loggi"},
+    {s:"fail",date:"05/08",txt:"Tentativa 1 — Endereço incorreto"},
+    {s:"fail",date:"07/08",txt:"Tentativa 2 — Ausente"},
+    {s:"fail",date:"09/08",txt:"Tentativa 3 — Recusado"},
+    {s:"fail",date:"11/08",txt:"Devolvido ao remetente"}
+  ],
+  openingMsg:{t:"sys",m:"Recontato — contato anterior sem resolução"},
+  opening:{
+    criteria:[
+      {label:"Saudação cordial",keys:["olá","oi","bom dia","boa tarde","boa noite","bem-vinda","bem vinda"],pts:2},
+      {label:"Usou o nome — Fernanda",keys:["fernanda"],pts:2},
+      {label:"Reconheceu o recontato / se desculpou",keys:["recontato","entrar em contato","já nos contato","desculpe","lamento","vejo que","situação"],pts:2},
+      {label:"Ofereceu ajuda / comprometeu-se",keys:["posso ajudar","vou resolver","estou aqui","vou verificar","pode contar","disposi"],pts:2}
+    ],
+    maxPts:8,
+    placeholder:"Olá Fernanda! Vejo que você já entrou em contato antes...",
+    hint:"Fase 1 — Abertura com reconhecimento de recontato",
+    example:"Olá, Fernanda! Vejo que você já entrou em contato anteriormente sobre este pedido — lamento que ainda não foi resolvido. Estou aqui para resolver isso agora. Pode contar comigo!",
+    feedbacks:{
+      great:"Abertura sensacional! Reconheceu o recontato, mostrou empatia e comprometimento. O cliente já sente que dessa vez vai resolver.",
+      partial:"Boa abertura! Em recontatos, mencionar que você vê o histórico anterior passa segurança ao cliente — tente incluir isso.",
+      bad:"Em casos de recontato, nunca faça uma abertura padrão sem reconhecer o histórico. Fernanda já tentou resolver antes — ela precisa sentir que você sabe disso."
+    }
+  },
+  msgs:[
+    {t:"client",m:"SÉRIO que meu pedido voltou?! Precisava desse vestido para um evento esse fim de semana!"},
+    {t:"client",m:"Já entrei em contato antes e ninguém me avisou que ia voltar!"}
+  ],
+  criteria:[
+    {label:"Empatia genuína + urgência reconhecida",keys:["entendo","lamento","frustrant","evento","fim de semana","urgente","desculpe","compreendo"],pts:2},
+    {label:"Explicou motivo (3 tentativas)",keys:["3 tentativas","três tentativas","não conseguiu","devolvido","retornou","voltou após"],pts:2},
+    {label:"Opção reenvio",keys:["reenvio","reenviar","enviar novamente","novo envio"],pts:2},
+    {label:"Opção reembolso + pediu preferência",keys:["reembolso","estorno","dinheiro","prefere","qual opção","quer"],pts:2}
+  ],
+  maxPts:8,
+  feedbacks:{
+    great:"Perfeito! Empatia, motivo claro, 2 opções e pediu preferência. Transforma situação crítica em CCX positiva.",
+    partial:"Faltou empatia forte OU não ofereceu as 2 opções. Com evento no fim de semana, ela precisa sentir urgência.",
+    bad:"Resposta fria. Fernanda precisa: empatia real + reenvio urgente ou reembolso imediato."
+  },
+  exampleBlurb:"Fernanda, entendo totalmente sua frustração — especialmente com um evento tão próximo. Seu pedido retornou após 3 tentativas de entrega. Posso processar reenvio com urgência ou reembolso completo imediatamente. O que prefere?"
+},
+{
+  id:4,custName:"Roberto Alves",sub:"Em trânsito — atrasado",
+  order:{num:"#114-7712984",status:"Em trânsito — atrasado",prev:"09/08 (passou)",carrier:"Correios PAC",items:"Kit Ferramentas 20 peças",payment:"Boleto"},
+  timeline:[
+    {s:"done",date:"04/08",txt:"Pedido realizado"},
+    {s:"done",date:"05/08",txt:"Boleto confirmado"},
+    {s:"done",date:"06/08",txt:"Enviado — Correios PAC"},
+    {s:"fail",date:"09/08",txt:"Previsão original — NÃO entregue"},
+    {s:"pend",date:"?",txt:"Nova previsão: sem data confirmada"}
+  ],
+  openingMsg:{t:"sys",m:"Primeiro contato sobre este pedido"},
+  opening:{
+    criteria:[
+      {label:"Saudação",keys:["olá","oi","bom dia","boa tarde","boa noite","bem-vindo","bem vindo"],pts:2},
+      {label:"Usou o nome — Roberto",keys:["roberto"],pts:2},
+      {label:"Apresentação / Amazon",keys:["amazon","atendimento","aqui é","meu nome","sou"],pts:1},
+      {label:"Oferta de ajuda",keys:["posso ajudar","como posso","em que posso","ajudo","disposi"],pts:2},
+      {label:"Tom profissional e acolhedor",keys:["prazer","fico feliz","que bom","tudo bem","obrigado","satisfação"],pts:1}
+    ],
+    maxPts:8,
+    placeholder:"Olá Roberto! Seja bem-vindo ao atendimento Amazon...",
+    hint:"Fase 1 — Abertura de atendimento",
+    example:"Olá, Roberto! Seja bem-vindo ao atendimento Amazon. É um prazer te atender! Como posso te ajudar hoje?",
+    feedbacks:{
+      great:"Abertura ótima! Profissional, cordial e com o nome do cliente. O atendimento começa com o pé direito.",
+      partial:"Boa! Lembre de usar sempre o nome do cliente na abertura — cria conexão imediata e personaliza o contato.",
+      bad:"Abertura genérica demais. Inclua: saudação + nome + Amazon + oferta de ajuda. São apenas 2 linhas mas fazem toda a diferença."
+    }
+  },
+  msgs:[
+    {t:"client",m:"Olá, meu pedido estava previsto pra chegar dia 9 e hoje já é dia 12. Rastreamento parou de atualizar no dia 8."},
+    {t:"client",m:"É urgente, preciso para o trabalho!"}
+  ],
+  criteria:[
+    {label:"Reconheceu atraso + empatia",keys:["atraso","atrasado","entendo","reconheço","passou","previsão"],pts:1},
+    {label:"Causa provável (operacional Correios)",keys:["operacional","retenção","correios","volume","triagem"],pts:1},
+    {label:"Prazo limite concreto para ação",keys:["17/08","dia 17","5 dias","cinco dias","até sexta","se não chegar"],pts:3},
+    {label:"Solução após prazo + registro",keys:["reembolso","reenvio","processo","registro","acompanho","monitoro"],pts:3}
+  ],
+  maxPts:8,
+  feedbacks:{
+    great:"Excelente gestão de expectativa! Prazo concreto + compromisso evita recontato e mantém confiança.",
+    partial:"Faltou o prazo concreto para ação. Sem uma data limite o cliente recontata todo dia.",
+    bad:"Resposta vaga. Roberto precisa: (1) reconhecimento do atraso, (2) prazo concreto, (3) compromisso de ação."
+  },
+  exampleBlurb:"Roberto, seu pedido está com 3 dias de atraso — entendo a urgência para o trabalho. O rastreamento parou em 08/08, o que costuma indicar retenção operacional nos Correios. Se não chegar até 17/08, processo reembolso ou reenvio imediatamente. Vou registrar acompanhamento agora."
+},
+{
+  id:5,custName:"Mariana Costa",sub:"Pedido cancelado",
+  order:{num:"#114-3301245",status:"CANCELADO",prev:"--",carrier:"--",items:"Perfume Importado 100ml",payment:"Crédito — estornado"},
+  timeline:[
+    {s:"done",date:"08/08",txt:"Pedido realizado"},
+    {s:"done",date:"09/08",txt:"Pagamento aprovado"},
+    {s:"fail",date:"10/08",txt:"Cancelado — item indisponível"},
+    {s:"done",date:"10/08",txt:"Estorno iniciado no cartão"}
+  ],
+  openingMsg:{t:"sys",m:"Cliente recebeu e-mail automático de cancelamento"},
+  opening:{
+    criteria:[
+      {label:"Saudação cordial",keys:["olá","oi","bom dia","boa tarde","boa noite","bem-vinda","bem vinda"],pts:2},
+      {label:"Usou o nome — Mariana",keys:["mariana"],pts:2},
+      {label:"Apresentação Amazon",keys:["amazon","atendimento","aqui é","meu nome","sou"],pts:1},
+      {label:"Oferta de ajuda",keys:["posso ajudar","como posso","em que posso","ajudo","disposi"],pts:2},
+      {label:"Tom acolhedor",keys:["prazer","fico feliz","que bom","tudo bem","obrigado","satisfação"],pts:1}
+    ],
+    maxPts:8,
+    placeholder:"Olá Mariana! Seja bem-vinda ao atendimento Amazon...",
+    hint:"Fase 1 — Abertura de atendimento",
+    example:"Olá, Mariana! Seja bem-vinda ao atendimento Amazon. É um prazer te atender! Como posso ajudar?",
+    feedbacks:{
+      great:"Abertura perfeita! Profissional e calorosa — exatamente o que o cliente precisa antes de relatar um cancelamento inesperado.",
+      partial:"Boa abertura! Use sempre o nome da cliente — em cancelamentos inesperados, o calor humano já reduz a tensão.",
+      bad:"Abertura fria para uma situação já tensa (cancelamento). Saudação + nome + oferta de ajuda são essenciais para desaceler a frustração do cliente."
+    }
+  },
+  msgs:[
+    {t:"client",m:"Recebi um e-mail dizendo que meu pedido foi cancelado?? Eu nem pedi pra cancelar!"},
+    {t:"client",m:"E o meu dinheiro? Já fui cobrada no cartão!"}
+  ],
+  criteria:[
+    {label:"Empatia — reconheceu surpresa",keys:["entendo","surpresa","compreendo","lamento","inesperado","desculpe","sinto"],pts:1},
+    {label:"Motivo correto (falta de estoque)",keys:["estoque","indisponível","esgotou","não tinha","produto"],pts:2},
+    {label:"Estorno confirmado + prazo",keys:["estorno","reembolso","5 dias","5 a 7","dias úteis","fatura","iniciado"],pts:2},
+    {label:"Oferta proativa (alternativa)",keys:["outra opção","similar","alternativa","verifico","outro vendedor","disponível"],pts:2},
+    {label:"Encerramento empático",keys:["ajudo","disposição","dúvida","precisar","mais alguma"],pts:1}
+  ],
+  maxPts:8,
+  feedbacks:{
+    great:"Impecável! Motivo real, estorno com prazo e oferta proativa. Cliente satisfeito mesmo com cancelamento.",
+    partial:"Faltou o prazo do estorno OU oferta de alternativa — sem isso o cliente fica preocupado com o dinheiro.",
+    bad:"Mariana precisa saber: (1) motivo REAL (estoque), (2) estorno JÁ iniciado com prazo, (3) se tem alternativa disponível."
+  },
+  exampleBlurb:"Mariana, entendo que foi uma surpresa! O pedido foi cancelado porque o perfume ficou indisponível no estoque — não foi solicitado por você. O estorno já foi iniciado em 10/08 e aparece na fatura em até 5 dias úteis. O mesmo perfume está disponível por outro vendedor — quer que eu verifique?"
+}
+];
+
+/* ─── STATE ─── */
+var state={
+  sc:0,          // índice do cenário atual
+  phase:1,       // 1=abertura  2=resolução
+  pts:0,
+  correct:0,     // resoluções excelentes (fase 2)
+  openCorrect:0, // aberturas excelentes (fase 1)
+  ccxTotal:0,
+  lastCCX:0,
+  answered:false,
+  timer:null,
+  timeLeft:45,
+  timePenalty:0
+};
+
+/* ─── INIT ─── */
+function startGame(){
+  document.getElementById('si').style.display='none';
+  document.getElementById('hud').style.display='block';
+  document.getElementById('sim').style.display='block';
+  buildProgress();
+  loadScenario(0);
+}
+function buildProgress(){
+  var p=document.getElementById('scprog');p.innerHTML='';
+  for(var i=0;i<SCENARIOS.length;i++){
+    var d=document.createElement('div');
+    d.className='sc-dot'+(i===0?' active':'');
+    d.id='dot'+i;p.appendChild(d);
+  }
+}
+
+/* ─── CARREGAR CENÁRIO ─── */
+function loadScenario(idx){
+  state.sc=idx;state.phase=1;state.answered=false;
+  var sc=SCENARIOS[idx];
+  document.getElementById('hsc').textContent=idx+1;
+  document.getElementById('custname').textContent=sc.custName;
+  document.getElementById('hpb').style.width=((idx/SCENARIOS.length)*100)+'%';
+  resetInputUI();
+  setPhase1UI(sc);
+  renderOrder(sc);
+  renderChatOpening(sc);
+  startTimer(45);
+}
+
+function setPhase1UI(sc){
+  var badge=document.getElementById('hphase');
+  badge.textContent='ABERTURA';badge.className='phase-badge open';
+  var hint=document.getElementById('inputhint');
+  hint.className='input-hint phase-open';
+  hint.innerHTML='&#9997;&#65039; Fase 1 &mdash; <em>'+sc.opening.hint+'</em> &nbsp;&#183;&nbsp; <em>Ctrl+Enter</em> para enviar';
+  document.getElementById('chatinput').placeholder=sc.opening.placeholder;
+}
+function setPhase2UI(){
+  var badge=document.getElementById('hphase');
+  badge.textContent='RESOLUÇÃO';badge.className='phase-badge resolve';
+  var hint=document.getElementById('inputhint');
+  hint.className='input-hint phase-resolve';
+  hint.innerHTML='&#9997;&#65039; Fase 2 &mdash; <em>Responda a dúvida do cliente</em> &nbsp;&#183;&nbsp; <em>Ctrl+Enter</em> para enviar';
+  document.getElementById('chatinput').placeholder='';
+}
+function resetInputUI(){
+  document.getElementById('chatinput').value='';
+  document.getElementById('chatinput').disabled=false;
+  document.getElementById('btnsend').disabled=false;
+  document.getElementById('fbbox').style.display='none';
+  document.getElementById('ccxwrap').style.display='none';
+  document.getElementById('btnnext').style.display='none';
+  document.getElementById('btncontinue').style.display='none';
+  document.getElementById('kwreveal').style.display='none';
+  document.getElementById('inputwrap').style.display='block';
+}
+
+/* ─── PAINEL PEDIDO ─── */
+function renderOrder(sc){
+  var o=sc.order;
+  var rows=[
+    {l:'Pedido',v:o.num},{l:'Status',v:o.status},
+    {l:'Previsão',v:o.prev},{l:'Transportadora',v:o.carrier},
+    {l:'Item',v:o.items},{l:'Pagamento',v:o.payment}
+  ];
+  var el=document.getElementById('ordrows');el.innerHTML='';
+  rows.forEach(function(r){
+    var d=document.createElement('div');d.className='op-row';
+    var s1=document.createElement('span');s1.className='op-label';s1.textContent=r.l;
+    var s2=document.createElement('span');s2.className='op-val';s2.textContent=r.v;
+    d.appendChild(s1);d.appendChild(s2);el.appendChild(d);
+  });
+  var tl=document.getElementById('tlines');tl.innerHTML='';
+  sc.timeline.forEach(function(t){
+    var d=document.createElement('div');d.className='tl-item';
+    var dot=document.createElement('div');dot.className='tl-dot '+t.s;
+    var info=document.createElement('div');
+    var tx=document.createElement('div');tx.className='tl-txt';tx.textContent=t.txt;
+    var dt=document.createElement('div');dt.className='tl-date';dt.textContent=t.date;
+    info.appendChild(tx);info.appendChild(dt);d.appendChild(dot);d.appendChild(info);tl.appendChild(d);
+  });
+}
+
+/* ─── CHAT ─── */
+function renderChatOpening(sc){
+  var box=document.getElementById('chatmsgs');
+  var typing=document.getElementById('typing');
+  box.innerHTML='';box.appendChild(typing);typing.style.display='none';
+  // só mostra msg do sistema no início
+  var el=document.createElement('div');
+  el.className='msg sys';el.textContent=sc.openingMsg.m;
+  box.insertBefore(el,typing);
+  setTimeout(function(){document.getElementById('chatinput').focus();},400);
+}
+function appendClientMsgs(sc){
+  var box=document.getElementById('chatmsgs');
+  var typing=document.getElementById('typing');
+  var delay=400;
+  sc.msgs.forEach(function(msg){
+    setTimeout(function(){
+      typing.style.display='block';box.scrollTop=box.scrollHeight;
+      setTimeout(function(){
+        typing.style.display='none';
+        var el=document.createElement('div');
+        el.className='msg client';el.textContent=msg.m;
+        box.insertBefore(el,typing);box.scrollTop=box.scrollHeight;
+      },700);
+    },delay);
+    delay+=1400;
+  });
+  // foco no input após msgs carregarem
+  setTimeout(function(){
+    document.getElementById('chatinput').focus();
+  },delay+300);
+}
+
+/* ─── NORMALIZAÇÃO ─── */
+function normalize(s){
+  return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+}
+
+/* ─── ENVIO ─── */
+function submitResponse(){
+  if(state.answered)return;
+  var txt=document.getElementById('chatinput').value.trim();
+  if(txt.length<8){
+    document.getElementById('chatinput').style.borderColor='#f87171';
+    setTimeout(function(){document.getElementById('chatinput').style.borderColor='#334155';},600);
+    return;
+  }
+  clearInterval(state.timer);
+  state.answered=true;
+  document.getElementById('chatinput').disabled=true;
+  document.getElementById('btnsend').disabled=true;
+  // exibe mensagem do CSA no chat
+  var box=document.getElementById('chatmsgs');
+  var typing=document.getElementById('typing');
+  var msgEl=document.createElement('div');
+  msgEl.className='msg agent-sent';msgEl.textContent=txt;
+  box.insertBefore(msgEl,typing);
+  box.scrollTop=box.scrollHeight;
+  setTimeout(function(){
+    if(state.phase===1) evaluateOpening(txt);
+    else                evaluateResolution(txt);
+  },500);
+}
+
+/* ─── AVALIAÇÃO FASE 1 (ABERTURA) ─── */
+function evaluateOpening(txt){
+  var sc=SCENARIOS[state.sc];
+  var op=sc.opening;
+  var norm=normalize(txt);
+  var totalPts=0;var results=[];
+  op.criteria.forEach(function(cr){
+    var found=cr.keys.some(function(k){
+      return normalize(k).split(' ').every(function(w){return norm.indexOf(w)>=0;});
+    });
+    results.push({label:cr.label,found:found,pts:cr.pts});
+    if(found)totalPts+=cr.pts;
+  });
+  var bonus=Math.floor(state.timeLeft/10);
+  var pct=totalPts/op.maxPts;
+  var fbClass,fbTitle,fbMsg,addPts;
+  if(pct>=0.75){
+    fbClass='ok';fbTitle='ABERTURA EXCELENTE! +'+(Math.round(pct*8)+bonus)+' pts';
+    fbMsg=op.feedbacks.great;addPts=Math.round(pct*8)+bonus;state.openCorrect++;
+  }else if(pct>=0.45){
+    fbClass='partial';fbTitle='ABERTURA PARCIAL — '+(Math.round(pct*6)+bonus)+' pts';
+    fbMsg=op.feedbacks.partial;addPts=Math.round(pct*6)+bonus;
+  }else{
+    fbClass='bad';fbTitle='ABERTURA INCOMPLETA — '+Math.max(1,bonus)+' pts';
+    fbMsg=op.feedbacks.bad;addPts=Math.max(1,bonus);
+  }
+  state.pts+=addPts;
+  document.getElementById('hpts').textContent=state.pts;
+  // keywords
+  showKeywords(results,'Critérios da abertura avaliados:',op.example,'Abertura ideal: ');
+  // score bar
+  var bar=document.getElementById('scorebar');bar.innerHTML='';
+  var filled=Math.round(pct*5);
+  for(var i=0;i<5;i++){var d=document.createElement('div');d.className='score-dot'+(i<filled?' on':'');bar.appendChild(d);}
+  // feedback
+  var fbbox=document.getElementById('fbbox');
+  fbbox.className='feedback-box '+fbClass;
+  document.getElementById('fbtitle').textContent=fbTitle;
+  document.getElementById('fbtext').textContent=fbMsg;
+  fbbox.style.display='block';
+  // botão para fase 2
+  setTimeout(function(){
+    document.getElementById('btncontinue').style.display='block';
+    document.getElementById('inputwrap').style.display='none';
+  },600);
+}
+
+/* ─── TRANSIÇÃO PARA FASE 2 ─── */
+function startPhase2(){
+  state.phase=2;state.answered=false;
+  var sc=SCENARIOS[state.sc];
+  // esconde feedback da fase 1
+  document.getElementById('fbbox').style.display='none';
+  document.getElementById('kwreveal').style.display='none';
+  document.getElementById('scorebar').innerHTML='';
+  document.getElementById('btncontinue').style.display='none';
+  // restaura input
+  document.getElementById('chatinput').value='';
+  document.getElementById('chatinput').disabled=false;
+  document.getElementById('btnsend').disabled=false;
+  document.getElementById('inputwrap').style.display='block';
+  setPhase2UI();
+  // carrega mensagens do cliente
+  appendClientMsgs(sc);
+  // timer fase 2: 90s
+  startTimer(90);
+}
+
+/* ─── AVALIAÇÃO FASE 2 (RESOLUÇÃO) ─── */
+function evaluateResolution(txt){
+  var sc=SCENARIOS[state.sc];
+  var norm=normalize(txt);
+  var totalPts=0;var maxPts=sc.maxPts;var results=[];
+  sc.criteria.forEach(function(cr){
+    var found=cr.keys.some(function(k){
+      return normalize(k).split(' ').every(function(w){return norm.indexOf(w)>=0;});
+    });
+    results.push({label:cr.label,found:found,pts:cr.pts});
+    if(found)totalPts+=cr.pts;
+  });
+  var bonus=Math.floor(state.timeLeft/15);
+  var pct=totalPts/maxPts;
+  var stars,fbClass,fbTitle,fbMsg,addPts;
+  if(pct>=0.75){
+    stars=5;fbClass='ok';fbTitle='BLURB EXCELENTE! +'+(Math.round(pct*10)+bonus)+' pts';
+    fbMsg=sc.feedbacks.great;addPts=Math.round(pct*10)+bonus;state.correct++;
+  }else if(pct>=0.45){
+    stars=3;fbClass='partial';fbTitle='BLURB PARCIAL — '+(Math.round(pct*8)+bonus)+' pts';
+    fbMsg=sc.feedbacks.partial;addPts=Math.round(pct*8)+bonus;
+  }else{
+    stars=1;fbClass='bad';fbTitle='BLURB INCOMPLETO — '+Math.max(1,bonus)+' pts';
+    fbMsg=sc.feedbacks.bad;addPts=Math.max(1,bonus);
+  }
+  state.pts+=addPts;state.ccxTotal+=stars;state.lastCCX=stars;
+  document.getElementById('hpts').textContent=state.pts;
+  showKeywords(results,'Critérios da resolução avaliados:',sc.exampleBlurb,'Blurb ideal: ');
+  var bar=document.getElementById('scorebar');bar.innerHTML='';
+  var filled=Math.round(pct*5);
+  for(var i=0;i<5;i++){var d=document.createElement('div');d.className='score-dot'+(i<filled?' on':'');bar.appendChild(d);}
+  var fbbox=document.getElementById('fbbox');
+  fbbox.className='feedback-box '+fbClass;
+  document.getElementById('fbtitle').textContent=fbTitle;
+  document.getElementById('fbtext').textContent=fbMsg;
+  fbbox.style.display='block';
+  setTimeout(function(){showCCX(stars,sc.custName);},900);
+}
+
+/* ─── HELPERS ─── */
+function showKeywords(results,title,example,exLabel){
+  var kw=document.getElementById('kwreveal');kw.style.display='block';
+  var html='<b>'+title+'</b>';
+  results.forEach(function(r){
+    html+='<span class="kw-tag '+(r.found?'found':'miss')+'">'+(r.found?'&#10003;':'&#10007;')+' '+r.label+'</span>';
+  });
+  html+='<span class="kw-ideal"><em style="color:#64748b">'+exLabel+'</em>'+example+'</span>';
+  kw.innerHTML=html;
+}
+function showCCX(stars,nome){
+  var wrap=document.getElementById('ccxwrap');
+  var starsEl=document.getElementById('stars');starsEl.innerHTML='';
+  for(var i=1;i<=5;i++){var s=document.createElement('span');s.className='star';s.textContent='\u2605';starsEl.appendChild(s);}
+  wrap.style.display='block';
+  var c5=[nome+' avaliou com 5 estrelas — resolvido no primeiro contato!',nome+' amou o atendimento — empático e objetivo!'];
+  var c3=[nome+' deixou 3 estrelas — resposta incompleta, pode recontatar.','Atendimento mediano — faltou clareza na solução.'];
+  var c1=[nome+' insatisfeito — resposta não resolveu.',nome+' pode gerar BTB negativo.'];
+  var comment=stars>=5?c5[Math.floor(Math.random()*c5.length)]:stars>=3?c3[Math.floor(Math.random()*c3.length)]:c1[Math.floor(Math.random()*c1.length)];
+  var i=0;var iv=setInterval(function(){
+    if(i<stars){starsEl.children[i].classList.add('lit');i++;}
+    else{
+      clearInterval(iv);
+      document.getElementById('ccxcomment').textContent=comment;
+      document.getElementById('hccx').textContent=stars+'/5';
+      document.getElementById('btnnext').style.display='block';
+      document.getElementById('inputwrap').style.display='none';
+    }
+  },280);
+}
+function startTimer(seconds){
+  clearInterval(state.timer);state.timeLeft=seconds;
+  var el=document.getElementById('htimer');el.textContent=seconds;el.className='htimer';
+  state.timer=setInterval(function(){
+    state.timeLeft--;el.textContent=state.timeLeft;
+    var warn=state.phase===1?15:20;
+    var crit=state.phase===1?5:8;
+    if(state.timeLeft<=warn)el.className='htimer warn';
+    if(state.timeLeft<=crit)el.className='htimer crit';
+    if(state.timeLeft<=0){
+      clearInterval(state.timer);
+      if(!state.answered){
+        var txt=document.getElementById('chatinput').value.trim();
+        if(txt.length<5)document.getElementById('chatinput').value='[Tempo esgotado]';
+        submitResponse();
+      }
+    }
+  },1000);
+}
+
+/* ─── PRÓXIMO CENÁRIO ─── */
+function nextScenario(){
+  var dot=document.getElementById('dot'+state.sc);
+  if(dot){dot.classList.remove('active');dot.classList.add(state.lastCCX>=4?'done':'fail');}
+  var next=state.sc+1;
+  if(next<SCENARIOS.length){
+    var nd=document.getElementById('dot'+next);if(nd)nd.classList.add('active');
+    loadScenario(next);
+  }else{showFinalScreen();}
+}
+
+/* ─── TELA FINAL ─── */
+function showFinalScreen(){
+  document.getElementById('hud').style.display='none';
+  document.getElementById('sim').style.display='none';
+  var sf=document.getElementById('sf');sf.style.display='flex';
+  var totalCases=SCENARIOS.length;
+  // considera excelente quem acertou abertura E resolução no mesmo cenário
+  var excellent=Math.round((state.correct+state.openCorrect)/2);
+  var pct=state.correct/totalCases;
+  var ccxAvg=Math.round((state.ccxTotal/totalCases)*10)/10;
+  var badge,rank,sub,npt,msg;
+  if(pct>=0.8){
+    badge='\ud83e\udd47';rank='ESPECIALISTA WISMO';
+    sub='Abertura impecável + resolução certeira!';
+    npt='\ud83c\udf89 NPT: 15 minutos';
+    msg='Você domina as 2 fases do atendimento WISMO: abre com calor humano e resolve com precisão. Esses padrões eliminam recontatos e geram CCX positiva mesmo em casos de atraso ou cancelamento.';
+  }else if(pct>=0.4){
+    badge='\ud83e\udd48';rank='BOM TRABALHO';
+    sub='Bons blurbs, continue praticando as 2 fases!';
+    npt='\u231b NPT: 10 minutos';
+    msg='Você acerta a empatia! Foque em sempre oferecer 2 opções concretas + prazo definido nas resoluções. Nas aberturas, lembre: nome + saudação + oferta de ajuda são inegociáveis.';
+  }else{
+    badge='\ud83d\udd0d';rank='APRENDIZ';
+    sub='Continue praticando os blurbs!';
+    npt='\u231b NPT: 5 minutos';
+    msg='WISMO é 876 contatos/semana no time. Revise os blurbs ideais de cada caso: abertura com nome e cordialidade, resolução com sub-status correto e 2 caminhos para o cliente.';
+  }
+  document.getElementById('sfbadge').textContent=badge;
+  document.getElementById('sfrank').textContent=rank;
+  document.getElementById('sfrank').style.color=pct>=0.8?'#34d399':pct>=0.4?'#fbbf24':'#94a3b8';
+  document.getElementById('sfsub').textContent=sub;
+  document.getElementById('sfpts').textContent=state.pts;
+  document.getElementById('sfcert').textContent=state.correct+'/'+totalCases;
+  document.getElementById('sfccx').textContent=ccxAvg+'/5';
+  document.getElementById('sfnpt').textContent=npt;
+  document.getElementById('sfmsg').textContent=msg;
+}
+
+/* ─── KEYBOARD ─── */
+document.addEventListener('keydown',function(e){
+  if(e.ctrlKey&&e.key==='Enter'){e.preventDefault();submitResponse();}
+});
+</script>
+</body>
+</html>

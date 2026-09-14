@@ -1,0 +1,564 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ðŸ¦‰ Desafio: Lidando com Cliente DifÃ­cil (CDC)</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;}
+  body{background:#0f172a;color:#e2e8f0;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
+  .app{max-width:640px;width:100%;}
+  .card{background:#1e293b;border-radius:20px;padding:32px;box-shadow:0 20px 50px -10px rgba(0,0,0,.5);border:1px solid #334155;}
+  h1{font-size:1.4rem;font-weight:800;margin-bottom:8px;color:#fff;display:flex;align-items:center;gap:10px;}
+  .sub{font-size:.85rem;color:#94a3b8;margin-bottom:24px;line-height:1.5;}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:14px 26px;border-radius:12px;border:none;background:#6366f1;color:#fff;font-weight:800;font-size:.9rem;cursor:pointer;transition:.15s;width:100%;}
+  .btn:hover{background:#4f46e5;transform:translateY(-1px);}
+  .btn.secondary{background:#334155;}
+  .btn.secondary:hover{background:#475569;}
+  .btn:disabled{opacity:.5;cursor:not-allowed;}
+  .progressbar{height:8px;background:#334155;border-radius:20px;overflow:hidden;margin-bottom:22px;}
+  .progressbar-fill{height:100%;background:linear-gradient(90deg,#6366f1,#8b5cf6);border-radius:20px;transition:width .3s;}
+  .topline{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;font-size:.72rem;font-weight:800;color:#94a3b8;letter-spacing:.3px;}
+  .streak{background:#f59e0b22;color:#f59e0b;padding:3px 10px;border-radius:20px;font-weight:800;}
+  .q-badge{display:inline-block;font-size:.65rem;font-weight:800;padding:4px 10px;border-radius:8px;margin-bottom:12px;letter-spacing:.3px;}
+  .q-badge.easy{background:#10b98122;color:#10b981;}
+  .q-badge.hard{background:#ef444422;color:#ef4444;}
+  .q-text{font-size:1.05rem;font-weight:700;color:#fff;margin-bottom:20px;line-height:1.4;}
+  .opt{display:block;width:100%;text-align:left;padding:14px 16px;margin-bottom:10px;border-radius:12px;border:2px solid #334155;background:#0f172a;color:#e2e8f0;font-size:.85rem;cursor:pointer;transition:.15s;line-height:1.4;}
+  .opt:hover:not(:disabled){border-color:#6366f1;background:#1a2332;}
+  .opt.correct{border-color:#10b981;background:#10b98118;color:#6ee7b7;}
+  .opt.wrong{border-color:#ef4444;background:#ef444418;color:#fca5a5;}
+  .opt:disabled{cursor:default;}
+  .feedback{margin-top:16px;padding:14px 16px;border-radius:12px;font-size:.8rem;line-height:1.55;}
+  .feedback.ok{background:#10b98115;border-left:3px solid #10b981;color:#d1fae5;}
+  .feedback.no{background:#ef444415;border-left:3px solid #ef4444;color:#fee2e2;}
+  .feedback b{color:#fff;}
+  .feedback .ref{display:inline-block;margin-top:8px;font-size:.68rem;font-weight:800;background:#33415560;padding:4px 10px;border-radius:8px;color:#a5b4fc;}
+  .next-btn{margin-top:18px;}
+  .center{text-align:center;}
+  .emoji-big{font-size:3.2rem;margin-bottom:6px;}
+  .score-num{font-size:3rem;font-weight:900;color:#fff;margin:10px 0 2px;}
+  .score-label{font-size:.8rem;color:#94a3b8;margin-bottom:20px;}
+  .badge-final{display:inline-block;padding:10px 24px;border-radius:14px;font-weight:900;font-size:1rem;margin-bottom:20px;}
+  .badge-final.iniciante{background:#f59e0b22;color:#f59e0b;}
+  .badge-final.intermediario{background:#3b82f622;color:#60a5fa;}
+  .badge-final.expert{background:#10b98122;color:#34d399;}
+  .stats-row{display:flex;gap:10px;margin-bottom:22px;}
+  .stat-box{flex:1;background:#0f172a;border:1px solid #334155;border-radius:12px;padding:12px;text-align:center;}
+  .stat-box .num{font-size:1.3rem;font-weight:900;color:#fff;}
+  .stat-box .lbl{font-size:.65rem;color:#94a3b8;font-weight:700;margin-top:2px;}
+  .reconhecimento-box{background:linear-gradient(135deg,#6366f122,#8b5cf622);border:1px solid #6366f155;border-radius:14px;padding:16px;font-size:.8rem;line-height:1.6;margin-bottom:20px;text-align:left;}
+  .locked-box{background:#33415540;border-radius:14px;padding:20px;text-align:center;font-size:.85rem;color:#94a3b8;line-height:1.6;}
+  .rules-list{font-size:.78rem;color:#cbd5e1;line-height:1.7;margin:14px 0;padding-left:18px;}
+  .rules-list li{margin-bottom:6px;}
+</style>
+</head>
+<body>
+<div class="app"><div class="card" id="root"></div></div>
+
+<script>
+// ===================== BANCO DE PERGUNTAS =====================
+const QUESTIONS = [
+{
+  q: "Cliente diz: \"Vou processar a Amazon, vou chamar meu advogado!\" Qual a atitude correta?",
+  opts: [
+    "Pedir desculpas e oferecer reembolso em dobro para evitar o processo",
+    "Explicar que ele nÃ£o tem esse direito e discutir a lei com ele",
+    "Reconhecer o direito dele de buscar a JustiÃ§a, sem debater mÃ©rito, e focar em resolver o problema real pela polÃ­tica",
+    "Transferir imediatamente para o DART sem tentar resolver"
+  ],
+  correct: 2,
+  difficulty: 10,
+  explain: "A ameaÃ§a de processo nÃ£o cria nenhuma obrigaÃ§Ã£o nova. Todo cliente tem o direito constitucional de acionar a JustiÃ§a â€” isso nÃ£o muda o mÃ©rito do caso. O caminho certo Ã© reconhecer o direito dele com empatia e seguir resolvendo pela polÃ­tica vigente, sem prometer nada extra.",
+  ref: "ðŸ“– Art. 6o â€” Direitos BÃ¡sicos do Consumidor"
+},
+{
+  q: "Cliente ameaÃ§a \"descobrir onde vocÃª mora\" ou fazer mal ao atendente pessoalmente. O que fazer?",
+  opts: [
+    "Ignorar e continuar o atendimento normalmente",
+    "Discutir e se defender verbalmente",
+    "Registrar a ameaÃ§a e escalar IMEDIATAMENTE para supervisÃ£o/seguranÃ§a â€” nunca revidar",
+    "Encerrar o chat sem registrar nada"
+  ],
+  correct: 2,
+  difficulty: 15,
+  explain: "AmeaÃ§a pessoal ao associado Ã© a ÃšNICA categoria de intimidaÃ§Ã£o que exige escalaÃ§Ã£o imediata e obrigatÃ³ria. Nunca revide, nunca ignore â€” sempre registre e leve para supervisÃ£o na hora.",
+  ref: "ðŸš¨ Categoria: AmeaÃ§a Pessoal ao Associado"
+},
+{
+  q: "Cliente afirma: \"O CDC me obriga a receber o dinheiro de volta AGORA, Ã© lei!\" Isso Ã© verdade?",
+  opts: [
+    "Sim, o CDC obriga reembolso instantÃ¢neo em qualquer situaÃ§Ã£o",
+    "NÃ£o. O CDC define PRAZOS de reembolso conforme a forma de pagamento â€” nÃ£o existe 'instantÃ¢neo obrigatÃ³rio' por lei",
+    "Sim, mas sÃ³ para compras acima de R$500",
+    "NÃ£o, o CDC nÃ£o trata de reembolsos"
+  ],
+  correct: 1,
+  difficulty: 10,
+  explain: "Ã‰ uma distorÃ§Ã£o comum. A lei garante o DIREITO ao reembolso, mas os prazos operacionais (cartÃ£o, Pix, vale-presente) sÃ£o legÃ­timos e nÃ£o violam o CDC. Explique o prazo real com transparÃªncia.",
+  ref: "ðŸ“– DistorÃ§Ã£o de Direito â€” CobranÃ§a/Reembolso"
+},
+{
+  q: "Cliente cita o \"Art. 49 do CDC\" dizendo que pode devolver um produto quando quiser, sem limite de prazo. Correto?",
+  opts: [
+    "Sim, o Art. 49 nÃ£o tem prazo",
+    "NÃ£o. O Art. 49 (direito de arrependimento) tem prazo de 7 dias a partir do recebimento",
+    "Sim, mas sÃ³ em compras fÃ­sicas",
+    "NÃ£o, o Art. 49 trata de outro assunto"
+  ],
+  correct: 1,
+  difficulty: 10,
+  explain: "O direito de arrependimento (Art. 49) Ã© de 7 dias corridos a partir do recebimento â€” nÃ£o Ã© indefinido. ApÃ³s esse prazo, ainda existe a polÃ­tica de devoluÃ§Ã£o de 30 dias da Amazon, mas nÃ£o Ã© mais 'arrependimento por lei'.",
+  ref: "ðŸ“– Art. 49 â€” Direito de Arrependimento (7 dias)"
+},
+{
+  q: "Cliente diz: \"Vou processar por dano moral porque meu pedido atrasou 2 dias!\" Isso procede automaticamente?",
+  opts: [
+    "Sim, todo atraso gera dano moral automÃ¡tico",
+    "NÃ£o. Um simples atraso, por si sÃ³, geralmente nÃ£o configura dano moral â€” Ã© preciso haver abuso, descaso grave ou prejuÃ­zo real comprovado",
+    "Sim, mas sÃ³ se o atraso for maior que 10 dias",
+    "NÃ£o, dano moral nunca se aplica a e-commerce"
+  ],
+  correct: 1,
+  difficulty: 15,
+  explain: "Atraso simples Ã© normalmente resolvido com reenvio/reembolso â€” nÃ£o gera indenizaÃ§Ã£o automÃ¡tica por dano moral. Isso exigiria comprovaÃ§Ã£o de abuso ou prejuÃ­zo excepcional, algo que o atendimento nÃ£o deve admitir nem negar sozinho.",
+  ref: "ðŸ“– DistorÃ§Ã£o de Direito â€” IndenizaÃ§Ã£o por Atraso"
+},
+{
+  q: "Cliente ameaÃ§a: \"Isso Ã© prÃ¡tica abusiva, Art. 39! Vou no Procon!\" Qual a resposta correta?",
+  opts: [
+    "Negar que existe o Art. 39 no CDC",
+    "Prometer resolver do jeito que ele quer para evitar o Procon",
+    "Reconhecer o direito dele de acionar o Procon, sem debater se 'Ã© abusivo' ou nÃ£o, e seguir resolvendo pela polÃ­tica",
+    "Encerrar o atendimento imediatamente"
+  ],
+  correct: 2,
+  difficulty: 10,
+  explain: "Mesma lÃ³gica de qualquer ameaÃ§a de canal externo (Procon, Reclame Aqui, MP): nÃ£o muda o mÃ©rito do caso. O atendente nunca deve admitir prÃ¡tica abusiva nem discutir se o artigo se aplica â€” apenas resolver o problema real.",
+  ref: "ðŸ“– Art. 39 â€” PrÃ¡ticas Abusivas"
+},
+{
+  q: "Cliente diz: \"VocÃªs tÃªm que me devolver em DOBRO, Ã© o Art. 42!\" Quando isso realmente se aplica?",
+  opts: [
+    "Em qualquer devoluÃ§Ã£o de produto",
+    "Sempre que o cliente pedir",
+    "Apenas quando hÃ¡ cobranÃ§a INDEVIDA comprovada (valor errado cobrado por engano justificÃ¡vel nÃ£o se aplica)",
+    "Nunca se aplica a e-commerce"
+  ],
+  correct: 2,
+  difficulty: 15,
+  explain: "O Art. 42 (devoluÃ§Ã£o em dobro) Ã© especÃ­fico para cobranÃ§a INDEVIDA comprovada â€” nÃ£o para qualquer devoluÃ§Ã£o de produto ou insatisfaÃ§Ã£o. Ã‰ um dos artigos mais mal citados por clientes para forÃ§ar valores maiores.",
+  ref: "ðŸ“– Art. 42 â€” CobranÃ§a VexatÃ³ria e DevoluÃ§Ã£o em Dobro"
+},
+{
+  q: "Cliente afirma: \"O produto tem garantia VITALÃCIA pelo CDC!\" Isso Ã© verdade?",
+  opts: [
+    "Sim, todo produto tem garantia vitalÃ­cia por lei",
+    "NÃ£o. A garantia legal tem prazo definido (30 ou 90 dias) â€” nÃ£o existe garantia vitalÃ­cia prevista no CDC",
+    "Sim, mas sÃ³ para eletrÃ´nicos",
+    "Depende do valor do produto"
+  ],
+  correct: 1,
+  difficulty: 10,
+  explain: "Mito comum. O CDC prevÃª prazos claros de garantia legal (30 dias para nÃ£o durÃ¡veis, 90 para durÃ¡veis). NÃ£o existe garantia vitalÃ­cia â€” o que pode existir Ã© garantia CONTRATUAL do fabricante, que Ã© outra coisa.",
+  ref: "ðŸ“– Art. 26 (prazos) + Art. 50 (garantia contratual)"
+},
+{
+  q: "Cliente foi negativado indevidamente (SPC/Serasa) por uma cobranÃ§a que jÃ¡ foi paga, e ameaÃ§a processar. Como agir?",
+  opts: [
+    "Dizer que a negativaÃ§Ã£o nÃ£o Ã© problema da Amazon",
+    "Verificar o caso com prioridade real â€” se confirmado erro, essa Ã© uma situaÃ§Ã£o legÃ­tima que precisa de correÃ§Ã£o rÃ¡pida, nÃ£o apenas 'calmar' o cliente",
+    "Prometer indenizaÃ§Ã£o imediata sem verificar",
+    "Ignorar e seguir o script padrÃ£o"
+  ],
+  correct: 1,
+  difficulty: 15,
+  explain: "Diferente das distorÃ§Ãµes comuns, negativaÃ§Ã£o indevida comprovada Ã© uma situaÃ§Ã£o REAL e grave â€” o Art. 43 trata de cadastros de proteÃ§Ã£o ao crÃ©dito. Aqui a prioridade deve ser verificar e corrigir rapidamente, nÃ£o apenas administrar a ameaÃ§a.",
+  ref: "ðŸ“– Art. 43 â€” Cadastros e Bancos de Dados (SPC/Serasa)"
+},
+{
+  q: "Cliente diz: \"VocÃªs sÃ£o solidariamente responsÃ¡veis pelo vendedor, resolvam AGORA sem eu precisar esperar!\" O que fazer?",
+  opts: [
+    "Resolver imediatamente sem seguir o fluxo padrÃ£o, pois ele tem razÃ£o sobre a solidariedade",
+    "Negar qualquer responsabilidade da Amazon sobre vendedores parceiros",
+    "Explicar que existe sim responsabilidade solidÃ¡ria, mas o fluxo correto (notificar vendedor 48h, depois Garantia A-Z) ainda deve ser seguido",
+    "Transferir para o vendedor e nÃ£o fazer mais nada"
+  ],
+  correct: 2,
+  difficulty: 15,
+  explain: "A Amazon realmente responde solidariamente em certos casos (Art. 34) â€” mas isso nÃ£o elimina o fluxo operacional padrÃ£o. A solidariedade garante que o cliente nÃ£o fique sem soluÃ§Ã£o, nÃ£o que a soluÃ§Ã£o seja instantÃ¢nea fora do processo.",
+  ref: "ðŸ“– Art. 34 â€” Solidariedade do Fornecedor (Marketplace)"
+},
+{
+  q: "Produto chegou completamente diferente das fotos do anÃºncio. Cliente diz: \"Isso Ã© CRIME de propaganda enganosa!\" Qual a prioridade?",
+  opts: [
+    "Discutir se realmente configura crime ou nÃ£o",
+    "Negar que seja crime para se defender",
+    "NÃ£o debater a classificaÃ§Ã£o penal â€” resolver o problema real com devoluÃ§Ã£o gratuita e reembolso/reenvio imediatamente",
+    "Pedir para o cliente provar que Ã© crime antes de agir"
+  ],
+  correct: 2,
+  difficulty: 10,
+  explain: "O atendente nunca deve admitir nem negar se algo 'Ã© crime' â€” isso nÃ£o Ã© papel do atendimento. Se o produto realmente divergiu do anunciado, a soluÃ§Ã£o prÃ¡tica (devoluÃ§Ã£o + reembolso/reenvio) jÃ¡ resolve o problema de fato.",
+  ref: "ðŸ“– Art. 66 e 67 â€” Crime de Publicidade Enganosa"
+},
+{
+  q: "Pedido chegou com uma peÃ§a faltando. Cliente cita \"vÃ­cio de quantidade\" e exige indenizaÃ§Ã£o financeira ADICIONAL. O que a lei realmente garante nesse caso?",
+  opts: [
+    "IndenizaÃ§Ã£o financeira obrigatÃ³ria alÃ©m da reposiÃ§Ã£o",
+    "Escolha entre completar a peÃ§a faltante, substituir o produto, devolver o valor ou abater o preÃ§o â€” nÃ£o uma indenizaÃ§Ã£o extra automÃ¡tica",
+    "Nada, pois vÃ­cio de quantidade nÃ£o Ã© coberto pelo CDC",
+    "Apenas desconto de 50% na prÃ³xima compra"
+  ],
+  correct: 1,
+  difficulty: 15,
+  explain: "O Art. 19 garante ao consumidor a ESCOLHA entre 4 soluÃ§Ãµes (completar, substituir, devolver o valor, ou abater o preÃ§o) â€” a lei jÃ¡ prevÃª a soluÃ§Ã£o, entÃ£o nÃ£o hÃ¡ base para exigir indenizaÃ§Ã£o adicional.",
+  ref: "ðŸ“– Art. 19 â€” VÃ­cio de Quantidade"
+},
+{
+  q: "Cliente alega que um produto tinha recall de seguranÃ§a e a Amazon nÃ£o avisou, ameaÃ§ando processar. Qual a aÃ§Ã£o correta?",
+  opts: [
+    "Negar automaticamente, pois recall nunca Ã© responsabilidade da Amazon",
+    "Verificar se existe um recall OFICIAL confirmado antes de responder â€” se confirmado, tratar com prioridade mÃ¡xima",
+    "Prometer indenizaÃ§Ã£o sem verificar nada",
+    "Ignorar a alegaÃ§Ã£o, pois Ã© sempre distorÃ§Ã£o do cliente"
+  ],
+  correct: 1,
+  difficulty: 15,
+  explain: "Esta Ã© uma das poucas situaÃ§Ãµes em que a alegaÃ§Ã£o PODE ser real e grave. O Art. 8 exige que o fornecedor informe riscos conhecidos. Sempre verifique se hÃ¡ recall oficial confirmado antes de decidir como responder.",
+  ref: "ðŸ“– Art. 8 â€” SeguranÃ§a do Produto e Dever de Informar Riscos"
+},
+{
+  q: "Cliente diz: \"VocÃªs nunca me informaram essa condiÃ§Ã£o antes da compra, isso Ã© ilegal!\" Como confirmar se ele tem razÃ£o?",
+  opts: [
+    "Sempre aceitar que a Amazon errou, mesmo sem verificar",
+    "Verificar se a informaÃ§Ã£o estava realmente disponÃ­vel na pÃ¡gina do produto, Termos de Uso ou polÃ­tica pÃºblica â€” a lei exige disponibilizar, nÃ£o garantir que o cliente leu",
+    "Negar automaticamente sem checar nada",
+    "Dizer que Ã© responsabilidade exclusiva do cliente ler tudo"
+  ],
+  correct: 1,
+  difficulty: 10,
+  explain: "O Art. 46 exige que a informaÃ§Ã£o esteja disponÃ­vel e clara ANTES da compra â€” mas nÃ£o exige prova de que o cliente leu. Se estava acessÃ­vel na pÃ¡gina do produto ou polÃ­tica, a obrigaÃ§Ã£o legal foi cumprida.",
+  ref: "ðŸ“– Art. 46 â€” Direito Ã  InformaÃ§Ã£o PrÃ©via"
+},
+{
+  q: "Um vendedor parceiro nega reparo dizendo \"a garantia jÃ¡ acabou\", mas o pedido foi entregue hÃ¡ apenas 20 dias. O vendedor estÃ¡ certo?",
+  opts: [
+    "Sim, garantia Ã© decisÃ£o exclusiva do vendedor",
+    "NÃ£o. A garantia legal (30/90 dias) existe independente de termo escrito e nÃ£o pode ser negada pelo vendedor dentro do prazo",
+    "Depende do valor do produto",
+    "Sim, se o produto nÃ£o tiver nota fiscal"
+  ],
+  correct: 1,
+  difficulty: 10,
+  explain: "A garantia legal (Art. 24) Ã© irrenunciÃ¡vel e existe independentemente de qualquer termo escrito. Dentro do prazo de 30/90 dias (Art. 26), o vendedor nÃ£o pode simplesmente negar â€” isso deve ser escalado/corrigido.",
+  ref: "ðŸ“– Art. 24 â€” Garantia Legal Ã© IrrenunciÃ¡vel"
+},
+{
+  q: "Cliente ameaÃ§a: \"Vou postar isso nas redes sociais e destruir a reputaÃ§Ã£o de vocÃªs!\" Como reagir?",
+  opts: [
+    "Ceder e oferecer algo fora da polÃ­tica para evitar a exposiÃ§Ã£o",
+    "Discutir e ameaÃ§ar de volta",
+    "Manter o foco 100% na resoluÃ§Ã£o prÃ¡tica, sem debater a ameaÃ§a â€” ela nÃ£o cria obrigaÃ§Ã£o legal nova",
+    "Encerrar o chat imediatamente sem resolver nada"
+  ],
+  correct: 2,
+  difficulty: 10,
+  explain: "AmeaÃ§a de exposiÃ§Ã£o pÃºblica Ã© uma tÃ¡tica de pressÃ£o emocional, nÃ£o jurÃ­dica â€” nÃ£o cria nenhuma obrigaÃ§Ã£o nova. O caso continua sendo resolvido pelos fatos e pela polÃ­tica vigente, com empatia mas sem ceder Ã  pressÃ£o.",
+  ref: "ðŸ“– Categoria: AmeaÃ§a de ExposiÃ§Ã£o PÃºblica"
+},
+{
+  q: "Cliente diz: \"Vou denunciar vocÃªs ao MinistÃ©rio PÃºblico e Ã  Anatel!\" Isso muda o andamento do caso?",
+  opts: [
+    "Sim, o caso deve ser resolvido do jeito que o cliente exigir para evitar a denÃºncia",
+    "NÃ£o. Ã‰ direito do cidadÃ£o acionar qualquer Ã³rgÃ£o â€” isso nÃ£o altera o mÃ©rito do caso nem cria obrigaÃ§Ã£o nova",
+    "Sim, mas sÃ³ se for ao MP, nÃ£o Ã  Anatel",
+    "NÃ£o, mas o atendente deve pedir desculpas formais por escrito"
+  ],
+  correct: 1,
+  difficulty: 10,
+  explain: "Mesma lÃ³gica de qualquer ameaÃ§a de canal externo: nÃ£o muda o mÃ©rito. As sanÃ§Ãµes administrativas (Art. 56) dependem de um processo prÃ³prio dos Ã³rgÃ£os competentes, nÃ£o de uma ameaÃ§a no atendimento.",
+  ref: "ðŸ“– Art. 56 â€” SanÃ§Ãµes Administrativas"
+},
+{
+  q: "Qual Ã© a REGRA DE ORO para qualquer situaÃ§Ã£o de intimidaÃ§Ã£o/ameaÃ§a no atendimento?",
+  opts: [
+    "Sempre ceder para evitar conflito",
+    "Nunca prometer indenizaÃ§Ã£o, admitir culpa ou fornecer dados pessoais sÃ³ porque foi ameaÃ§ado",
+    "Discutir ponto a ponto a lei citada pelo cliente",
+    "Encerrar o atendimento sempre que houver ameaÃ§a"
+  ],
+  correct: 1,
+  difficulty: 10,
+  explain: "Essa Ã© a regra de ouro do mÃ³dulo CDC: o objetivo Ã© resolver o problema real com calma â€” nunca vencer um debate jurÃ­dico, nunca ceder por medo, e nunca prometer o que estÃ¡ fora da polÃ­tica sÃ³ pela pressÃ£o.",
+  ref: "âš–ï¸ Regra de Ouro do CDC"
+},
+{
+  q: "Cliente cita o CDC para exigir que a Amazon iguale o preÃ§o de um produto em outro site (loja concorrente). Isso Ã© uma obrigaÃ§Ã£o legal?",
+  opts: [
+    "Sim, o CDC obriga equiparaÃ§Ã£o entre lojas diferentes",
+    "NÃ£o. O CDC obriga cumprir a PRÃ“PRIA oferta publicada â€” nÃ£o igualar preÃ§o de terceiros. EquiparaÃ§Ã£o Ã© polÃ­tica comercial, nÃ£o lei",
+    "Sim, mas sÃ³ se a diferenÃ§a for maior que 20%",
+    "Depende da categoria do produto"
+  ],
+  correct: 1,
+  difficulty: 10,
+  explain: "DistorÃ§Ã£o comum. A vinculaÃ§Ã£o Ã  oferta (Art. 30/35) obriga a empresa a cumprir o que ELA MESMA anunciou â€” nÃ£o existe obrigaÃ§Ã£o legal de igualar preÃ§o de concorrentes. EquiparaÃ§Ã£o de preÃ§o Ã© polÃ­tica comercial da Amazon, nÃ£o uma exigÃªncia do CDC.",
+  ref: "ðŸ“– Art. 30/35 â€” Publicidade Vinculante (oferta prÃ³pria)"
+},
+{
+  q: "Cliente diz: \"Isso Ã© enriquecimento ilÃ­cito, vocÃªs estÃ£o com meu dinheiro!\" sobre um reembolso ainda dentro do prazo normal. Correto?",
+  opts: [
+    "Sim, qualquer reembolso pendente Ã© enriquecimento ilÃ­cito",
+    "NÃ£o. Enquanto o reembolso estiver dentro do prazo padrÃ£o informado (ex: atÃ© 2 faturas, atÃ© 1 dia Ãºtil no Pix), nÃ£o hÃ¡ irregularidade",
+    "Sim, mas sÃ³ depois de 24 horas",
+    "Depende do banco do cliente"
+  ],
+  correct: 1,
+  difficulty: 15,
+  explain: "'Enriquecimento ilÃ­cito' Ã© uma alegaÃ§Ã£o forte que exige reter valor de forma irregular e comprovada â€” reembolso dentro do prazo normal de processamento nÃ£o configura isso. Explique o prazo real com transparÃªncia.",
+  ref: "ðŸ“– DistorÃ§Ã£o de Direito â€” CobranÃ§a/Reembolso"
+},
+{
+  q: "Qual Ã© a diferenÃ§a entre a Garantia LEGAL e a Garantia CONTRATUAL (do fabricante)?",
+  opts: [
+    "SÃ£o a mesma coisa, apenas nomes diferentes",
+    "A legal (30/90 dias, Art. 26) Ã© obrigatÃ³ria e existe mesmo sem papel; a contratual (ex: 12 meses do fabricante) Ã© complementar e nÃ£o substitui a legal",
+    "A contratual sempre substitui a legal",
+    "SÃ³ existe garantia contratual no Brasil"
+  ],
+  correct: 1,
+  difficulty: 15,
+  explain: "Muitos clientes confundem os dois prazos. A garantia legal Ã© curta (30/90 dias) e irrenunciÃ¡vel. A garantia contratual do fabricante (ex: 12 meses) Ã© ADICIONAL â€” apÃ³s o prazo Amazon, ainda pode valer a garantia do fabricante.",
+  ref: "ðŸ“– Art. 50 â€” Garantia Contratual Ã© Complementar Ã  Legal"
+},
+{
+  q: "Um cliente ameaÃ§ador estÃ¡ sendo respondido corretamente. Qual comportamento do ATENDENTE estÃ¡ ERRADO nessa situaÃ§Ã£o?",
+  opts: [
+    "Manter tom empÃ¡tico e focar na soluÃ§Ã£o prÃ¡tica",
+    "Reconhecer o direito do cliente de buscar outros canais, sem debater",
+    "Entrar em debate detalhado sobre se o artigo citado 'se aplica' ou nÃ£o ao caso",
+    "Seguir a polÃ­tica vigente com transparÃªncia"
+  ],
+  correct: 2,
+  difficulty: 15,
+  explain: "Debater juridicamente com o cliente Ã© o erro mais comum nesses casos â€” o atendente nÃ£o tem esse papel e isso alimenta o conflito. O caminho certo Ã© sempre redirecionar com empatia para a soluÃ§Ã£o prÃ¡tica.",
+  ref: "âš–ï¸ Regra de Ouro do CDC"
+},
+{
+  q: "Em qual desses casos a Amazon DEVE tratar com prioridade mÃ¡xima, mesmo sem o cliente ameaÃ§ar nada?",
+  opts: [
+    "Cliente insatisfeito com a cor do produto",
+    "Recall de seguranÃ§a oficial confirmado, ou risco real Ã  saÃºde/seguranÃ§a do consumidor",
+    "Cliente que pede desconto extra",
+    "Cliente que quer trocar de vendedor"
+  ],
+  correct: 1,
+  difficulty: 10,
+  explain: "Risco real Ã  seguranÃ§a (Art. 8) Ã© tratado com prioridade mÃ¡xima independente de qualquer ameaÃ§a â€” Ã© uma obrigaÃ§Ã£o legal e Ã©tica genuÃ­na, diferente das distorÃ§Ãµes comuns de intimidaÃ§Ã£o.",
+  ref: "ðŸ“– Art. 8 â€” SeguranÃ§a do Produto"
+}
+];
+</script>
+<script>
+// ===================== ESTADO E LÃ“GICA =====================
+const STORAGE_KEY = 'cdc-quiz-state-v1';
+const LOCK_KEY = 'cdc-quiz-completed-v1';
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch(e) { return null; }
+}
+function saveState(state) {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e) {}
+}
+function isLocked() {
+  try { return localStorage.getItem(LOCK_KEY) === '1'; } catch(e) { return false; }
+}
+function setLocked() {
+  try { localStorage.setItem(LOCK_KEY, '1'); } catch(e) {}
+}
+function fallbackCopy(text){try{const ta=document.createElement('textarea');ta.value=text;ta.style.position='fixed';ta.style.left='-9999px';document.body.appendChild(ta);ta.focus();ta.select();document.execCommand('copy');document.body.removeChild(ta);return true;}catch(e){return false;}}
+
+let state = loadState() || { current: -1, score: 0, streak: 0, bestStreak: 0, correctCount: 0, answers: [], finished: false };
+
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+function render() {
+  const root = document.getElementById('root');
+
+  if (isLocked() && !state.finished) {
+    root.innerHTML = renderLockedScreen();
+    return;
+  }
+
+  if (state.current === -1) {
+    root.innerHTML = renderIntro();
+    document.getElementById('start-btn').addEventListener('click', startQuiz);
+    return;
+  }
+
+  if (state.finished || state.current >= QUESTIONS.length) {
+    root.innerHTML = renderFinal();
+    const copyBtn = document.getElementById('copy-score-btn');
+    if (copyBtn) copyBtn.addEventListener('click', function(){
+      const txt = 'ConcluÃ­ o Desafio CDC â€” Cliente DifÃ­cil com ' + state.score + ' pontos (' + state.correctCount + '/' + QUESTIONS.length + ' corretas)! ðŸ¦‰';
+      navigator.clipboard ? navigator.clipboard.writeText(txt).catch(()=>fallbackCopy(txt)) : fallbackCopy(txt);
+      copyBtn.textContent = 'âœ“ Copiado!';
+      setTimeout(()=>{copyBtn.textContent = 'ðŸ“‹ Copiar resumo para enviar no Chime';}, 1800);
+    });
+    return;
+  }
+
+  root.innerHTML = renderQuestion();
+  document.querySelectorAll('.opt').forEach(btn => {
+    btn.addEventListener('click', function(){ answerQuestion(+this.dataset.idx); });
+  });
+}
+
+function renderIntro() {
+  return `
+    <div class="center">
+      <div class="emoji-big">ðŸ¦‰âš–ï¸</div>
+      <h1 style="justify-content:center">Desafio: Cliente DifÃ­cil & CDC</h1>
+      <p class="sub">Teste seus conhecimentos sobre como lidar com clientes que citam o CDC de forma incorreta, ameaÃ§am processar, ou tentam pressionar por soluÃ§Ãµes fora da polÃ­tica.</p>
+    </div>
+    <ul class="rules-list">
+      <li>${QUESTIONS.length} perguntas baseadas em situaÃ§Ãµes reais de atendimento</li>
+      <li>PontuaÃ§Ã£o estilo Kahoot: 10 ou 15 pts por questÃ£o + bÃ´nus de sequÃªncia</li>
+      <li>VocÃª tem apenas <b>1 tentativa</b> â€” responda com atenÃ§Ã£o!</li>
+      <li>Ao final, vocÃª recebe um selo de desempenho e pode registrar seu score</li>
+    </ul>
+    <button class="btn" id="start-btn">ðŸš€ ComeÃ§ar o Desafio</button>
+  `;
+}
+
+function renderLockedScreen() {
+  return `
+    <div class="center">
+      <div class="emoji-big">ðŸ”’</div>
+      <h1 style="justify-content:center">Desafio jÃ¡ concluÃ­do</h1>
+    </div>
+    <div class="locked-box">
+      VocÃª jÃ¡ completou este desafio anteriormente. Cada pessoa tem direito a apenas <b>1 tentativa</b> para manter a competiÃ§Ã£o justa.<br><br>
+      Se vocÃª acredita que isso Ã© um engano, fale com seu TM.
+    </div>
+  `;
+}
+
+function renderQuestion() {
+  const q = QUESTIONS[state.current];
+  const pct = Math.round((state.current / QUESTIONS.length) * 100);
+  const diffClass = q.difficulty >= 15 ? 'hard' : 'easy';
+  const diffLabel = q.difficulty >= 15 ? 'ðŸ”¥ DifÃ­cil â€” 15 pts' : 'â­ PadrÃ£o â€” 10 pts';
+  return `
+    <div class="topline">
+      <span>PERGUNTA ${state.current+1} DE ${QUESTIONS.length}</span>
+      <span class="streak">ðŸ”¥ SequÃªncia: ${state.streak}</span>
+    </div>
+    <div class="progressbar"><div class="progressbar-fill" style="width:${pct}%"></div></div>
+    <span class="q-badge ${diffClass}">${diffLabel}</span>
+    <div class="q-text">${esc(q.q)}</div>
+    ${q.opts.map((o,i) => `<button class="opt" data-idx="${i}">${esc(o)}</button>`).join('')}
+  `;
+}
+
+function renderFeedback(q, chosenIdx, correct, pointsEarned) {
+  const cls = correct ? 'ok' : 'no';
+  const title = correct ? 'âœ… Correto!' : 'âŒ Incorreto';
+  const pts = correct ? `+${pointsEarned} pontos` : '+0 pontos';
+  return `
+    <div class="feedback ${cls}">
+      <b>${title}</b> â€” ${pts}<br><br>
+      ${esc(q.explain)}
+      <br><span class="ref">${esc(q.ref)}</span>
+    </div>
+    <button class="btn next-btn" id="next-btn">${state.current+1 >= QUESTIONS.length ? 'ðŸ Ver resultado final' : 'PrÃ³xima pergunta â†’'}</button>
+  `;
+}
+
+function answerQuestion(idx) {
+  const q = QUESTIONS[state.current];
+  const correct = (idx === q.correct);
+  let pointsEarned = 0;
+
+  document.querySelectorAll('.opt').forEach((btn, i) => {
+    btn.disabled = true;
+    if (i === q.correct) btn.classList.add('correct');
+    else if (i === idx && !correct) btn.classList.add('wrong');
+  });
+
+  if (correct) {
+    state.streak += 1;
+    state.bestStreak = Math.max(state.bestStreak, state.streak);
+    const streakBonus = Math.min(state.streak * 3, 15);
+    pointsEarned = q.difficulty + streakBonus;
+    state.score += pointsEarned;
+    state.correctCount += 1;
+  } else {
+    state.streak = 0;
+  }
+
+  state.answers.push({ idx: state.current, chosen: idx, correct: correct });
+  saveState(state);
+
+  const root = document.getElementById('root');
+  const fbDiv = document.createElement('div');
+  fbDiv.innerHTML = renderFeedback(q, idx, correct, pointsEarned);
+  root.appendChild(fbDiv);
+
+  document.getElementById('next-btn').addEventListener('click', function(){
+    state.current += 1;
+    if (state.current >= QUESTIONS.length) {
+      state.finished = true;
+      setLocked();
+    }
+    saveState(state);
+    render();
+  });
+}
+
+function startQuiz() {
+  state.current = 0;
+  saveState(state);
+  render();
+}
+
+function getBadge(pct) {
+  if (pct >= 80) return { key: 'expert', label: 'ðŸ† EXPERT EM CDC', reconhecimento: 15 };
+  if (pct >= 50) return { key: 'intermediario', label: 'â­ INTERMEDIÃRIO', reconhecimento: 10 };
+  return { key: 'iniciante', label: 'ðŸŒ± INICIANTE', reconhecimento: 5 };
+}
+
+function renderFinal() {
+  const total = QUESTIONS.length;
+  const maxScore = QUESTIONS.reduce((acc,q)=>acc + q.difficulty + 15, 0);
+  const pct = Math.round((state.correctCount / total) * 100);
+  const badge = getBadge(pct);
+  return `
+    <div class="center">
+      <div class="emoji-big">ðŸ¦‰</div>
+      <h1 style="justify-content:center">Desafio ConcluÃ­do!</h1>
+      <div class="score-num">${state.score}</div>
+      <div class="score-label">pontos de ${maxScore} possÃ­veis</div>
+      <div class="badge-final ${badge.key}">${badge.label}</div>
+    </div>
+    <div class="stats-row">
+      <div class="stat-box"><div class="num">${state.correctCount}/${total}</div><div class="lbl">ACERTOS</div></div>
+      <div class="stat-box"><div class="num">${pct}%</div><div class="lbl">APROVEITAMENTO</div></div>
+      <div class="stat-box"><div class="num">${state.bestStreak}ðŸ”¥</div><div class="lbl">MELHOR SEQUÃŠNCIA</div></div>
+    </div>
+    <div class="reconhecimento-box">
+      ðŸŽ <b>PrÃªmio reconhecimento:</b> com base no seu desempenho (${pct}%), vocÃª faz jus a <b>${badge.reconhecimento} minutos de reconhecimento</b>.<br><br>
+      ðŸ“¸ Tire um print desta tela e envie para seu TM via Chime para receber o crÃ©dito.
+    </div>
+    <button class="btn secondary" id="copy-score-btn">ðŸ“‹ Copiar resumo para enviar no Chime</button>
+  `;
+}
+
+render();
+</script>
+</body>
+</html>

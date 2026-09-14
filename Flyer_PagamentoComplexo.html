@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pagamento Complexo & Resolução</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Segoe UI',Arial,sans-serif;background:#f1f5f9;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:32px 16px}
+  .card{background:#fff;border-radius:20px;max-width:700px;width:100%;box-shadow:0 8px 40px rgba(0,0,0,.12);overflow:hidden}
+  .header{background:linear-gradient(135deg,#c2410c,#f97316);padding:36px 32px 28px;color:#fff}
+  .header-emoji{font-size:2.8rem;margin-bottom:10px;display:block}
+  .header h1{font-size:1.75rem;font-weight:800;letter-spacing:-.5px;margin-bottom:6px}
+  .header p{font-size:1rem;opacity:.88;font-weight:500}
+  .tag{display:inline-block;background:rgba(255,255,255,.22);border-radius:20px;padding:3px 14px;font-size:.78rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:14px}
+  .body{padding:28px 32px 20px}
+  .desc{font-size:1rem;color:#334155;line-height:1.65;margin-bottom:24px}
+  .section-label{font-size:.72rem;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:#c2410c;margin-bottom:12px}
+  /* Accordion */
+  .accordion{margin-bottom:24px}
+  .acc-item{border:1px solid #e2e8f0;border-radius:12px;margin-bottom:8px;overflow:hidden}
+  .acc-btn{width:100%;background:#f8fafc;border:none;padding:14px 18px;text-align:left;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:.93rem;font-weight:600;color:#1e293b;transition:background .2s}
+  .acc-btn:hover{background:#f1f5f9}
+  .acc-btn.open{background:#c2410c;color:#fff}
+  .acc-arrow{font-size:.8rem;transition:transform .25s;flex-shrink:0}
+  .acc-btn.open .acc-arrow{transform:rotate(180deg)}
+  .acc-body{max-height:0;overflow:hidden;transition:max-height .3s ease,padding .3s ease;padding:0 18px;font-size:.9rem;color:#334155;line-height:1.65;background:#fff}
+  .acc-body.open{max-height:400px;padding:14px 18px}
+  .footer{border-top:1px solid #f1f5f9;padding:14px 32px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+  .footer-brand{font-size:.75rem;color:#94a3b8;font-weight:600}
+  .footer-author{font-size:.72rem;color:#cbd5e1}
+  @media print{body{background:#fff;padding:0} .card{box-shadow:none;border-radius:0;max-width:100%} .acc-body{max-height:none!important;padding:14px 18px!important}}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="header">
+    <span class="tag">Treinamento CS BR</span>
+    <span class="header-emoji">&#x1F50D;</span>
+    <h1>Pagamento Complexo & Resolução</h1>
+    <p>Casos de Alta Complexidade Financeira</p>
+  </div>
+  <div class="body">
+    <p class="desc">Alguns casos de pagamento envolvem múltiplas variáveis: KYC pendente, reembolso urgente, conta com restrição e prazo prometido não cumprido. Esses casos exigem investigação estruturada e postura de resolução ativa.</p>
+    <p class="section-label">Explore os Tópicos</p>
+    <div class="accordion" id="acc">
+            <div class="acc-item">
+        <button class="acc-btn"><span>KYC: ferramenta de segurança, não de encerramento</span><span class="acc-arrow">&#x25BC;</span></button>
+        <div class="acc-body">O KYC (Know Your Customer) é um processo de verificação de identidade para proteger a conta do cliente. Ele nunca deve ser usado para encerrar um contato sem resolver o problema. O fluxo correto: (1) informe o cliente sobre a necessidade de verificação, (2) ative o processo, (3) continue tratando a demanda principal paralelamente quando possível.</div>
+      </div>
+      <div class="acc-item">
+        <button class="acc-btn"><span>KYC com tentativas excedidas: como agir</span><span class="acc-arrow">&#x25BC;</span></button>
+        <div class="acc-body">Quando o cliente relata que recebeu SMS de "quantidade de tentativas excedida", ele está em um estado diferente do KYC pendente comum. Nesse caso, <b>não</b> envie um novo link de KYC padrão — isso não funcionará. A ação correta é parar o envio de links e escalar via canais internos específicos para esse estado.</div>
+      </div>
+      <div class="acc-item">
+        <button class="acc-btn"><span>Reembolso urgente: explorando alternativas</span><span class="acc-arrow">&#x25BC;</span></button>
+        <div class="acc-body">Quando o cliente declara urgência (especialmente em produtos de alimentação ou uso imediato), o prazo padrão de 3 dias úteis pode não ser suficiente. Nesse cenário, antes de oferecer o prazo padrão, explore: há alternativa de crédito imediato? Vale-presente pode ser oferecido? Há caminho de escalação disponível? Mostrar que você tentou alternativas conta muito para o CCX.</div>
+      </div>
+      <div class="acc-item">
+        <button class="acc-btn"><span>Conta bloqueada por segurança vs. senha esquecida</span><span class="acc-arrow">&#x25BC;</span></button>
+        <div class="acc-body">São dois fluxos completamente diferentes. <b>Senha esquecida</b> → redefinição de senha padrão. <b>Conta bloqueada por segurança</b> → fluxo específico de desbloqueio por segurança. Oferecer redefinição de senha para uma conta bloqueada por segurança é um erro de conhecimento que não resolve o problema e gera recontato.</div>
+      </div>
+      <div class="acc-item">
+        <button class="acc-btn"><span>Como comunicar prazos sem criar expectativas falsas</span><span class="acc-arrow">&#x25BC;</span></button>
+        <div class="acc-body">Nunca prometa uma data exata para reembolso em cartão. Use: "O prazo é de até 2 faturas após o processamento — pode ser na próxima ou na subsequente, dependendo da data de fechamento do seu cartão." Isso é preciso, honesto e evita recontato por "o reembolso não caiu na data prometida".</div>
+      </div>
+    </div>
+  </div>
+  <div class="footer">
+    <span class="footer-brand">Amazon CS BR &mdash; Time de Qualidade</span>
+    <span class="footer-author">Desenvolvido por Mateus Rebouças (zrebouca — Team Manager) &middot; 2026</span>
+  </div>
+</div>
+<script>
+document.querySelectorAll('.acc-btn').forEach(function(btn){
+  btn.addEventListener('click',function(){
+    var body=this.nextElementSibling;
+    var isOpen=body.classList.contains('open');
+    document.querySelectorAll('.acc-body').forEach(function(b){b.classList.remove('open')});
+    document.querySelectorAll('.acc-btn').forEach(function(b){b.classList.remove('open')});
+    if(!isOpen){body.classList.add('open');this.classList.add('open')}
+  });
+});
+</script>
+</body>
+</html>

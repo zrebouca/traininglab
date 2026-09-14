@@ -1,0 +1,299 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Treino de Atendimento â€” Retomada & ResoluÃ§Ã£o</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#0f172a;color:#e2e8f0;font-family:system-ui,-apple-system,'Segoe UI',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px}
+  .container{width:100%;max-width:680px}
+  .screen{display:none}.screen.active{display:block}
+
+  /* START */
+  .start-card{background:#1e293b;border:1px solid #334155;border-radius:18px;padding:36px 32px;text-align:center}
+  .start-card h1{font-size:1.7rem;font-weight:800;color:#e2e8f0;margin-bottom:8px}
+  .start-card .sub{color:#94a3b8;font-size:0.97rem;margin-bottom:24px;line-height:1.6}
+  .badge-reconhecimento{background:#0f172a;border:1px solid #6366f1;border-radius:12px;padding:14px 20px;margin:20px 0;color:#a5b4fc;font-size:0.93rem}
+  .badge-reconhecimento strong{color:#6366f1;font-size:1.05rem}
+  .stats-row{display:flex;gap:12px;justify-content:center;margin-bottom:24px;flex-wrap:wrap}
+  .stat-pill{background:#0f172a;border:1px solid #334155;border-radius:10px;padding:8px 18px;font-size:0.85rem;color:#94a3b8}
+  .stat-pill span{color:#e2e8f0;font-weight:700}
+  .btn-start{background:#6366f1;color:#fff;border:none;border-radius:12px;padding:14px 36px;font-size:1.05rem;font-weight:700;cursor:pointer;transition:background .2s;width:100%}
+  .btn-start:hover{background:#4f46e5}
+
+  /* GAME */
+  .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+  .topbar-title{font-size:0.85rem;color:#64748b;font-weight:600;letter-spacing:.03em}
+  .hud{display:flex;gap:14px}
+  .hud-item{background:#1e293b;border:1px solid #334155;border-radius:10px;padding:6px 14px;font-size:0.88rem;font-weight:700}
+  .hud-item.score{color:#a5b4fc}
+  .hud-item.streak{color:#f59e0b}
+  .progress-wrap{background:#1e293b;border-radius:8px;height:6px;margin-bottom:20px;overflow:hidden}
+  .progress-bar{background:#6366f1;height:6px;border-radius:8px;transition:width .4s}
+  .question-card{background:#1e293b;border:1px solid #334155;border-radius:18px;padding:28px 26px}
+  .q-tag{display:inline-block;background:#6366f122;color:#818cf8;border-radius:20px;padding:4px 14px;font-size:0.75rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:14px}
+  .q-counter{font-size:0.82rem;color:#64748b;margin-bottom:8px}
+  .q-text{font-size:1.05rem;color:#e2e8f0;font-weight:600;line-height:1.55;margin-bottom:22px}
+  .options{display:flex;flex-direction:column;gap:10px}
+  .opt-btn{background:#0f172a;border:2px solid #334155;border-radius:12px;padding:13px 18px;color:#cbd5e1;font-size:0.95rem;text-align:left;cursor:pointer;transition:all .18s;font-family:inherit}
+  .opt-btn:hover:not(:disabled){border-color:#6366f1;color:#e2e8f0}
+  .opt-btn.correct{background:#10b98122;border-color:#10b981;color:#10b981;font-weight:700}
+  .opt-btn.wrong{background:#ef444422;border-color:#ef4444;color:#ef4444}
+  .opt-btn.reveal{background:#10b98111;border-color:#10b98166;color:#6ee7b7}
+  .feedback{margin-top:18px;background:#0f172a;border:1px solid #334155;border-radius:12px;padding:14px 16px;font-size:0.88rem;color:#94a3b8;line-height:1.6;display:none}
+  .feedback.show{display:block}
+  .feedback .verdict{font-weight:800;margin-bottom:6px;font-size:0.95rem}
+  .feedback .verdict.ok{color:#10b981}
+  .feedback .verdict.err{color:#ef4444}
+  .streak-banner{background:#f59e0b22;border:1px solid #f59e0b66;border-radius:10px;padding:8px 14px;color:#fbbf24;font-size:0.85rem;font-weight:700;margin-top:12px;display:none;text-align:center}
+  .btn-next{background:#6366f1;color:#fff;border:none;border-radius:12px;padding:12px 28px;font-size:0.95rem;font-weight:700;cursor:pointer;margin-top:16px;display:none;width:100%}
+  .btn-next:hover{background:#4f46e5}
+  .resume-banner{background:#6366f122;border:1px solid #6366f166;border-radius:10px;padding:10px 16px;color:#a5b4fc;font-size:0.85rem;margin-bottom:16px;display:none;text-align:center}
+
+  /* END */
+  .end-card{background:#1e293b;border:1px solid #334155;border-radius:18px;padding:36px 32px;text-align:center}
+  .end-emoji{font-size:3.2rem;margin-bottom:12px}
+  .end-title{font-size:1.5rem;font-weight:800;margin-bottom:6px}
+  .badge-label{display:inline-block;border-radius:20px;padding:6px 22px;font-size:0.88rem;font-weight:800;letter-spacing:.06em;margin-bottom:20px}
+  .badge-expert{background:#10b98122;color:#10b981;border:1px solid #10b981}
+  .badge-inter{background:#f59e0b22;color:#f59e0b;border:1px solid #f59e0b}
+  .badge-init{background:#ef444422;color:#ef4444;border:1px solid #ef4444}
+  .score-row{display:flex;gap:14px;justify-content:center;margin:18px 0;flex-wrap:wrap}
+  .score-box{background:#0f172a;border:1px solid #334155;border-radius:12px;padding:14px 22px}
+  .score-box .val{font-size:1.6rem;font-weight:800;color:#a5b4fc}
+  .score-box .lbl{font-size:0.78rem;color:#64748b;margin-top:2px}
+  .reconhecimento-end{background:#0f172a;border:1px solid #6366f1;border-radius:12px;padding:16px 20px;margin:20px 0;color:#a5b4fc;font-size:0.9rem;line-height:1.6}
+  .reconhecimento-end strong{color:#6366f1}
+  .lock-note{color:#475569;font-size:0.8rem;margin-top:16px}
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- START -->
+  <div class="screen active" id="startScreen">
+    <div class="start-card">
+      <div style="font-size:2.4rem;margin-bottom:10px">ðŸŽ¯</div>
+      <h1>Retomada & ResoluÃ§Ã£o</h1>
+      <p class="sub">Revisa situaÃ§Ãµes reais de atendimento: pausas, retomada de chat, pagamentos complexos e encerramento com qualidade. Cada cenÃ¡rio foi tirado do dia a dia â€” vocÃª vai reconhecer!</p>
+      <div class="stats-row">
+        <div class="stat-pill">Perguntas: <span>30</span></div>
+        <div class="stat-pill">Estilo: <span>Verdadeiro / Falso</span></div>
+        <div class="stat-pill">Dificuldade: <span>IntermediÃ¡rio</span></div>
+      </div>
+      <div class="badge-reconhecimento">
+        ðŸŽ SÃ³ de <strong>ler o MAP e completar esse jogo</strong>, vocÃª jÃ¡ garante <strong>20 minutos de reconhecimento</strong>.<br>
+        <span style="font-size:0.85rem;color:#64748b">Manda o print da tela final no privado para garantir o prÃªmio.</span>
+      </div>
+      <button class="btn-start" onclick="startGame()">ComeÃ§ar Jogo ðŸš€</button>
+    </div>
+  </div>
+
+  <!-- GAME -->
+  <div class="screen" id="gameScreen">
+    <div class="topbar">
+      <span class="topbar-title">RETOMADA & RESOLUÃ‡ÃƒO</span>
+      <div class="hud">
+        <div class="hud-item score">â­ <span id="scoreVal">0</span></div>
+        <div class="hud-item streak">ðŸ”¥ <span id="streakVal">0</span></div>
+      </div>
+    </div>
+    <div class="progress-wrap"><div class="progress-bar" id="progressBar"></div></div>
+    <div class="resume-banner" id="resumeBanner">â†©ï¸ Continuando de onde vocÃª parou!</div>
+    <div class="question-card">
+      <div class="q-tag" id="qTag"></div>
+      <div class="q-counter" id="qCounter"></div>
+      <div class="q-text" id="qText"></div>
+      <div class="options" id="optionsWrap"></div>
+      <div class="streak-banner" id="streakBanner"></div>
+      <div class="feedback" id="feedbackBox">
+        <div class="verdict" id="verdictText"></div>
+        <div id="explainText"></div>
+      </div>
+      <button class="btn-next" id="btnNext" onclick="nextQuestion()">PrÃ³xima â†’</button>
+    </div>
+  </div>
+
+  <!-- END -->
+  <div class="screen" id="endScreen">
+    <div class="end-card">
+      <div class="end-emoji" id="endEmoji"></div>
+      <div class="end-title" id="endTitle"></div>
+      <div class="badge-label" id="badgeLabel"></div>
+      <div class="score-row">
+        <div class="score-box"><div class="val" id="finalScore"></div><div class="lbl">pontos</div></div>
+        <div class="score-box"><div class="val" id="finalStreak"></div><div class="lbl">melhor sequÃªncia</div></div>
+        <div class="score-box"><div class="val" id="finalPct"></div><div class="lbl">aproveitamento</div></div>
+      </div>
+      <div class="reconhecimento-end">
+        ðŸŽ ParabÃ©ns por chegar atÃ© aqui! VocÃª acabou de garantir seus <strong>20 minutos de reconhecimento</strong>.<br>
+        <span style="font-size:0.85rem;color:#64748b">Manda o print desta tela no privado para registrar. ðŸ“¸</span>
+      </div>
+      <div class="lock-note">ðŸ”’ Este jogo registra apenas uma tentativa por dispositivo.</div>
+    </div>
+  </div>
+
+</div>
+<script>
+const SAVE_KEY = 'retomadaResolucaoQuiz_v1_state';
+
+const questions = [
+  {tag:"RETOMADA",text:"Quando vocÃª pega um chat pausado, a primeira coisa a fazer Ã© perguntar ao cliente qual Ã© o problema.",options:["Verdadeiro","Falso"],correct:1,trap:false,explain:"âŒ Errado. Antes de escrever qualquer coisa, leia todo o histÃ³rico do chat. A retomada ideal Ã© confirmar o que jÃ¡ foi tratado: 'Li o histÃ³rico â€” vocÃª tem [problema X], correto? Vou continuar de onde paramos.' Pedir as mesmas informaÃ§Ãµes de novo frustra o cliente."},
+  {tag:"RETOMADA",text:"Ao retomar um chat pausado, o ideal Ã© resumir para o cliente o que foi tratado antes de continuar.",options:["Verdadeiro","Falso"],correct:0,trap:false,explain:"âœ… Exato! Resumir o histÃ³rico mostra profissionalismo e poupa o cliente de repetir tudo. Ex: 'OlÃ¡! Li tudo â€” vocÃª recebeu um item errado e quer a substituiÃ§Ã£o. Vou continuar daqui.'"},
+  {tag:"RETOMADA",text:"Se o cliente jÃ¡ passou data, valor e mÃ©todo de pagamento, ainda assim vocÃª deve pedir o nÃºmero do pedido antes de qualquer verificaÃ§Ã£o.",options:["Verdadeiro","Falso"],correct:1,trap:true,explain:"âŒ Pegadinha! Com data e valor em mÃ£os, tente localizar o pedido pelo histÃ³rico da conta primeiro. SÃ³ peÃ§a o nÃºmero se realmente nÃ£o encontrar. Pedir o nÃºmero logo de cara quando o cliente jÃ¡ deu os dados parece descaso."},
+  {tag:"RETOMADA",text:"Durante uma verificaÃ§Ã£o longa, enviar atualizaÃ§Ãµes intermediÃ¡rias a cada 2 minutos ('ainda estou verificando, jÃ¡ volto!') reduz a chance de o chat ser pausado por inatividade.",options:["Verdadeiro","Falso"],correct:0,trap:false,explain:"âœ… Correto! O chat Ã© pausado apÃ³s 2 minutos sem interaÃ§Ã£o. Uma atualizaÃ§Ã£o rÃ¡pida mantÃ©m o cliente presente e demonstra que vocÃª nÃ£o desapareceu."},
+  {tag:"RETOMADA",text:"Usar exatamente o mesmo blurb de encerramento em todos os contatos ('Compreendo sua insatisfaÃ§Ã£o... limitaÃ§Ãµes e polÃ­ticas que nÃ£o podemos contornar') Ã© considerado um bom padrÃ£o de qualidade.",options:["Verdadeiro","Falso"],correct:1,trap:true,explain:"âŒ Pegadinha! Blurbs genÃ©ricos sÃ£o percebidos como automÃ¡ticos e frios, especialmente em situaÃ§Ãµes de alta frustraÃ§Ã£o. O encerramento deve ser especÃ­fico para aquele contato â€” cite o produto, o prÃ³ximo passo, o compromisso. Isso Ã© o que diferencia um atendimento de qualidade."},
+  {tag:"PAGAMENTO",text:"Quando um cliente relata um problema de cupom dividido em dois itens, a melhor abordagem Ã© comeÃ§ar a passar valores do sistema enquanto ainda estÃ¡ entendendo o caso.",options:["Verdadeiro","Falso"],correct:1,trap:false,explain:"âŒ Errado. Organize o raciocÃ­nio antes de agir. Repita o que entendeu para o cliente e confirme: 'O cupom de R$X foi dividido entre os dois itens. VocÃª estÃ¡ dizendo que pagou diferente disso â€” entendi certo?' SÃ³ depois verifique no sistema."},
+  {tag:"PAGAMENTO",text:"Em um caso de cupom dividido, confirmar o entendimento em voz alta com o cliente antes de verificar no sistema ajuda a evitar erros e aumenta a confianÃ§a do cliente no atendimento.",options:["Verdadeiro","Falso"],correct:0,trap:false,explain:"âœ… Exato! Confirmar o entendimento ('SÃ³ para garantir que entendi certo...') reduz retrabalho, mostra que vocÃª estÃ¡ prestando atenÃ§Ã£o e transmite seguranÃ§a ao cliente."},
+  {tag:"PAGAMENTO",text:"Se o sistema mostra que o cupom foi aplicado com sucesso, vocÃª pode encerrar o contato informando isso ao cliente, mesmo que ele apresente prints mostrando um valor diferente.",options:["Verdadeiro","Falso"],correct:1,trap:true,explain:"âŒ Pegadinha! O sistema pode mostrar o cupom aplicado, mas a questÃ£o do cliente pode ser sobre o valor final pago â€” que Ã© diferente. Analise os prints do cliente com atenÃ§Ã£o. O sistema Ã© uma ferramenta, nÃ£o o Ã¡rbitro final da experiÃªncia do cliente."},
+  {tag:"PAGAMENTO",text:"Antes de enviar qualquer link para o cliente durante o atendimento, vocÃª deve verificar se o link estÃ¡ funcionando.",options:["Verdadeiro","Falso"],correct:0,trap:false,explain:"âœ… Correto! Um link quebrado ('page not found') em meio a um atendimento jÃ¡ tenso piora muito a percepÃ§Ã£o do cliente. Na dÃºvida, oriente pelo caminho passo a passo dentro do prÃ³prio chat."},
+  {tag:"ENCERRAMENTO",text:"Encerrar um contato com 'bom dia' e 'jÃ¡ fiz o que pude' quando o cliente pediu para falar com um supervisor Ã© uma prÃ¡tica aceitÃ¡vel se vocÃª realmente nÃ£o tiver mais opÃ§Ãµes.",options:["Verdadeiro","Falso"],correct:1,trap:true,explain:"âŒ Pegadinha! Quando o cliente solicita supervisÃ£o ou escalada, isso deve ser registrado formalmente â€” nÃ£o encerrado unilateralmente. Mesmo que a resposta do supervisor seja a mesma, o cliente tem direito ao processo. Encerrar sem registrar a solicitaÃ§Ã£o Ã© um risco de compliance e CCX."},
+  {tag:"ENCERRAMENTO",text:"Antes de encerrar qualquer contato, vocÃª deve confirmar com o cliente se hÃ¡ mais alguma dÃºvida e se o problema foi resolvido.",options:["Verdadeiro","Falso"],correct:0,trap:false,explain:"âœ… Exato! O encerramento Ã© o Ãºltimo momento de impressÃ£o com o cliente. Um simples 'Posso encerrar? HÃ¡ mais alguma coisa em que eu possa ajudar?' demonstra cuidado e evita que o cliente saia insatisfeito sem ao menos ter sido perguntado."},
+  {tag:"ENCERRAMENTO",text:"Quando o cliente declara que 'vai ao Procon' ou 'vai registrar reclamaÃ§Ã£o oficial', o correto Ã© apenas encerrar o chat educadamente.",options:["Verdadeiro","Falso"],correct:1,trap:true,explain:"âŒ Pegadinha! Quando o cliente menciona Procon ou canais externos, isso Ã© um sinal de escalada emocional â€” nÃ£o apenas uma ameaÃ§a. O correto Ã© reconhecer a frustraÃ§Ã£o, oferecer um prÃ³ximo passo concreto (escalada, registro formal) e nÃ£o encerrar abruptamente. Isso protege o cliente e reduz o risco de reclamaÃ§Ã£o efetiva."},
+  {tag:"PROMISES",text:"Se um atendimento anterior prometeu uma equiparaÃ§Ã£o de preÃ§o ao cliente, e o cliente retorna para executar, isso deve ser prioridade mÃ¡xima no novo contato.",options:["Verdadeiro","Falso"],correct:0,trap:false,explain:"âœ… Correto! Quando o cliente retorna para executar algo prometido, ele jÃ¡ passou pelo esforÃ§o de contato anterior. Trair essa promessa gera BTB negativo quase certo. Verifique o histÃ³rico antes de tudo e priorize a execuÃ§Ã£o do que foi prometido."},
+  {tag:"PROMISES",text:"Ao pegar um contato de cliente que retorna para executar equiparaÃ§Ã£o prometida, Ã© necessÃ¡rio pedir o link do produto atual antes de qualquer verificaÃ§Ã£o de histÃ³rico.",options:["Verdadeiro","Falso"],correct:1,trap:false,explain:"âŒ Errado. Primeiro leia o histÃ³rico do contato anterior. O link pode ser necessÃ¡rio depois, mas pedi-lo antes de confirmar o que foi prometido demonstra que vocÃª nÃ£o leu o caso â€” o que frustra o cliente que jÃ¡ teve que explicar tudo antes."},
+  {tag:"PROMISES",text:"Deixar um cliente aguardando em silÃªncio por vÃ¡rios minutos enquanto vocÃª tenta consultar outro setor, sem enviar atualizaÃ§Ãµes, pode resultar no encerramento do chat por inatividade.",options:["Verdadeiro","Falso"],correct:0,trap:false,explain:"âœ… Exato! O chat Ã© pausado apÃ³s 2 minutos sem interaÃ§Ã£o. Se vocÃª precisa consultar outro setor, envie atualizaÃ§Ãµes regulares: 'Ainda aguardando retorno deles, jÃ¡ volto!' â€” isso evita o parked e mantÃ©m o cliente presente."},
+  {tag:"ABERTURA",text:"Quando sua abertura padrÃ£o chegar mascarada (â€¢â€¢â€¢) para o cliente, vocÃª deve aguardar o cliente perguntar antes de reescrever.",options:["Verdadeiro","Falso"],correct:1,trap:false,explain:"âŒ Errado. Se vocÃª perceber que a abertura ficou mascarada ou ilegÃ­vel, reescreva imediatamente de forma limpa: 'OlÃ¡! Meu nome Ã© [nome]. Em que posso te ajudar hoje?' NÃ£o espere o cliente questionar â€” isso demonstra proatividade e cuidado."},
+  {tag:"ABERTURA",text:"Uma abertura limpa e legÃ­vel contribui diretamente para a avaliaÃ§Ã£o do cliente no final do contato.",options:["Verdadeiro","Falso"],correct:0,trap:false,explain:"âœ… Correto! A abertura Ã© o primeiro ponto de contato humano apÃ³s o bot. Uma abertura mascarada ou confusa cria uma pÃ©ssima primeira impressÃ£o que Ã© difÃ­cil de reverter ao longo do contato."},
+  {tag:"MULTI-PROBLEMA",text:"Quando o cliente apresenta dois problemas simultÃ¢neos, vocÃª deve resolver um e encerrar o contato antes de perguntar sobre o segundo.",options:["Verdadeiro","Falso"],correct:1,trap:false,explain:"âŒ Errado. Identifique todos os problemas logo no inÃ­cio e trate-os em sequÃªncia dentro do mesmo contato. Encerrar antes de verificar o segundo problema forÃ§a o cliente a contatar novamente â€” isso aumenta o volume de contatos desnecessÃ¡rios e reduz a satisfaÃ§Ã£o."},
+  {tag:"MULTI-PROBLEMA",text:"Ao identificar que um cliente tem dois pedidos com problemas diferentes, o ideal Ã© criar um mini-resumo antes de propor soluÃ§Ãµes: 'EntÃ£o temos: (1) pedido X com [problema] e (2) pedido Y com [problema]. EstÃ¡ certo?'",options:["Verdadeiro","Falso"],correct:0,trap:false,explain:"âœ… Exato! O mini-resumo alinha expectativas, demonstra que vocÃª ouviu tudo, e organiza o atendimento. Isso evita que o cliente corrija vocÃª no meio do processo e reduz o AHT ao eliminar idas e vindas desnecessÃ¡rias."},
+  {tag:"MULTI-PROBLEMA",text:"Em um contato com mÃºltiplos pedidos, confirmar o nome do produto antes de agir ('Ã‰ o pedido da Atlas MÃ¡quina de MacarrÃ£o, correto?') Ã© desnecessÃ¡rio e aumenta o AHT.",options:["Verdadeiro","Falso"],correct:1,trap:true,explain:"âŒ Pegadinha! Confirmar o produto antes de agir REDUZ o AHT â€” porque evita que vocÃª tome uma aÃ§Ã£o no produto errado e precise refazer tudo. Ã‰ uma verificaÃ§Ã£o rÃ¡pida de 5 segundos que economiza minutos de correÃ§Ã£o."},
+  {tag:"PARKED",text:"Quando um cliente retorna a um chat pausado e um novo associate assume, Ã© obrigatÃ³rio ler o histÃ³rico completo antes de escrever qualquer mensagem.",options:["Verdadeiro","Falso"],correct:0,trap:false,explain:"âœ… Correto! Ler o histÃ³rico antes de escrever Ã© inegociÃ¡vel. O cliente nÃ£o deve precisar repetir nada. A retomada ideal comeÃ§a com: 'OlÃ¡! Vi todo o histÃ³rico â€” [resumo do problema]. Vou continuar de onde paramos.'"},
+  {tag:"PARKED",text:"Se um contato passou por 3 ou mais associates diferentes, o prÃ³ximo associate que pegar deve perguntar ao cliente 'qual Ã© o problema?' para garantir que entendeu corretamente.",options:["Verdadeiro","Falso"],correct:1,trap:true,explain:"âŒ Pegadinha! Pedir para o cliente explicar de novo depois de 3 atendimentos Ã© extremamente frustrante e Ã© um dos principais drivers de BTB negativo. Leia o histÃ³rico completo. Se tiver alguma dÃºvida especÃ­fica, cite o que jÃ¡ foi tratado antes de perguntar."},
+  {tag:"PARKED",text:"Um cliente que diz 'jÃ¡ Ã© o terceiro atendente' estÃ¡ sinalizando frustraÃ§Ã£o com o processo de parked â€” isso requer reconhecimento imediato antes de qualquer aÃ§Ã£o.",options:["Verdadeiro","Falso"],correct:0,trap:false,explain:"âœ… Exato! Quando o cliente menciona o nÃºmero de atendentes, ele estÃ¡ comunicando desgaste. Antes de qualquer verificaÃ§Ã£o, reconheÃ§a: 'Entendo que vocÃª jÃ¡ explicou isso algumas vezes â€” li tudo e vou resolver agora sem precisar repetir.' Isso muda o tom do contato imediatamente."},
+  {tag:"ESCALADA",text:"Se o cliente pede para falar com um supervisor e vocÃª acredita que as informaÃ§Ãµes serÃ£o as mesmas, vocÃª pode informar isso e negar a escalada.",options:["Verdadeiro","Falso"],correct:1,trap:true,explain:"âŒ Pegadinha! Dizer 'o supervisor vai dizer a mesma coisa' e nÃ£o escalar Ã© uma prÃ¡tica inadequada. O cliente tem direito a solicitar escalada. Registre a solicitaÃ§Ã£o formalmente e siga o processo correto â€” mesmo que a resposta seja de fato a mesma."},
+  {tag:"ESCALADA",text:"Registrar uma solicitaÃ§Ã£o de escalada do cliente formalmente, mesmo sem poder cumpri-la imediatamente, demonstra respeito e compromisso com o processo.",options:["Verdadeiro","Falso"],correct:0,trap:false,explain:"âœ… Correto! O registro formal protege o cliente, demonstra que a Amazon leva a sÃ©rio as solicitaÃ§Ãµes, e reduz o risco de o cliente buscar canais externos como Procon ou Reclame Aqui."},
+  {tag:"CHECK ORDER",text:"Quando um pedido estÃ¡ 'a caminho' mas sem atualizaÃ§Ã£o de data de entrega, a Ãºnica resposta possÃ­vel Ã© pedir para o cliente aguardar.",options:["Verdadeiro","Falso"],correct:1,trap:true,explain:"âŒ Pegadinha! Existem aÃ§Ãµes adicionais disponÃ­veis: verificar se hÃ¡ opÃ§Ã£o de nota Ã  transportadora, checar se o sistema permite contato com logÃ­stica, oferecer alternativas (cancelamento/reembolso se o cliente preferir nÃ£o aguardar). 'SÃ³ aguardar' sem explorar as opÃ§Ãµes do sistema Ã© uma resposta incompleta."},
+  {tag:"CHECK ORDER",text:"Quando nÃ£o hÃ¡ nenhuma aÃ§Ã£o imediata disponÃ­vel para um pedido atrasado, oferecer uma Ã¢ncora de prÃ³ximo passo ('se nÃ£o chegar atÃ© [data], retorne e resolvemos imediatamente') Ã© uma prÃ¡tica recomendada.",options:["Verdadeiro","Falso"],correct:0,trap:false,explain:"âœ… Exato! A Ã¢ncora de prÃ³ximo passo cria um compromisso com o cliente e reduz a incerteza â€” mesmo que o problema nÃ£o seja resolvido agora. Isso diminui significativamente o risco de BTB negativo e de churn."},
+  {tag:"CHECK ORDER",text:"Confirmar o reembolso jÃ¡ processado ao cliente ('vi aqui que R$X foi reembolsado em [data]') antes de perguntar o que ele quer Ã© uma boa prÃ¡tica de transparÃªncia.",options:["Verdadeiro","Falso"],correct:0,trap:false,explain:"âœ… Correto! Informar proativamente o que jÃ¡ aconteceu na conta do cliente (reembolso, cancelamento, etc.) demonstra acesso Ã s informaÃ§Ãµes e transmite seguranÃ§a â€” o cliente sente que vocÃª realmente estÃ¡ olhando para o caso dele."},
+  {tag:"QUALIDADE",text:"Usar o mesmo blurb de empatia genÃ©rico em todos os contatos difÃ­ceis Ã© suficiente para atingir boas notas nas dimensÃµes de Empatia e Prestatividade do CCX.",options:["Verdadeiro","Falso"],correct:1,trap:true,explain:"âŒ Pegadinha! Empatia genÃ©rica Ã© percebida como automÃ¡tica â€” e clientes percebem quando Ã© um copy-paste. Empatia de qualidade Ã© especÃ­fica: menciona o produto, o problema real, o impacto para o cliente. Ex: 'Entendo que vocÃª precisava da garrafa com urgÃªncia e foi cancelada sem aviso â€” isso Ã© realmente frustrante.'"},
+  {tag:"QUALIDADE",text:"Finalizar um contato sem confirmar se o cliente recebeu o crÃ©dito ou vale-presente emitido Ã© uma oportunidade perdida de fechar o ciclo da resoluÃ§Ã£o.",options:["Verdadeiro","Falso"],correct:0,trap:false,explain:"âœ… Exato! ApÃ³s emitir qualquer crÃ©dito, vale ou reembolso, confirme: 'Consegue verificar agora no app se jÃ¡ aparece?' Isso fecha o ciclo, garante que a soluÃ§Ã£o chegou de fato ao cliente, e evita um novo contato de 'onde estÃ¡ meu crÃ©dito?'"},
+  {tag:"QUALIDADE",text:"Um contato de qualidade pode ser encerrado mesmo que o problema principal do cliente nÃ£o tenha sido resolvido, desde que o associate tenha demonstrado empatia.",options:["Verdadeiro","Falso"],correct:1,trap:true,explain:"âŒ Pegadinha! Empatia Ã© necessÃ¡ria mas nÃ£o suficiente. O objetivo do contato Ã© a resoluÃ§Ã£o. Se o problema nÃ£o foi resolvido, o mÃ­nimo Ã© garantir: (1) prÃ³ximo passo concreto registrado, (2) cliente ciente do que vai acontecer, (3) canal de retorno claro. Encerrar com empatia mas sem resoluÃ§Ã£o ou Ã¢ncora Ã© um contato incompleto."}
+];
+
+let state = { idx:0, score:0, streak:0, maxStreak:0, completed:false, finalScore:0, answered:false, selected:-1 };
+
+function saveState(){ localStorage.setItem(SAVE_KEY, JSON.stringify(state)); }
+function loadState(){ const s = localStorage.getItem(SAVE_KEY); if(s) state = JSON.parse(s); }
+
+function startGame(){
+  loadState();
+  document.getElementById('startScreen').classList.remove('active');
+  document.getElementById('gameScreen').classList.add('active');
+  if(state.completed){ showEnd(); return; }
+  if(state.idx > 0) document.getElementById('resumeBanner').style.display='block';
+  renderQuestion();
+}
+
+function renderQuestion(){
+  const q = questions[state.idx];
+  document.getElementById('progressBar').style.width = ((state.idx/questions.length)*100)+'%';
+  document.getElementById('scoreVal').textContent = state.score;
+  document.getElementById('streakVal').textContent = state.streak;
+  document.getElementById('qTag').textContent = q.tag;
+  document.getElementById('qCounter').textContent = 'Pergunta '+(state.idx+1)+' de '+questions.length;
+  document.getElementById('qText').textContent = q.text;
+  const wrap = document.getElementById('optionsWrap');
+  wrap.innerHTML = '';
+  q.options.forEach((o,i)=>{
+    const btn = document.createElement('button');
+    btn.className='opt-btn'; btn.textContent=o;
+    btn.onclick=()=>answer(i);
+    wrap.appendChild(btn);
+  });
+  document.getElementById('feedbackBox').classList.remove('show');
+  document.getElementById('btnNext').style.display='none';
+  document.getElementById('streakBanner').style.display='none';
+  if(state.answered){ restoreAnswered(); }
+}
+
+function restoreAnswered(){
+  const q = questions[state.idx];
+  const btns = document.querySelectorAll('.opt-btn');
+  btns.forEach(b=>b.disabled=true);
+  if(state.selected === q.correct){ btns[state.selected].classList.add('correct'); }
+  else { btns[state.selected].classList.add('wrong'); btns[q.correct].classList.add('reveal'); }
+  showFeedback(state.selected === q.correct, q);
+  document.getElementById('btnNext').style.display='block';
+}
+
+function answer(i){
+  if(state.answered) return;
+  state.answered = true; state.selected = i;
+  const q = questions[state.idx];
+  const btns = document.querySelectorAll('.opt-btn');
+  btns.forEach(b=>b.disabled=true);
+  const correct = i === q.correct;
+  if(correct){
+    btns[i].classList.add('correct');
+    const pts = q.trap ? 15 : 10;
+    state.streak++;
+    if(state.streak > state.maxStreak) state.maxStreak = state.streak;
+    const bonus = state.streak >= 2 ? Math.min((state.streak-1)*3,15) : 0;
+    state.score += pts + bonus;
+    if(state.streak >= 2){
+      const sb = document.getElementById('streakBanner');
+      sb.textContent = 'ðŸ”¥ SequÃªncia de '+state.streak+'! +'+bonus+' bÃ´nus';
+      sb.style.display='block';
+    }
+  } else {
+    btns[i].classList.add('wrong');
+    btns[q.correct].classList.add('reveal');
+    state.streak=0;
+  }
+  saveState();
+  showFeedback(correct, q);
+  document.getElementById('scoreVal').textContent = state.score;
+  document.getElementById('streakVal').textContent = state.streak;
+  document.getElementById('btnNext').style.display='block';
+}
+
+function showFeedback(correct, q){
+  const fb = document.getElementById('feedbackBox');
+  document.getElementById('verdictText').className='verdict '+(correct?'ok':'err');
+  document.getElementById('verdictText').textContent = correct ? 'âœ… Correto!' : 'âŒ NÃ£o foi dessa vez';
+  document.getElementById('explainText').innerHTML = q.explain;
+  fb.classList.add('show');
+}
+
+function nextQuestion(){
+  state.idx++; state.answered=false; state.selected=-1;
+  if(state.idx >= questions.length){ finishGame(); return; }
+  saveState();
+  renderQuestion();
+}
+
+function finishGame(){
+  state.completed=true; state.finalScore=state.score;
+  saveState();
+  showEnd();
+}
+
+function showEnd(){
+  document.getElementById('gameScreen').classList.remove('active');
+  document.getElementById('endScreen').classList.add('active');
+  const max = questions.length * 15;
+  const pct = Math.round((state.finalScore/max)*100);
+  document.getElementById('finalScore').textContent = state.finalScore;
+  document.getElementById('finalStreak').textContent = state.maxStreak;
+  document.getElementById('finalPct').textContent = pct+'%';
+  let emoji,title,badge,cls;
+  if(pct>=80){ emoji='ðŸ†';title='Especialista em Atendimento!';badge='EXPERT';cls='badge-expert'; }
+  else if(pct>=50){ emoji='ðŸŽ¯';title='Bom trabalho!';badge='INTERMEDIÃRIO';cls='badge-inter'; }
+  else { emoji='ðŸ“š';title='Continue praticando!';badge='INICIANTE';cls='badge-init'; }
+  document.getElementById('endEmoji').textContent=emoji;
+  document.getElementById('endTitle').textContent=title;
+  const bl=document.getElementById('badgeLabel');
+  bl.textContent=badge; bl.className='badge-label '+cls;
+}
+
+loadState();
+if(state.completed){
+  document.getElementById('startScreen').classList.remove('active');
+  document.getElementById('endScreen').classList.add('active');
+  showEnd();
+}
+</script>
+</body>
+</html>

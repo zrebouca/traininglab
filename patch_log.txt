@@ -1,0 +1,11 @@
+CSS warn/crit removed: 0 chars removed
+HUD initial value: 0 replaced
+state.elapsed added: 0
+bonus zeroed
+pts labels simplified
+startTimer old found: 0
+startTimer replaced: True
+startTimer calls fixed
+final screen time calc: found=1
+final screen timer row: found=1
+sftimer JS update: found=1

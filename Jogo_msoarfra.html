@@ -1,0 +1,222 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Treino de Atendimento â€” Pagamento Complexo & ResoluÃ§Ã£o</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#0f172a;color:#e2e8f0;font-family:system-ui,-apple-system,'Segoe UI',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px}
+  .container{width:100%;max-width:680px}
+  .screen{display:none}.screen.active{display:block}
+  .start-card{background:#1e293b;border:1px solid #334155;border-radius:18px;padding:36px 32px;text-align:center}
+  .start-card h1{font-size:1.7rem;font-weight:800;color:#e2e8f0;margin-bottom:8px}
+  .start-card .sub{color:#94a3b8;font-size:0.97rem;margin-bottom:24px;line-height:1.6}
+  .badge-reconhecimento{background:#0f172a;border:1px solid #6366f1;border-radius:12px;padding:14px 20px;margin:20px 0;color:#a5b4fc;font-size:0.93rem}
+  .badge-reconhecimento strong{color:#6366f1;font-size:1.05rem}
+  .stats-row{display:flex;gap:12px;justify-content:center;margin-bottom:24px;flex-wrap:wrap}
+  .stat-pill{background:#0f172a;border:1px solid #334155;border-radius:10px;padding:8px 18px;font-size:0.85rem;color:#94a3b8}
+  .stat-pill span{color:#e2e8f0;font-weight:700}
+  .btn-start{background:#6366f1;color:#fff;border:none;border-radius:12px;padding:14px 36px;font-size:1.05rem;font-weight:700;cursor:pointer;transition:background .2s;width:100%}
+  .btn-start:hover{background:#4f46e5}
+  .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+  .topbar-title{font-size:0.85rem;color:#64748b;font-weight:600;letter-spacing:.03em}
+  .hud{display:flex;gap:14px}
+  .hud-item{background:#1e293b;border:1px solid #334155;border-radius:10px;padding:6px 14px;font-size:0.88rem;font-weight:700}
+  .hud-item.score{color:#a5b4fc}
+  .hud-item.streak{color:#f59e0b}
+  .progress-wrap{background:#1e293b;border-radius:8px;height:6px;margin-bottom:20px;overflow:hidden}
+  .progress-bar{background:#6366f1;height:6px;border-radius:8px;transition:width .4s}
+  .question-card{background:#1e293b;border:1px solid #334155;border-radius:18px;padding:28px 26px}
+  .q-tag{display:inline-block;background:#6366f122;color:#818cf8;border-radius:20px;padding:4px 14px;font-size:0.75rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:14px}
+  .q-counter{font-size:0.82rem;color:#64748b;margin-bottom:8px}
+  .q-text{font-size:1.05rem;color:#e2e8f0;font-weight:600;line-height:1.55;margin-bottom:22px}
+  .options{display:flex;flex-direction:column;gap:10px}
+  .opt-btn{background:#0f172a;border:2px solid #334155;border-radius:12px;padding:13px 18px;color:#cbd5e1;font-size:0.95rem;text-align:left;cursor:pointer;transition:all .18s;font-family:inherit}
+  .opt-btn:hover:not(:disabled){border-color:#6366f1;color:#e2e8f0}
+  .opt-btn.correct{background:#10b98122;border-color:#10b981;color:#10b981;font-weight:700}
+  .opt-btn.wrong{background:#ef444422;border-color:#ef4444;color:#ef4444}
+  .opt-btn.reveal{background:#10b98111;border-color:#10b98166;color:#6ee7b7}
+  .feedback{margin-top:18px;background:#0f172a;border:1px solid #334155;border-radius:12px;padding:14px 16px;font-size:0.88rem;color:#94a3b8;line-height:1.6;display:none}
+  .feedback.show{display:block}
+  .feedback .verdict{font-weight:800;margin-bottom:6px;font-size:0.95rem}
+  .feedback .verdict.ok{color:#10b981}
+  .feedback .verdict.err{color:#ef4444}
+  .streak-banner{background:#f59e0b22;border:1px solid #f59e0b66;border-radius:10px;padding:8px 14px;color:#fbbf24;font-size:0.85rem;font-weight:700;margin-top:12px;display:none;text-align:center}
+  .btn-next{background:#6366f1;color:#fff;border:none;border-radius:12px;padding:12px 28px;font-size:0.95rem;font-weight:700;cursor:pointer;margin-top:16px;display:none;width:100%}
+  .btn-next:hover{background:#4f46e5}
+  .resume-banner{background:#6366f122;border:1px solid #6366f166;border-radius:10px;padding:10px 16px;color:#a5b4fc;font-size:0.85rem;margin-bottom:16px;display:none;text-align:center}
+  .end-card{background:#1e293b;border:1px solid #334155;border-radius:18px;padding:36px 32px;text-align:center}
+  .end-emoji{font-size:3.2rem;margin-bottom:12px}
+  .end-title{font-size:1.5rem;font-weight:800;margin-bottom:6px}
+  .badge-label{display:inline-block;border-radius:20px;padding:6px 22px;font-size:0.88rem;font-weight:800;letter-spacing:.06em;margin-bottom:20px}
+  .badge-expert{background:#10b98122;color:#10b981;border:1px solid #10b981}
+  .badge-inter{background:#f59e0b22;color:#f59e0b;border:1px solid #f59e0b}
+  .badge-init{background:#ef444422;color:#ef4444;border:1px solid #ef4444}
+  .score-row{display:flex;gap:14px;justify-content:center;margin:18px 0;flex-wrap:wrap}
+  .score-box{background:#0f172a;border:1px solid #334155;border-radius:12px;padding:14px 22px}
+  .score-box .val{font-size:1.6rem;font-weight:800;color:#a5b4fc}
+  .score-box .lbl{font-size:0.78rem;color:#64748b;margin-top:2px}
+  .reconhecimento-end{background:#0f172a;border:1px solid #6366f1;border-radius:12px;padding:16px 20px;margin:20px 0;color:#a5b4fc;font-size:0.9rem;line-height:1.6}
+  .reconhecimento-end strong{color:#6366f1}
+  .lock-note{color:#475569;font-size:0.8rem;margin-top:16px}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="screen active" id="startScreen">
+    <div class="start-card">
+      <div style="font-size:2.4rem;margin-bottom:10px">ðŸ’¡</div>
+      <h1>Pagamento Complexo & ResoluÃ§Ã£o</h1>
+      <p class="sub">Revisa casos de cupons, equiparaÃ§Ãµes, pedidos cancelados e situaÃ§Ãµes de alto valor â€” onde organizar o raciocÃ­nio e fechar com soluÃ§Ã£o concreta faz toda a diferenÃ§a para o cliente.</p>
+      <div class="stats-row">
+        <div class="stat-pill">Perguntas: <span>30</span></div>
+        <div class="stat-pill">Estilo: <span>Verdadeiro / Falso</span></div>
+        <div class="stat-pill">Dificuldade: <span>AvanÃ§ado</span></div>
+      </div>
+      <div class="badge-reconhecimento">
+        ðŸŽ SÃ³ de <strong>ler o MAP e completar esse jogo</strong>, vocÃª jÃ¡ garante <strong>20 minutos de reconhecimento</strong>.<br>
+        <span style="font-size:0.85rem;color:#64748b">Manda o print da tela final no privado para registrar. ðŸ“¸</span>
+      </div>
+      <button class="btn-start" onclick="startGame()">ComeÃ§ar Jogo ðŸš€</button>
+    </div>
+  </div>
+
+  <div class="screen" id="gameScreen">
+    <div class="topbar">
+      <span class="topbar-title">PAGAMENTO COMPLEXO & RESOLUÃ‡ÃƒO</span>
+      <div class="hud">
+        <div class="hud-item score">â­ <span id="scoreVal">0</span></div>
+        <div class="hud-item streak">ðŸ”¥ <span id="streakVal">0</span></div>
+      </div>
+    </div>
+    <div class="progress-wrap"><div class="progress-bar" id="progressBar"></div></div>
+    <div class="resume-banner" id="resumeBanner">â†©ï¸ Continuando de onde vocÃª parou!</div>
+    <div class="question-card">
+      <div class="q-tag" id="qTag"></div>
+      <div class="q-counter" id="qCounter"></div>
+      <div class="q-text" id="qText"></div>
+      <div class="options" id="optionsWrap"></div>
+      <div class="streak-banner" id="streakBanner"></div>
+      <div class="feedback" id="feedbackBox">
+        <div class="verdict" id="verdictText"></div>
+        <div id="explainText"></div>
+      </div>
+      <button class="btn-next" id="btnNext" onclick="nextQuestion()">PrÃ³xima â†’</button>
+    </div>
+  </div>
+
+  <div class="screen" id="endScreen">
+    <div class="end-card">
+      <div class="end-emoji" id="endEmoji"></div>
+      <div class="end-title" id="endTitle"></div>
+      <div class="badge-label" id="badgeLabel"></div>
+      <div class="score-row">
+        <div class="score-box"><div class="val" id="finalScore"></div><div class="lbl">pontos</div></div>
+        <div class="score-box"><div class="val" id="finalStreak"></div><div class="lbl">melhor sequÃªncia</div></div>
+        <div class="score-box"><div class="val" id="finalPct"></div><div class="lbl">aproveitamento</div></div>
+      </div>
+      <div class="reconhecimento-end">
+        ðŸŽ ParabÃ©ns por chegar atÃ© aqui! VocÃª acabou de garantir seus <strong>20 minutos de reconhecimento</strong>.<br>
+        <span style="font-size:0.85rem;color:#64748b">Manda o print desta tela no privado para registrar. ðŸ“¸</span>
+      </div>
+      <div class="lock-note">ðŸ”’ Este jogo registra apenas uma tentativa por dispositivo.</div>
+    </div>
+  </div>
+</div>
+<script>
+const SAVE_KEY = 'pagamentoComplejoQuiz_v1_state';
+const questions = [
+  {tag:"CUPOM",text:"Quando um cliente reclama que pagou um valor diferente do esperado em uma compra com cupom, a primeira aÃ§Ã£o Ã© verificar no sistema se o cupom foi aplicado e informar isso ao cliente.",options:["Verdadeiro","Falso"],correct:1,trap:true,explain:"âŒ Pegadinha! Antes de verificar no sistema, confirme com o cliente o que ele entendeu sobre o cupom: valor, condiÃ§Ã£o de uso, se era um cupom divisÃ­vel. O sistema pode mostrar que o cupom 'foi aplicado' mas o cliente pode estar questionando o valor final por um motivo diferente. Entenda o caso completo antes de verificar."},
+  {tag:"CUPOM",text:"Antes de verificar um caso de cupom no sistema, o correto Ã© confirmar com o cliente o entendimento do problema: valor esperado, mÃ©todo de pagamento e o que ele estÃ¡ questionando.",options:["Verdadeiro","Falso"],correct:0,trap:false,explain:"âœ… Correto! Organizar o raciocÃ­nio antes de verificar evita passar valores soltos que nÃ£o respondem Ã  dÃºvida real do cliente. Ex: 'O cupom de R$25 foi dividido entre os dois itens â€” vocÃª estÃ¡ questionando o valor do livro especificamente, correto?'"},
+  {tag:"CUPOM",text:"Um cupom de 'R$25 em compras acima de R$100' pode ser dividido automaticamente pelo sistema entre dois produtos de um mesmo pedido.",options:["Verdadeiro","Falso"],correct:0,trap:true,explain:"âœ… Correto! O sistema pode dividir o desconto proporcionalmente entre os itens do pedido. Entender essa mecÃ¢nica Ã© importante para explicar ao cliente por que o valor de cada item pode parecer diferente do esperado â€” sem gerar desconfianÃ§a."},
+  {tag:"CUPOM",text:"Se o sistema mostra que o cupom foi aplicado corretamente, o associate pode encerrar o contato informando isso ao cliente, mesmo que o cliente apresente evidÃªncias de um valor diferente.",options:["Verdadeiro","Falso"],correct:1,trap:true,explain:"âŒ Pegadinha! O sistema Ã© uma ferramenta â€” nÃ£o o Ã¡rbitro final. Se o cliente tem prints mostrando um valor diferente, analise as evidÃªncias antes de encerrar. O sistema pode mostrar o desconto mas o valor final pode ter sido afetado por outro fator (frete, juros de parcelamento, etc.)."},
+  {tag:"CUPOM",text:"Em um caso de cupom com compra parcelada, o associate deve verificar se hÃ¡ tarifa de forma de pagamento aplicada, pois isso pode explicar diferenÃ§as no valor final.",options:["Verdadeiro","Falso"],correct:0,trap:false,explain:"âœ… Correto! A tarifa de forma de pagamento (juros de parcelamento ou taxa) Ã© um fator que muitos clientes nÃ£o consideram ao calcular o valor final. Verificar esse campo no sistema pode resolver a dÃºvida sem precisar de mais investigaÃ§Ã£o."},
+  {tag:"LINKS",text:"Enviar um link para o cliente sem verificar se estÃ¡ funcionando Ã© uma prÃ¡tica aceitÃ¡vel para agilizar o atendimento.",options:["Verdadeiro","Falso"],correct:1,trap:false,explain:"âŒ Errado. Um link quebrado ('page not found') em um momento de atendimento jÃ¡ tenso deteriora imediatamente a confianÃ§a do cliente. Nunca envie um link sem verificar antes. Se nÃ£o tiver certeza, oriente pelo caminho: 'Vai em [local] â†’ clica em [opÃ§Ã£o].'"},
+  {tag:"LINKS",text:"Quando um link nÃ£o estÃ¡ funcionando, orientar o cliente pelo caminho passo a passo dentro do prÃ³prio chat ('Vai em Seus Pedidos â†’ clica no pedido â†’ escolhe [opÃ§Ã£o]') Ã© uma alternativa vÃ¡lida.",options:["Verdadeiro","Falso"],correct:0,trap:false,explain:"âœ… Exato! Orientar pelo caminho Ã© mais confiÃ¡vel do que um link â€” funciona independente do dispositivo ou configuraÃ§Ã£o do navegador do cliente. Ã‰ a alternativa mais segura quando links nÃ£o estÃ£o disponÃ­veis ou funcionando."},
+  {tag:"Ã‚NCORA",text:"Quando nenhuma soluÃ§Ã£o imediata estÃ¡ disponÃ­vel para um caso de alto valor, encerrar o contato informando o motivo sem oferecer prÃ³ximo passo Ã© suficiente.",options:["Verdadeiro","Falso"],correct:1,trap:true,explain:"âŒ Pegadinha! Em casos de alto valor sem resoluÃ§Ã£o imediata, sempre ofereÃ§a uma Ã¢ncora de prÃ³ximo passo: quando o cliente pode retornar, o que vai acontecer atÃ© lÃ¡, como serÃ¡ tratado quando retornar. Sem Ã¢ncora, o cliente fica sem perspectiva â€” e isso gera BTB negativo quase garantido."},
+  {tag:"Ã‚NCORA",text:"Uma Ã¢ncora de prÃ³ximo passo ('quando o reembolso chegar, retorne aqui e processamos a equiparaÃ§Ã£o imediatamente') reduz a incerteza do cliente e o risco de avaliaÃ§Ã£o negativa.",options:["Verdadeiro","Falso"],correct:0,trap:false,explain:"âœ… Correto! A Ã¢ncora cria um compromisso â€” o cliente sai sabendo o que vai acontecer e quando pode retornar. Isso transforma um contato sem resoluÃ§Ã£o imediata em uma experiÃªncia gerenciada, nÃ£o em um abandono."},
+  {tag:"Ã‚NCORA",text:"Em um caso onde mÃºltiplas unidades foram canceladas (ex: 10 unidades de um produto), nÃ£o conseguir a soluÃ§Ã£o completa significa que o associate nÃ£o pode oferecer nada.",options:["Verdadeiro","Falso"],correct:1,trap:true,explain:"âŒ Pegadinha! Mesmo quando a soluÃ§Ã£o completa nÃ£o estÃ¡ disponÃ­vel, explore alternativas parciais: resolver 1 ou 2 unidades como gesto de boa-fÃ©, verificar se hÃ¡ outra forma de pagamento disponÃ­vel, oferecer um crÃ©dito de boa-fÃ©. Sempre hÃ¡ pelo menos um gesto possÃ­vel antes de encerrar sem nada."},
+  {tag:"Ã‚NCORA",text:"Confirmar o reembolso jÃ¡ processado ao cliente antes de propor qualquer nova aÃ§Ã£o Ã© um passo importante para alinhar as expectativas.",options:["Verdadeiro","Falso"],correct:0,trap:false,explain:"âœ… Correto! Antes de falar em equiparaÃ§Ã£o, nova compra ou qualquer aÃ§Ã£o, confirme o que jÃ¡ aconteceu: 'Vi aqui que o reembolso de R$X foi processado em [data]. VocÃª jÃ¡ recebeu, correto?' Isso estabelece uma base de fatos compartilhada e evita confusÃ£o."},
+  {tag:"CHURN",text:"Quando um cliente diz que vai parar de comprar na Amazon ('serÃ¡ minha Ãºltima compra'), o associate deve apenas encerrar educadamente, pois nÃ£o hÃ¡ o que fazer.",options:["Verdadeiro","Falso"],correct:1,trap:true,explain:"âŒ Pegadinha! Churn declarado Ã© um sinal de alerta que requer aÃ§Ã£o. O mÃ­nimo Ã©: (1) reconhecer a frustraÃ§Ã£o de forma especÃ­fica, (2) registrar internamente, (3) comunicar ao cliente que fez isso, (4) oferecer Ã¢ncora para o caso de precisar de ajuda. Encerrar sem nenhuma dessas aÃ§Ãµes Ã© deixar o cliente ir sem nenhum gesto."},
+  {tag:"CHURN",text:"Quando um cliente menciona que vai registrar reclamaÃ§Ã£o em canal externo (Procon, Reclame Aqui), oferecer um prÃ³ximo passo concreto antes de encerrar pode reduzir a probabilidade de a reclamaÃ§Ã£o ser efetivada.",options:["Verdadeiro","Falso"],correct:0,trap:false,explain:"âœ… Correto! Clientes que recebem um prÃ³ximo passo concreto e a percepÃ§Ã£o de que foram ouvidos tendem a aguardar o resultado antes de registrar reclamaÃ§Ã£o externa. Encerrar sem nenhum gesto, por outro lado, confirma a frustraÃ§Ã£o do cliente e aumenta a probabilidade de reclamaÃ§Ã£o."},
+  {tag:"CHURN",text:"Expressar empatia genÃ©rica ('lamento muito pelo transtorno') para um cliente que declara churn Ã© suficiente para reduzir o risco de avaliaÃ§Ã£o negativa.",options:["Verdadeiro","Falso"],correct:1,trap:true,explain:"âŒ Pegadinha! Empatia genÃ©rica em situaÃ§Ãµes de churn declarado pode parecer condescendente â€” o cliente jÃ¡ ouviu isso vÃ¡rias vezes. O que faz diferenÃ§a Ã© empatia especÃ­fica + aÃ§Ã£o concreta. Ex: 'Entendo que depois de esperar [X dias] por um produto que estÃ¡ tÃ£o prÃ³ximo, isso Ã© genuinamente frustrante. Vou registrar isso agora para que o time de logÃ­stica possa avaliar essa transportadora.'"},
+  {tag:"CHURN",text:"Registrar a insatisfaÃ§Ã£o do cliente internamente E comunicar ao cliente que fez isso ('registrei seu relato para que o time avalie') tem mais impacto do que apenas registrar silenciosamente.",options:["Verdadeiro","Falso"],correct:0,trap:false,explain:"âœ… Exato! O cliente nÃ£o sabe o que acontece 'por dentro' do sistema. Comunicar que vocÃª tomou uma aÃ§Ã£o â€” mesmo que seja um registro â€” demonstra que a Amazon age sobre o feedback. Isso Ã© percebido como respeito e cuidado."},
+  {tag:"PAGAMENTO",text:"Em um caso de pedido cancelado sem culpa do cliente (cancelamento sistÃªmico), o associate deve explicar o que aconteceu e oferecer as opÃ§Ãµes disponÃ­veis (equiparaÃ§Ã£o, reembolso, etc.) antes de perguntar o que o cliente prefere.",options:["Verdadeiro","Falso"],correct:0,trap:false,explain:"âœ… Correto! Quando o cancelamento foi por erro sistÃªmico, o cliente precisa de trÃªs coisas: (1) entender o que aconteceu, (2) saber que a Amazon reconhece o erro, (3) ter opÃ§Ãµes claras. Apresente as opÃ§Ãµes antes de perguntar â€” o cliente nÃ£o deve precisar perguntar 'mas o que vocÃªs podem fazer?'"},
+  {tag:"PAGAMENTO",text:"Quando o cliente quer recomprar um produto cancelado pelo mesmo valor pago anteriormente, o associate deve pedir para o cliente adicionar o produto ao carrinho antes de iniciar a equiparaÃ§Ã£o.",options:["Verdadeiro","Falso"],correct:0,trap:false,explain:"âœ… Correto! Para processar a equiparaÃ§Ã£o, o sistema geralmente requer que o produto esteja no carrinho ou que o associate tenha acesso ao link atual do produto. Solicitar isso ao cliente Ã© um passo necessÃ¡rio â€” mas deve ser explicado claramente o motivo."},
+  {tag:"PAGAMENTO",text:"Ao processar uma equiparaÃ§Ã£o via vale-presente, o associate deve informar o prazo de chegada do vale E como aplicar no checkout, antes de encerrar.",options:["Verdadeiro","Falso"],correct:0,trap:false,explain:"âœ… Exato! Um vale emitido sem instruÃ§Ã£o de uso gera um novo contato de dÃºvida. Informe: onde o vale aparece (conta > vale-presente), como aplicar no checkout, e se o valor do produto for maior, qual mÃ©todo de pagamento usar para o restante."},
+  {tag:"PAGAMENTO",text:"Quando o cliente relata que o cartÃ£o foi trocado/bloqueado durante o processo de pagamento e parte da compra ficou com valor diferente, o associate deve assumir que a culpa Ã© do cliente.",options:["Verdadeiro","Falso"],correct:1,trap:true,explain:"âŒ Pegadinha! Nunca assuma culpa do cliente sem verificar. O sistema pode ter processado a compra em etapas por fatores tÃ©cnicos â€” e se o cartÃ£o foi bloqueado por uma tentativa nÃ£o reconhecida, isso pode ter sido gerado por uma aÃ§Ã£o sistÃªmica, nÃ£o do cliente. Verifique os detalhes antes de qualquer conclusÃ£o."},
+  {tag:"PAGAMENTO",text:"Passar valores do sistema ('o livro saiu por R$50,69') sem explicar como esse valor se relaciona com a dÃºvida do cliente Ã© uma forma incompleta de resposta.",options:["Verdadeiro","Falso"],correct:0,trap:false,explain:"âœ… Correto! Jogar nÃºmeros sem contexto confunde o cliente. Sempre conecte o valor Ã  dÃºvida: 'O livro saiu por R$50,69 apÃ³s o desconto do cupom de R$13,46 ser aplicado. Se vocÃª pagou diferente disso, vou verificar o que pode ter gerado essa diferenÃ§a.' Isso Ã© uma resposta â€” nÃ£o apenas uma informaÃ§Ã£o solta."},
+  {tag:"DEVOLUÃ‡ÃƒO",text:"Quando o cliente solicita devoluÃ§Ã£o de um item com defeito, o associate deve primeiro verificar as opÃ§Ãµes disponÃ­veis no sistema antes de informar qual mÃ©todo de devoluÃ§Ã£o estÃ¡ disponÃ­vel.",options:["Verdadeiro","Falso"],correct:0,trap:false,explain:"âœ… Correto! O sistema pode oferecer diferentes opÃ§Ãµes (Correios, coleta domiciliar, etc.) dependendo do pedido. Verificar antes de informar evita criar expectativas que o sistema nÃ£o consegue cumprir."},
+  {tag:"DEVOLUÃ‡ÃƒO",text:"Ao processar uma troca por item com defeito, confirmar os 4 Ãºltimos dÃ­gitos do cartÃ£o Ã© uma burocracia desnecessÃ¡ria que aumenta o AHT.",options:["Verdadeiro","Falso"],correct:1,trap:true,explain:"âŒ Pegadinha! A confirmaÃ§Ã£o dos 4 Ãºltimos dÃ­gitos Ã© um requisito do sistema de seguranÃ§a para processar substituiÃ§Ãµes â€” protege o cliente contra substituiÃ§Ãµes nÃ£o autorizadas. Quando necessÃ¡rio, explique brevemente: 'O sistema precisa confirmar o cartÃ£o para processar a substituiÃ§Ã£o, para sua seguranÃ§a.'"},
+  {tag:"DEVOLUÃ‡ÃƒO",text:"Quando a substituiÃ§Ã£o nÃ£o estÃ¡ disponÃ­vel por falta de estoque, oferecer o reembolso como alternativa Ã© a aÃ§Ã£o correta.",options:["Verdadeiro","Falso"],correct:0,trap:false,explain:"âœ… Correto! Se o cliente quer o produto mas nÃ£o hÃ¡ estoque para substituiÃ§Ã£o, o reembolso Ã© a alternativa. Informe o valor exato, o prazo e a forma â€” e se o cliente quiser recomprar quando o produto voltar ao estoque, mencione a possibilidade de equiparaÃ§Ã£o futura."},
+  {tag:"DEVOLUÃ‡ÃƒO",text:"InstruÃ§Ãµes de devoluÃ§Ã£o enviadas por e-mail sÃ£o suficientes â€” o associate nÃ£o precisa resumir o processo no prÃ³prio chat.",options:["Verdadeiro","Falso"],correct:1,trap:false,explain:"âŒ Errado. Sempre resuma o processo no chat antes de encerrar: 'VocÃª vai receber um e-mail com as instruÃ§Ãµes em atÃ© 4 horas. O processo Ã©: imprime a etiqueta â†’ leva aos Correios â†’ assim que recebermos, processamos a substituiÃ§Ã£o.' Isso garante que o cliente entendeu mesmo que o e-mail demore."},
+  {tag:"CHECK ORDER",text:"Para um pedido em trÃ¢nsito sem atualizaÃ§Ã£o de data, 'aguardar atÃ© o prazo final' Ã© a Ãºnica opÃ§Ã£o disponÃ­vel.",options:["Verdadeiro","Falso"],correct:1,trap:true,explain:"âŒ Pegadinha! AlÃ©m de aguardar, verifique: hÃ¡ opÃ§Ã£o de nota Ã  transportadora no sistema? Ã‰ possÃ­vel abrir chamado interno de logÃ­stica? O cliente prefere cancelar e receber reembolso? Sempre explore o sistema antes de concluir que nÃ£o hÃ¡ nada a fazer."},
+  {tag:"CHECK ORDER",text:"Quando um pedido estÃ¡ parado a 100km do cliente hÃ¡ vÃ¡rios dias, reconhecer a frustraÃ§Ã£o de forma especÃ­fica ('Entendo â€” saber que estÃ¡ tÃ£o perto e nÃ£o chegou Ã© realmente frustrante') tem mais impacto do que uma empatia genÃ©rica.",options:["Verdadeiro","Falso"],correct:0,trap:false,explain:"âœ… Correto! Empatia especÃ­fica usa detalhes do caso do cliente â€” a distÃ¢ncia de 100km, os dias de espera. Isso demonstra que vocÃª leu o caso e realmente se importou, nÃ£o apenas copiou um texto padrÃ£o."},
+  {tag:"CHECK ORDER",text:"Informar ao cliente o prazo final de entrega ('vocÃª tem atÃ© dia X') sem nenhuma outra aÃ§Ã£o ou Ã¢ncora Ã© uma resposta completa para um pedido atrasado.",options:["Verdadeiro","Falso"],correct:1,trap:false,explain:"âŒ Errado. Informar o prazo Ã© necessÃ¡rio mas nÃ£o suficiente. Complete com: (1) o que acontece se nÃ£o chegar atÃ© lÃ¡ ('vocÃª tem todo o respaldo da Amazon'), (2) como retornar se precisar, (3) registro da insatisfaÃ§Ã£o comunicado ao cliente. Isso transforma uma informaÃ§Ã£o fria em um comprometimento."},
+  {tag:"EMPATIA",text:"Dizer 'me coloco no seu lugar, pois sou cliente tambÃ©m' Ã© uma forma eficaz de demonstrar empatia profissional.",options:["Verdadeiro","Falso"],correct:1,trap:true,explain:"âŒ Pegadinha! Esse tipo de comparaÃ§Ã£o pode soar condescendente e desloca o foco do cliente para o associate. Empatia profissional mantÃ©m o foco no cliente: 'Entendo o quanto isso Ã© frustrante â€” vocÃª esperou [X dias] por um produto que precisava com urgÃªncia.'"},
+  {tag:"EMPATIA",text:"Reconhecer a emoÃ§Ã£o do cliente antes de explicar a polÃ­tica ou o processo aumenta a receptividade do cliente Ã  informaÃ§Ã£o.",options:["Verdadeiro","Falso"],correct:0,trap:false,explain:"âœ… Correto! Quando o cliente estÃ¡ frustrado, o cÃ©rebro prioriza a emoÃ§Ã£o. ReconheÃ§a primeiro ('Entendo que Ã© muito frustrante'), depois explique. Essa ordem faz o cliente se sentir ouvido e aumenta drasticamente a receptividade ao que vem a seguir."},
+  {tag:"EMPATIA",text:"Em um contato onde o cliente declara que serÃ¡ sua Ãºltima compra, demonstrar empatia especÃ­fica sobre o problema real tem mais impacto do que pedir desculpas genericamente.",options:["Verdadeiro","Falso"],correct:0,trap:false,explain:"âœ… Exato! 'Sinto muito pelo transtorno' Ã© esperado â€” nÃ£o surpreende ninguÃ©m. 'Entendo que depois de [situaÃ§Ã£o especÃ­fica], a confianÃ§a fica abalada â€” e eu entendo completamente essa frustraÃ§Ã£o' Ã© o que realmente ressoa com o cliente e pode reverter o churn."},
+  {tag:"QUALIDADE",text:"Um contato de alto valor (pedido acima de R$500) cancelado sem culpa do cliente deve ter nÃ­vel de prioridade e atenÃ§Ã£o igual a qualquer outro contato.",options:["Verdadeiro","Falso"],correct:1,trap:true,explain:"âŒ Pegadinha! Contatos de alto valor requerem atenÃ§Ã£o redobrada. O risco de BTB negativo, Procon e churn Ã© significativamente maior. Pedidos acima de R$500 cancelados sem culpa do cliente devem ter exploraÃ§Ã£o completa de alternativas â€” nÃ£o o tratamento padrÃ£o."}
+];
+
+let state = { idx:0, score:0, streak:0, maxStreak:0, completed:false, finalScore:0, answered:false, selected:-1 };
+function saveState(){ localStorage.setItem(SAVE_KEY, JSON.stringify(state)); }
+function loadState(){ const s = localStorage.getItem(SAVE_KEY); if(s) state = JSON.parse(s); }
+function startGame(){
+  loadState();
+  document.getElementById('startScreen').classList.remove('active');
+  document.getElementById('gameScreen').classList.add('active');
+  if(state.completed){ showEnd(); return; }
+  if(state.idx > 0) document.getElementById('resumeBanner').style.display='block';
+  renderQuestion();
+}
+function renderQuestion(){
+  const q = questions[state.idx];
+  document.getElementById('progressBar').style.width = ((state.idx/questions.length)*100)+'%';
+  document.getElementById('scoreVal').textContent = state.score;
+  document.getElementById('streakVal').textContent = state.streak;
+  document.getElementById('qTag').textContent = q.tag;
+  document.getElementById('qCounter').textContent = 'Pergunta '+(state.idx+1)+' de '+questions.length;
+  document.getElementById('qText').textContent = q.text;
+  const wrap = document.getElementById('optionsWrap');
+  wrap.innerHTML = '';
+  q.options.forEach((o,i)=>{ const btn=document.createElement('button'); btn.className='opt-btn'; btn.textContent=o; btn.onclick=()=>answer(i); wrap.appendChild(btn); });
+  document.getElementById('feedbackBox').classList.remove('show');
+  document.getElementById('btnNext').style.display='none';
+  document.getElementById('streakBanner').style.display='none';
+  if(state.answered) restoreAnswered();
+}
+function restoreAnswered(){
+  const q=questions[state.idx]; const btns=document.querySelectorAll('.opt-btn'); btns.forEach(b=>b.disabled=true);
+  if(state.selected===q.correct) btns[state.selected].classList.add('correct');
+  else { btns[state.selected].classList.add('wrong'); btns[q.correct].classList.add('reveal'); }
+  showFeedback(state.selected===q.correct,q); document.getElementById('btnNext').style.display='block';
+}
+function answer(i){
+  if(state.answered) return; state.answered=true; state.selected=i;
+  const q=questions[state.idx]; const btns=document.querySelectorAll('.opt-btn'); btns.forEach(b=>b.disabled=true);
+  const correct=i===q.correct;
+  if(correct){ btns[i].classList.add('correct'); const pts=q.trap?15:10; state.streak++; if(state.streak>state.maxStreak) state.maxStreak=state.streak; const bonus=state.streak>=2?Math.min((state.streak-1)*3,15):0; state.score+=pts+bonus; if(state.streak>=2){ const sb=document.getElementById('streakBanner'); sb.textContent='ðŸ”¥ SequÃªncia de '+state.streak+'! +'+bonus+' bÃ´nus'; sb.style.display='block'; } }
+  else { btns[i].classList.add('wrong'); btns[q.correct].classList.add('reveal'); state.streak=0; }
+  saveState(); showFeedback(correct,q); document.getElementById('scoreVal').textContent=state.score; document.getElementById('streakVal').textContent=state.streak; document.getElementById('btnNext').style.display='block';
+}
+function showFeedback(correct,q){ const fb=document.getElementById('feedbackBox'); document.getElementById('verdictText').className='verdict '+(correct?'ok':'err'); document.getElementById('verdictText').textContent=correct?'âœ… Correto!':'âŒ NÃ£o foi dessa vez'; document.getElementById('explainText').innerHTML=q.explain; fb.classList.add('show'); }
+function nextQuestion(){ state.idx++; state.answered=false; state.selected=-1; if(state.idx>=questions.length){ finishGame(); return; } saveState(); renderQuestion(); }
+function finishGame(){ state.completed=true; state.finalScore=state.score; saveState(); showEnd(); }
+function showEnd(){
+  document.getElementById('gameScreen').classList.remove('active'); document.getElementById('endScreen').classList.add('active');
+  const max=questions.length*15; const pct=Math.round((state.finalScore/max)*100);
+  document.getElementById('finalScore').textContent=state.finalScore; document.getElementById('finalStreak').textContent=state.maxStreak; document.getElementById('finalPct').textContent=pct+'%';
+  let emoji,title,badge,cls;
+  if(pct>=80){ emoji='ðŸ†';title='Especialista em Atendimento!';badge='EXPERT';cls='badge-expert'; }
+  else if(pct>=50){ emoji='ðŸŽ¯';title='Bom trabalho!';badge='INTERMEDIÃRIO';cls='badge-inter'; }
+  else { emoji='ðŸ“š';title='Continue praticando!';badge='INICIANTE';cls='badge-init'; }
+  document.getElementById('endEmoji').textContent=emoji; document.getElementById('endTitle').textContent=title;
+  const bl=document.getElementById('badgeLabel'); bl.textContent=badge; bl.className='badge-label '+cls;
+}
+loadState();
+if(state.completed){ document.getElementById('startScreen').classList.remove('active'); document.getElementById('endScreen').classList.add('active'); showEnd(); }
+</script>
+</body>
+</html>

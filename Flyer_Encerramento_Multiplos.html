@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Múltiplos Problemas & Encerramento</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Segoe UI',Arial,sans-serif;background:#f1f5f9;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:32px 16px}
+  .card{background:#fff;border-radius:20px;max-width:700px;width:100%;box-shadow:0 8px 40px rgba(0,0,0,.12);overflow:hidden}
+  .header{background:linear-gradient(135deg,#6d28d9,#8b5cf6);padding:36px 32px 28px;color:#fff}
+  .header-emoji{font-size:2.8rem;margin-bottom:10px;display:block}
+  .header h1{font-size:1.75rem;font-weight:800;letter-spacing:-.5px;margin-bottom:6px}
+  .header p{font-size:1rem;opacity:.88;font-weight:500}
+  .tag{display:inline-block;background:rgba(255,255,255,.22);border-radius:20px;padding:3px 14px;font-size:.78rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:14px}
+  .body{padding:28px 32px 20px}
+  .desc{font-size:1rem;color:#334155;line-height:1.65;margin-bottom:24px}
+  .section-label{font-size:.72rem;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:#6d28d9;margin-bottom:12px}
+  /* Accordion */
+  .accordion{margin-bottom:24px}
+  .acc-item{border:1px solid #e2e8f0;border-radius:12px;margin-bottom:8px;overflow:hidden}
+  .acc-btn{width:100%;background:#f8fafc;border:none;padding:14px 18px;text-align:left;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:.93rem;font-weight:600;color:#1e293b;transition:background .2s}
+  .acc-btn:hover{background:#f1f5f9}
+  .acc-btn.open{background:#6d28d9;color:#fff}
+  .acc-arrow{font-size:.8rem;transition:transform .25s;flex-shrink:0}
+  .acc-btn.open .acc-arrow{transform:rotate(180deg)}
+  .acc-body{max-height:0;overflow:hidden;transition:max-height .3s ease,padding .3s ease;padding:0 18px;font-size:.9rem;color:#334155;line-height:1.65;background:#fff}
+  .acc-body.open{max-height:400px;padding:14px 18px}
+  .footer{border-top:1px solid #f1f5f9;padding:14px 32px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+  .footer-brand{font-size:.75rem;color:#94a3b8;font-weight:600}
+  .footer-author{font-size:.72rem;color:#cbd5e1}
+  @media print{body{background:#fff;padding:0} .card{box-shadow:none;border-radius:0;max-width:100%} .acc-body{max-height:none!important;padding:14px 18px!important}}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="header">
+    <span class="tag">Treinamento CS BR</span>
+    <span class="header-emoji">&#x1F4CB;</span>
+    <h1>Múltiplos Problemas & Encerramento</h1>
+    <p>Priorizando e Resolvendo com Clareza</p>
+  </div>
+  <div class="body">
+    <p class="desc">Quando um cliente chega com várias demandas ao mesmo tempo, o CSA precisa priorizar, estruturar e confirmar cada resolução — sem deixar nada em aberto e sem encerrar prematuramente.</p>
+    <p class="section-label">Explore os Tópicos</p>
+    <div class="accordion" id="acc">
+            <div class="acc-item">
+        <button class="acc-btn"><span>Por que múltiplas demandas aumentam o BTB?</span><span class="acc-arrow">&#x25BC;</span></button>
+        <div class="acc-body">Quando o CSA não organiza explicitamente as demandas, o cliente percebe falta de controle e atenção. Uma demanda esquecida ou parcialmente tratada é suficiente para gerar BTB em "Prestatividade" e "Eficiência", mesmo que as outras demandas tenham sido resolvidas corretamente.</div>
+      </div>
+      <div class="acc-item">
+        <button class="acc-btn"><span>Como identificar e priorizar as demandas rapidamente</span><span class="acc-arrow">&#x25BC;</span></button>
+        <div class="acc-body">Logo no início, liste as demandas em voz alta para o cliente: "Entendi que você tem duas situações: [A] e [B]. Vou resolver [A] primeiro e depois [B]." Isso demonstra escuta ativa, organiza o atendimento e reduz o risco de deixar algo para trás. Demanda principal = a mais urgente ou com impacto financeiro.</div>
+      </div>
+      <div class="acc-item">
+        <button class="acc-btn"><span>Leitura de histórico como ponto de partida</span><span class="acc-arrow">&#x25BC;</span></button>
+        <div class="acc-body">Antes de qualquer interação, leia o histórico de contatos anteriores. Se o cliente já entrou em contato antes sobre o mesmo assunto, mencione: "Vejo que você já nos contactou sobre isso." Isso elimina a necessidade de o cliente repetir tudo, reduz AHT e aumenta a percepção de qualidade.</div>
+      </div>
+      <div class="acc-item">
+        <button class="acc-btn"><span>Encerramento com múltiplas demandas: o checklist mental</span><span class="acc-arrow">&#x25BC;</span></button>
+        <div class="acc-body">Antes de encerrar, faça internamente: (1) Resolvi a demanda A? (2) Resolvi a demanda B? (3) Confirmei com o cliente que ambas estão ok? Só então encerre. Um "Tem mais alguma coisa que eu possa te ajudar?" antes do encerramento garante que nenhuma demanda ficou em aberto.</div>
+      </div>
+      <div class="acc-item">
+        <button class="acc-btn"><span>Impacto no AHT e como equilibrar</span><span class="acc-arrow">&#x25BC;</span></button>
+        <div class="acc-body">Contatos com múltiplas demandas naturalmente têm AHT maior. Isso não é um problema — é esperado. O problema é quando o CSA encerra precipitadamente para reduzir o AHT e deixa demandas em aberto, gerando recontato. Um contato mais longo e completo é sempre preferível a dois contatos curtos sobre o mesmo problema.</div>
+      </div>
+    </div>
+  </div>
+  <div class="footer">
+    <span class="footer-brand">Amazon CS BR &mdash; Time de Qualidade</span>
+    <span class="footer-author">Desenvolvido por Mateus Rebouças (zrebouca — Team Manager) &middot; 2026</span>
+  </div>
+</div>
+<script>
+document.querySelectorAll('.acc-btn').forEach(function(btn){
+  btn.addEventListener('click',function(){
+    var body=this.nextElementSibling;
+    var isOpen=body.classList.contains('open');
+    document.querySelectorAll('.acc-body').forEach(function(b){b.classList.remove('open')});
+    document.querySelectorAll('.acc-btn').forEach(function(b){b.classList.remove('open')});
+    if(!isOpen){body.classList.add('open');this.classList.add('open')}
+  });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,140 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Jogo de Pagamentos â€” CS BR</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,-apple-system,'Segoe UI',Arial,sans-serif}
+body{background:#0f172a;color:#e2e8f0;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.wrap{width:100%;max-width:640px}
+.card{background:#1e293b;border:1px solid #334155;border-radius:18px;padding:28px}
+h1{font-size:26px;margin-bottom:10px;color:#fff}
+.sub{color:#94a3b8;font-size:15px;line-height:1.55;margin-bottom:20px}
+.pill{display:inline-block;background:#6366f122;color:#818cf8;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;padding:5px 12px;border-radius:20px;margin-bottom:16px}
+.reconhecimento{background:#f59e0b18;border:1px solid #f59e0b55;color:#fcd34d;border-radius:12px;padding:12px 14px;font-size:14px;margin:18px 0}
+.btn{background:#6366f1;color:#fff;border:none;border-radius:12px;padding:14px 22px;font-size:16px;font-weight:700;cursor:pointer;width:100%;transition:.15s}
+.btn:hover{background:#4f46e5}
+.hud{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;font-size:15px;font-weight:700}
+.hud .s{color:#fbbf24}.hud .k{color:#f59e0b}
+.bar{height:8px;background:#334155;border-radius:6px;overflow:hidden;margin-bottom:20px}
+.fill{height:100%;background:#6366f1;transition:width .3s;width:0}
+.q{font-size:19px;line-height:1.5;margin-bottom:20px;color:#fff}
+.opt{background:#0f172a;border:2px solid #334155;border-radius:12px;padding:15px 18px;font-size:16px;margin-bottom:12px;cursor:pointer;transition:.15s;color:#e2e8f0}
+.opt:hover{border-color:#6366f1}
+.opt.correct{border-color:#10b981;background:#10b98122}
+.opt.wrong{border-color:#ef4444;background:#ef444422}
+.opt.dim{opacity:.55}
+.fb{border-radius:12px;padding:15px 16px;font-size:14.5px;line-height:1.55;margin:6px 0 18px;display:none}
+.fb.ok{background:#10b98118;border:1px solid #10b98155;color:#a7f3d0}
+.fb.no{background:#ef444418;border:1px solid #ef444455;color:#fecaca}
+.fb b{color:#fff}
+.center{text-align:center}
+.emoji{font-size:56px;margin-bottom:10px}
+.badge{display:inline-block;font-size:20px;font-weight:800;padding:8px 20px;border-radius:30px;margin:14px 0}
+.score-big{font-size:44px;font-weight:800;color:#fff;margin:8px 0}
+.stat{color:#94a3b8;font-size:15px;margin:4px 0}
+.lock{color:#64748b;font-size:13px;margin-top:16px;font-style:italic}
+</style></head>
+<body><div class="wrap">
+<div class="card" id="startScreen">
+  <div class="pill">Treinamento CS BR</div>
+  <h1>Jogo de Pagamentos â€” CS BR</h1>
+  <div class="sub">Pagamentos e o motivo com MAIOR AHT do time (14,9 min). Dominar esses fluxos derruba o tempo de atendimento e melhora o DUR. Responda rapido e certo!</div>
+  <div class="reconhecimento">ðŸ† Acertando <b>90%+</b> voce concorre a <b>35 minutos de reconhecimento</b>. Uma tentativa por pessoa â€” envie o print da tela final no privado.</div>
+  <div class="sub" style="font-size:14px">18 perguntas â€¢ pontos por acerto + bÃ´nus de sequÃªncia ðŸ”¥</div>
+  <button class="btn" onclick="startGame()">ComeÃ§ar Jogo</button>
+</div>
+<div class="card" id="gameScreen" style="display:none">
+  <div class="hud"><span id="qcount"></span><span><span class="s">â­ <span id="score">0</span></span> &nbsp; <span class="k">ðŸ”¥ <span id="streak">0</span></span></span></div>
+  <div class="bar"><div class="fill" id="fill"></div></div>
+  <div class="pill" id="tag"></div>
+  <div class="q" id="qtext"></div>
+  <div id="opts"></div>
+  <div class="fb" id="fb"></div>
+  <button class="btn" id="nextBtn" onclick="next()" style="display:none">PrÃ³xima</button>
+</div>
+<div class="card center" id="endScreen" style="display:none">
+  <div class="emoji" id="endEmoji"></div>
+  <h1 id="endTitle"></h1>
+  <div class="badge" id="badge"></div>
+  <div class="score-big"><span id="finalScore">0</span> pts</div>
+  <div class="stat">Acertos: <b id="correctCount"></b> de 18</div>
+  <div class="stat">Melhor sequÃªncia: ðŸ”¥ <b id="maxStreak"></b></div>
+  <div class="reconhecimento" id="reconhecimentoEnd"></div>
+  <div class="lock">ðŸ”’ Uma tentativa por pessoa. Envie o print desta tela no privado para participar.</div>
+</div>
+</div>
+<script>
+var QUESTIONS=[{"tag": "CARTAO RECUSADO", "text": "Quando o cartao do cliente e recusado, a Amazon consegue ver o motivo exato da recusa e informar ao cliente.", "options": ["Verdadeiro", "Falso"], "correct": 1, "trap": true, "explain": "A recusa vem do BANCO EMISSOR â€” a Amazon nao tem acesso ao motivo especifico. Oriente conferir dados/limite ou contatar o banco. Nunca prometa que a Amazon resolvera a recusa. Resolver isso rapido evita alongar o contato (AHT medio de Pagamentos = 14,9 min)."}, {"tag": "CARTAO RECUSADO", "text": "Diante de um cartao recusado, o caminho mais rapido e orientar o cliente a conferir dados/limite e tentar outra forma de pagamento.", "options": ["Verdadeiro", "Falso"], "correct": 0, "trap": false, "explain": "Correto. Sequencia objetiva: conferir numero/validade/CVV e limite -> endereco de cobranca -> tentar outro metodo -> se persistir, banco emissor. Direto ao ponto reduz o tempo do contato."}, {"tag": "REEMBOLSO", "text": "O reembolso pode ser feito em um cartao DIFERENTE do usado na compra, se o cliente pedir.", "options": ["Verdadeiro", "Falso"], "correct": 1, "trap": true, "explain": "Falso. O reembolso SEMPRE retorna ao mesmo metodo de pagamento original. Nao existe reembolso em cartao diferente. Deixar isso claro de cara evita idas e vindas."}, {"tag": "REEMBOLSO", "text": "Cartao de credito pode levar de 1 a 2 faturas para o reembolso aparecer.", "options": ["Verdadeiro", "Falso"], "correct": 0, "trap": false, "explain": "Correto. Credito: ate 1-2 faturas (ate ~10 dias uteis de processamento). Debito: 5-10 dias uteis. Alinhar a expectativa correta de prazo evita recontato e encurta o AHT."}, {"tag": "REEMBOLSO PIX", "text": "O reembolso via Pix pode ser feito para qualquer chave que o cliente informar.", "options": ["Verdadeiro", "Falso"], "correct": 1, "trap": true, "explain": "Falso. O Pix so pode ir para chave vinculada ao CPF do TITULAR do pedido. Nunca reembolse para terceiros. Confirmar isso logo evita retrabalho de seguranca."}, {"tag": "REEMBOLSO", "text": "Antes de emitir um novo reembolso, e obrigatorio verificar se ja existe um reembolso em andamento.", "options": ["Verdadeiro", "Falso"], "correct": 0, "trap": false, "explain": "Correto. Checar duplicidade previne reembolso em dobro. Se o cliente relatar estorno em dobro, registre e encaminhe a fila financeira â€” nunca peca devolucao de valor direto ao cliente."}, {"tag": "REEMBOLSO ATRASADO", "text": "Se o prazo do reembolso ja passou e o valor nao consta, a primeira acao e confirmar a DATA e o METODO em que foi processado.", "options": ["Verdadeiro", "Falso"], "correct": 0, "trap": false, "explain": "Correto. Confirme data/metodo, lembre o cliente de checar a fatura/extrato do periodo certo. Se realmente nao consta, ofereca alternativa (ex.: vale-presente) ou encaminhe a fila financeira. Estruturar assim evita o contato de 20+ min."}, {"tag": "COBRANCA", "text": "Uma cobranca de renovacao automatica (ex.: Prime) que o cliente contesta deve ser tratada sempre como fraude.", "options": ["Verdadeiro", "Falso"], "correct": 1, "trap": true, "explain": "Falso. Antes de tratar como fraude, confirme se a cobranca e de RENOVACAO AUTOMATICA. Se for, oriente cancelamento e verifique elegibilidade de reembolso. Fraude e um caminho diferente (conta/seguranca)."}, {"tag": "NAO RECONHECIDA", "text": "Em compra nao reconhecida, a primeira orientacao ao cliente e trocar a senha e revisar dispositivos conectados.", "options": ["Verdadeiro", "Falso"], "correct": 0, "trap": false, "explain": "Correto. Compra nao reconhecida = seguranca da conta. Oriente troca de senha imediata, revise dispositivos, confirme os pedidos nao reconhecidos e encaminhe ao time de seguranca quando houver indicio de acesso indevido. Trate com prioridade e empatia."}, {"tag": "PARCELAMENTO", "text": "O numero de parcelas e as condicoes de juros de um cartao de credito sao definidos pela Amazon.", "options": ["Verdadeiro", "Falso"], "correct": 1, "trap": true, "explain": "Falso. Parcelamento e juros dependem do BANCO EMISSOR do cartao, nao da Amazon. Oriente o cliente a consultar o banco sobre condicoes de parcelamento do credito."}, {"tag": "PENDENTE", "text": "Uma conta retida por pagamento pendente deve ser tratada como Conta Retida - Pagamento Pendente, e nao como abuso de politica.", "options": ["Verdadeiro", "Falso"], "correct": 0, "trap": false, "explain": "Correto. Pagamento pendente NAO e abuso. Trate como Conta Retida - Pagamento Pendente e siga o fluxo correto. Classificar certo de inicio evita transferencia indevida e alongamento."}, {"tag": "VALE-PRESENTE", "text": "O time CS BR pode vender vale-presente ao cliente durante o atendimento para facilitar o pagamento.", "options": ["Verdadeiro", "Falso"], "correct": 1, "trap": true, "explain": "Falso. O CS BR NAO vende vale-presente â€” apenas processa RESGATES e reembolso em vale-presente (estorno em credito). Nunca oriente compra ou envio de vale-presente."}, {"tag": "REEMBOLSO", "text": "Reembolso em vale-presente Amazon fica disponivel na conta do cliente em poucos minutos.", "options": ["Verdadeiro", "Falso"], "correct": 0, "trap": false, "explain": "Correto. Reembolso em vale-presente e quase imediato na conta â€” otima alternativa quando o cliente aceita, pois resolve na hora e encurta o contato."}, {"tag": "CONFIRMACAO", "text": "Antes de executar um reembolso ou estorno, e boa pratica confirmar a acao com o cliente em uma frase objetiva.", "options": ["Verdadeiro", "Falso"], "correct": 0, "trap": false, "explain": "Correto. Confirmar antes de agir ('vou emitir o reembolso de R$X no seu cartao, ok?') evita retrabalho e reclamacao. Confirmacao clara e objetiva mantem o contato eficiente."}, {"tag": "DART/DUR", "text": "Em duvidas comuns de pagamento (cartao recusado, prazo de reembolso), o esperado e resolver com autonomia, sem acionar o DART.", "options": ["Verdadeiro", "Falso"], "correct": 0, "trap": false, "explain": "Correto. Baixo DUR e POSITIVO. Contatos com DART levam ~2x mais tempo (18,6 min vs 9,3 min). Resolver pagamento comum com autonomia derruba o AHT e melhora o DUR. Acione o DART so quando o caso realmente exige."}, {"tag": "EMPATIA", "text": "Em cobranca inesperada, validar a preocupacao do cliente antes de explicar a politica melhora a experiencia sem alongar o contato.", "options": ["Verdadeiro", "Falso"], "correct": 0, "trap": false, "explain": "Correto. Uma frase de acolhimento ('entendo a preocupacao, vou verificar agora') reduz atrito e acelera a resolucao. Empatia + objetividade andam juntas."}, {"tag": "ESTORNO/CONTESTACAO", "text": "Conta retida por estorno/contestacao (chargeback) segue o MESMO fluxo de conta retida por pagamento pendente.", "options": ["Verdadeiro", "Falso"], "correct": 1, "trap": true, "explain": "Falso. Sao fluxos DISTINTOS: Conta Retida - Estorno/Contestacao (chargeback) e diferente de Conta Retida - Pagamento Pendente. Encaminhe a fila correta apos confirmar o motivo da retencao."}, {"tag": "REEMBOLSO PIX", "text": "O prazo do reembolso via Pix, apos validacao do CPF do titular, e de ate 3 dias uteis.", "options": ["Verdadeiro", "Falso"], "correct": 0, "trap": false, "explain": "Correto. Pix (apos validar CPF do titular): ate 3 dias uteis. Informar o prazo certo evita recontato do cliente perguntando 'cade meu dinheiro'."}];
+var KEY="pagamentosQuiz_v1_state";
+var st={idx:0,score:0,streak:0,maxStreak:0,correct:0,completed:false,finalScore:0,answered:false,selected:-1};
+function load(){try{var s=JSON.parse(localStorage.getItem(KEY));if(s)st=s;}catch(e){}}
+function save(){localStorage.setItem(KEY,JSON.stringify(st));}
+function show(id){["startScreen","gameScreen","endScreen"].forEach(function(x){document.getElementById(x).style.display=x===id?"block":"none";});}
+function startGame(){show("gameScreen");render();}
+function render(){
+  var q=QUESTIONS[st.idx];
+  document.getElementById("qcount").textContent="Pergunta "+(st.idx+1)+"/"+QUESTIONS.length;
+  document.getElementById("score").textContent=st.score;
+  document.getElementById("streak").textContent=st.streak;
+  document.getElementById("fill").style.width=((st.idx)/QUESTIONS.length*100)+"%";
+  document.getElementById("tag").textContent=q.tag+(q.trap?" â€¢ 15 pts":" â€¢ 10 pts");
+  document.getElementById("qtext").textContent=q.text;
+  var o=document.getElementById("opts");o.innerHTML="";
+  q.options.forEach(function(opt,i){
+    var d=document.createElement("div");d.className="opt";d.textContent=opt;d.onclick=function(){answer(i);};
+    d.id="opt"+i;o.appendChild(d);
+  });
+  var fb=document.getElementById("fb");fb.style.display="none";fb.className="fb";
+  document.getElementById("nextBtn").style.display="none";
+  if(st.answered){restoreAnswered();}
+}
+function answer(i){
+  if(st.answered)return;
+  var q=QUESTIONS[st.idx];st.answered=true;st.selected=i;
+  var ok=i===q.correct;
+  if(ok){var pts=(q.trap?15:10);if(st.streak>=1)pts+=Math.min(15,st.streak*3);st.score+=pts;st.streak++;st.correct++;if(st.streak>st.maxStreak)st.maxStreak=st.streak;}
+  else{st.streak=0;}
+  save();
+  restoreAnswered();
+}
+function restoreAnswered(){
+  var q=QUESTIONS[st.idx];
+  q.options.forEach(function(opt,i){
+    var d=document.getElementById("opt"+i);d.onclick=null;d.classList.add("dim");
+    if(i===q.correct){d.classList.add("correct");d.classList.remove("dim");}
+    if(i===st.selected&&st.selected!==q.correct){d.classList.add("wrong");d.classList.remove("dim");}
+  });
+  var ok=st.selected===q.correct;
+  var fb=document.getElementById("fb");fb.className="fb "+(ok?"ok":"no");fb.style.display="block";
+  fb.innerHTML=(ok?"<b>âœ… Correto!</b> ":"<b>âŒ Ops! </b>")+q.explain;
+  document.getElementById("score").textContent=st.score;
+  document.getElementById("streak").textContent=st.streak;
+  document.getElementById("nextBtn").style.display="block";
+}
+function next(){
+  st.idx++;st.answered=false;st.selected=-1;save();
+  if(st.idx>=QUESTIONS.length){finish();}else{render();}
+}
+function finish(){
+  st.completed=true;st.finalScore=st.score;save();showEnd();
+}
+function showEnd(){
+  show("endScreen");
+  var max=QUESTIONS.length*15;var pct=st.finalScore/max;
+  var emoji,title,badge,bg;
+  if(pct>=0.8){emoji="ðŸ†";title="EXPERT em Pagamentos!";badge="EXPERT";bg="#10b981";}
+  else if(pct>=0.5){emoji="ðŸŽ¯";title="Bom trabalho!";badge="INTERMEDIÃRIO";bg="#f59e0b";}
+  else{emoji="ðŸ“š";title="Continue treinando!";badge="INICIANTE";bg="#ef4444";}
+  document.getElementById("endEmoji").textContent=emoji;
+  document.getElementById("endTitle").textContent=title;
+  var b=document.getElementById("badge");b.textContent=badge;b.style.background=bg+"22";b.style.color=bg;b.style.border="1px solid "+bg;
+  document.getElementById("finalScore").textContent=st.finalScore;
+  document.getElementById("correctCount").textContent=st.correct;
+  document.getElementById("maxStreak").textContent=st.maxStreak;
+  var acc=st.correct/QUESTIONS.length;
+  document.getElementById("reconhecimentoEnd").innerHTML=acc>=0.9?"ðŸŽ‰ VocÃª acertou "+Math.round(acc*100)+"%! Concorre a <b>35 minutos de reconhecimento</b>. Envie o print no privado.":"VocÃª acertou "+Math.round(acc*100)+"%. Para concorrer ao reconhecimento, o alvo Ã© 90%+. Bora treinar os fluxos e mandar bem no atendimento!";
+}
+load();
+if(st.completed){showEnd();}
+else if(st.idx>0||st.answered){show("gameScreen");render();}
+else{show("startScreen");}
+</script></body></html>

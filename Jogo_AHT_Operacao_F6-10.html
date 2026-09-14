@@ -1,0 +1,551 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>OperaÃ§Ã£o AHT: Caso Arquivado â€” Fases 6â€“10</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0a0f;color:#e2e8f0;font-family:'Courier New',monospace;min-height:100vh}
+#app{max-width:960px;margin:0 auto;padding:20px}
+#si{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;text-align:center;padding:40px}
+.lt{font-size:2.4rem;font-weight:900;color:#f59e0b;text-shadow:0 0 30px #f59e0b88;letter-spacing:4px;margin-bottom:8px}
+.ls{font-size:.85rem;color:#94a3b8;letter-spacing:6px;margin-bottom:32px}
+.it{max-width:560px;color:#cbd5e1;line-height:1.9;margin-bottom:32px;font-size:.9rem}
+.it em{color:#f59e0b;font-style:normal;font-weight:700}
+.bmain{background:linear-gradient(135deg,#f59e0b,#d97706);color:#000;font-family:'Courier New',monospace;font-size:.9rem;font-weight:900;padding:12px 36px;border:none;cursor:pointer;letter-spacing:3px;clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%);transition:all .2s}
+.bmain:hover{filter:brightness(1.15);transform:scale(1.04)}
+.ver{font-size:.6rem;color:#334155;margin-top:20px;letter-spacing:2px}
+#hud{display:none;position:sticky;top:0;z-index:100;background:#0a0a0fee;border-bottom:1px solid #1e293b;padding:10px 16px}
+.hi{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+.hf{font-size:.75rem;color:#64748b}.hf b{color:#f59e0b}
+.ht{font-size:1.1rem;color:#f59e0b;font-weight:900;letter-spacing:2px}
+.hinv{font-size:.68rem;color:#475569;cursor:pointer;padding:3px 8px;border:1px solid #1e293b}
+.hinv:hover{color:#f59e0b;border-color:#f59e0b55}
+.pb-w{background:#1e293b;height:2px;margin-top:6px}.pb{background:linear-gradient(90deg,#f59e0b,#d97706);height:2px;transition:width .6s}
+.fase{display:none;animation:fi .4s ease}.fase.active{display:block}
+@keyframes fi{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.fase-card{background:#0f172a;border:1px solid #1e293b;padding:20px;margin-bottom:16px}
+.sb{display:inline-block;background:#1e293b;border:1px solid #f59e0b33;color:#f59e0b;font-size:.6rem;letter-spacing:3px;padding:3px 10px;margin-bottom:10px}
+.diff{color:#94a3b8;font-size:.68rem;float:right;margin-top:2px}
+.stit{font-size:1.2rem;font-weight:900;color:#f1f5f9;margin-bottom:6px;clear:both}
+.sdesc{color:#64748b;font-size:.83rem;line-height:1.6;margin-bottom:14px}
+.tlbl{font-size:.6rem;color:#475569;letter-spacing:3px;margin-bottom:6px;text-transform:uppercase}
+.tq{font-size:.88rem;color:#e2e8f0;line-height:1.65;margin-bottom:12px}
+.opts{display:flex;flex-direction:column;gap:7px}
+.opt{background:#1e293b;border:1px solid #2d3748;color:#94a3b8;font-family:'Courier New',monospace;font-size:.8rem;padding:9px 12px;text-align:left;cursor:pointer;transition:all .2s;width:100%}
+.opt:hover:not([disabled]){border-color:#f59e0b55;color:#cbd5e1}
+.opt.correct{background:#14532d33;border-color:#22c55e;color:#86efac}
+.opt.wrong{background:#7f1d1d33;border-color:#ef4444;color:#fca5a5}
+.fb{display:none;margin-top:10px;padding:11px;font-size:.82rem;line-height:1.7;border-left:3px solid}
+.fb.ok{background:#14532d15;border-color:#22c55e;color:#86efac}
+.fb.err{background:#7f1d1d15;border-color:#ef4444;color:#fca5a5}
+.fb.show{display:block}
+.bnext{display:none;margin-top:12px;background:linear-gradient(135deg,#f59e0b,#d97706);color:#000;font-family:'Courier New',monospace;font-size:.82rem;font-weight:900;padding:9px 22px;border:none;cursor:pointer;letter-spacing:2px;clip-path:polygon(6px 0,100% 0,calc(100% - 6px) 100%,0 100%)}
+.bnext:hover{filter:brightness(1.1)}.bnext.show{display:inline-block}
+.tx{background:#020812;border:1px solid #0f172a;padding:12px;font-size:.76rem;line-height:2;margin:9px 0;max-height:210px;overflow-y:auto;border-left:3px solid #1e293b}
+.tb{color:#60a5fa;font-weight:700}.tc{color:#a3e635;font-weight:700}.tk{color:#94a3b8}
+.terr{background:#7f1d1d55;border-bottom:2px dashed #ef4444;color:#fca5a5!important;cursor:pointer;padding:0 2px}
+.terr.fnd{background:#14532d44;border-bottom:2px solid #22c55e;color:#86efac!important;cursor:default}
+.di{background:#1e293b;border:1px solid #334155;color:#cbd5e1;font-size:.72rem;padding:5px 10px;cursor:grab;user-select:none;border-radius:2px;display:inline-block;margin:3px}
+.di:hover{border-color:#64748b}
+.di.dragging{opacity:.4}
+/* CLASSIFY */
+.cls-w{display:flex;gap:10px;margin:10px 0;flex-wrap:wrap}
+.cls-c{flex:1;min-width:150px}
+.cls-c h4{font-size:.64rem;letter-spacing:2px;padding:5px 8px;text-align:center;margin-bottom:6px}
+.cls-v h4{color:#22c55e;background:#14532d18;border:1px solid #22c55e33}
+.cls-i h4{color:#ef4444;background:#7f1d1d18;border:1px solid #ef444433}
+.cls-d{min-height:80px;background:#020812;border:1px dashed #1e293b;padding:5px;transition:border-color .2s}
+.cls-d.hl{border-color:#f59e0b88}
+/* ORDER */
+.ord-bank{display:flex;flex-wrap:wrap;gap:5px;padding:8px;background:#020812;border:1px solid #1e293b;margin-bottom:8px;min-height:42px}
+.ord-s{min-height:38px;background:#020812;border:1px dashed #1e293b;padding:4px 8px;margin:3px 0;display:flex;align-items:center;font-size:.7rem;color:#334155;transition:all .2s}
+.ord-s.filled{border-color:#f59e0b44;color:#cbd5e1}.ord-s.ok-s{border-color:#22c55e;background:#14532d18;color:#86efac}.ord-s.err-s{border-color:#ef4444;background:#7f1d1d18;color:#fca5a5}
+.bck{background:#1e293b;border:1px solid #334155;color:#64748b;font-family:'Courier New',monospace;font-size:.78rem;padding:8px 14px;cursor:pointer}
+.bck:hover{border-color:#f59e0b55;color:#94a3b8}
+.tip-box{background:#f59e0b08;border-left:2px solid #f59e0b55;padding:7px 11px;margin:8px 0;font-size:.78rem;color:#94a3b8;line-height:1.65}.tip-box b{color:#f59e0b}
+/* AUDIO */
+.audio-w{background:#020812;border:1px solid #1e293b;padding:16px;margin:10px 0;text-align:center}
+.audio-label{font-size:.6rem;color:#475569;letter-spacing:3px;margin-bottom:12px}
+.aplay{background:#f59e0b22;border:1px solid #f59e0b55;color:#f59e0b;font-family:'Courier New',monospace;font-size:.8rem;padding:10px 24px;cursor:pointer;margin:8px 4px}
+.aplay:hover{background:#f59e0b33}
+.aplay:disabled{opacity:.4;cursor:default}
+/* PUZZLE */
+.puz-w{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0}
+.puz-item{background:#1e293b;border:1px solid #334155;padding:8px 12px;font-size:.75rem;color:#94a3b8;cursor:pointer;transition:all .2s;min-width:120px;text-align:center}
+.puz-item:hover{border-color:#f59e0b55;color:#f59e0b}
+.puz-item.sel{background:#f59e0b22;border-color:#f59e0b;color:#f59e0b}
+.puz-item.ok{background:#14532d22;border-color:#22c55e;color:#86efac;cursor:default}
+.puz-item.no{background:#7f1d1d22;border-color:#ef4444;color:#fca5a5}
+.ci-w{display:flex;gap:8px;align-items:center;justify-content:center;margin-top:14px}
+.ci{background:#020812;border:1px solid #334155;color:#f59e0b;font-family:'Courier New',monospace;font-size:1.4rem;padding:8px 14px;width:130px;letter-spacing:6px;text-align:center;outline:none}
+.ci:focus{border-color:#f59e0b}
+/* ROOM */
+.room{position:relative;background:#070d1a;border:1px solid #1e293b;min-height:220px;overflow:hidden;margin:12px 0}
+.rg{position:absolute;inset:0;background-image:linear-gradient(#0f172a 1px,transparent 1px),linear-gradient(90deg,#0f172a 1px,transparent 1px);background-size:36px 36px;opacity:.4}
+.room-lbl{position:absolute;top:8px;left:10px;font-size:.58rem;color:#334155;letter-spacing:2px;z-index:5}
+.spot{position:absolute;cursor:pointer;z-index:15;font-size:1.4rem;transition:all .2s;line-height:1;padding:4px;animation:gpulse 2s infinite}
+@keyframes gpulse{0%,100%{filter:drop-shadow(0 0 3px #ef444444)}50%{filter:drop-shadow(0 0 10px #ef4444)}}
+.spot:hover{filter:drop-shadow(0 0 10px #ef4444cc)!important;transform:scale(1.3)}
+.spot.fnd{pointer-events:none;opacity:.1;animation:none}
+.found-c{font-size:.76rem;color:#64748b;margin-top:8px}.found-c b{color:#f59e0b}
+/* END */
+#se{display:none;min-height:100vh;align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:40px}
+#se.active{display:flex}
+.et{font-size:2rem;font-weight:900;color:#f59e0b;text-shadow:0 0 30px #f59e0b88;margin-bottom:12px}
+.es{color:#64748b;font-size:.88rem;margin-bottom:24px;line-height:1.9;max-width:500px}
+.estats{background:#0f172a;border:1px solid #1e293b;padding:20px;margin-bottom:24px;min-width:260px}
+.sr{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #0f172a;font-size:.83rem}
+.sr:last-child{border-bottom:none}.sl{color:#475569}.sv{color:#f59e0b;font-weight:700}
+.reconhecimento{display:inline-block;background:#f59e0b15;border:1px solid #f59e0b44;color:#f59e0b;padding:8px 20px;font-size:.85rem;letter-spacing:2px;margin-bottom:20px}
+.badge-icon{font-size:2.5rem;margin-bottom:8px}
+/* POPUP */
+.pop-ov{display:none;position:fixed;inset:0;background:#000000dd;z-index:200;align-items:center;justify-content:center}
+.pop-ov.open{display:flex}
+.pop{background:#0f172a;border:1px solid #f59e0b55;padding:24px;max-width:480px;width:90%;position:relative;animation:fi .2s ease}
+.pop h3{color:#f59e0b;font-size:.88rem;letter-spacing:2px;margin-bottom:12px}
+.pop p{color:#cbd5e1;font-size:.83rem;line-height:1.7;margin-bottom:8px}
+.pop-x{position:absolute;top:10px;right:12px;background:none;border:none;color:#475569;font-size:1rem;cursor:pointer}.pop-x:hover{color:#f59e0b}
+.ev{display:inline-block;background:#f59e0b15;border:1px solid #f59e0b44;color:#f59e0b;font-size:.62rem;padding:2px 8px;margin-top:8px;letter-spacing:1px}
+/* INV */
+.inv-p{display:none;position:fixed;bottom:16px;right:16px;background:#0f172a;border:1px solid #f59e0b44;padding:14px;min-width:190px;z-index:150}
+.inv-p.open{display:block}
+.inv-t{font-size:.6rem;color:#f59e0b;letter-spacing:3px;margin-bottom:8px}
+.inv-i{font-size:.71rem;color:#94a3b8;padding:3px 0;border-bottom:1px solid #1e293b22}
+.inv-0{font-size:.7rem;color:#2d3748;font-style:italic}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- TELA INICIAL -->
+<div id="si">
+  <div class="lt">ðŸ•µï¸ OPERAÃ‡ÃƒO AHT</div>
+  <div class="ls">FASES 6 â€” 10</div>
+  <div class="it">
+    A investigaÃ§Ã£o continua. As prÃ³ximas fases ficam mais complexas â€” <em>classificaÃ§Ãµes</em>, <em>sequÃªncias reais de atendimento</em>, <em>ligaÃ§Ãµes telefÃ´nicas</em> e <em>puzzles encadeados</em>. VocÃª estÃ¡ pronto, Detetive?
+  </div>
+  <button class="bmain" onclick="startGame()">â–¶ CONTINUAR INVESTIGAÃ‡ÃƒO</button>
+  <div class="ver">v1.0 Â· FASES 6â€“10 Â· AHT TRAINING</div>
+</div>
+
+<!-- HUD -->
+<div id="hud">
+  <div class="hi">
+    <span class="hf">FASE <b id="hfn">6</b>/15</span>
+    <span class="ht" id="htit">â€”</span>
+    <span class="hf">â­ <b id="hstr">â€”</b></span>
+    <span class="hinv" onclick="toggleInv()">ðŸ—‚ INVENTÃRIO</span>
+    <span class="hf">â± <b id="htimer">00:00</b></span>
+  </div>
+  <div class="pb-w"><div class="pb" id="hpb" style="width:33%"></div></div>
+</div>
+
+<div id="fases">
+
+<!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+     FASE 6 â€” PAUSA VÃLIDA VS INVÃLIDA (classificaÃ§Ã£o)
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+<div class="fase" id="f6">
+  <div class="fase-card">
+    <span class="sb">FASE 06</span><span class="diff">â­â­ INTERMEDIÃRIO</span>
+    <div class="stit">Pausa VÃ¡lida ou InvÃ¡lida?</div>
+    <div class="sdesc">Classifique as <b style="color:#f59e0b">6 mensagens</b> abaixo como pausas <b style="color:#22c55e">VÃLIDAS</b> ou <b style="color:#ef4444">INVÃLIDAS</b>. Arraste cada mensagem para a coluna correta.</div>
+    <div class="ord-bank" id="ob6" ondragover="event.preventDefault()">
+      <div class="di" draggable="true" id="p6a" ondragstart="dragStart(event)" ondragend="dragEnd(event)">ðŸ’¬ "Conseguiu localizar o e-mail de confirmaÃ§Ã£o?"</div>
+      <div class="di" draggable="true" id="p6b" ondragstart="dragStart(event)" ondragend="dragEnd(event)">ðŸ’¬ "Posso te ajudar em mais alguma coisa?"</div>
+      <div class="di" draggable="true" id="p6c" ondragstart="dragStart(event)" ondragend="dragEnd(event)">ðŸ’¬ "Deu certo acessar a sua conta agora?"</div>
+      <div class="di" draggable="true" id="p6d" ondragstart="dragStart(event)" ondragend="dragEnd(event)">ðŸ’¬ "Boa noite! Qualquer dÃºvida me chame."</div>
+      <div class="di" draggable="true" id="p6e" ondragstart="dragStart(event)" ondragend="dragEnd(event)">ðŸ’¬ "O rastreio atualizou no app da transportadora?"</div>
+      <div class="di" draggable="true" id="p6f" ondragstart="dragStart(event)" ondragend="dragEnd(event)">ðŸ’¬ "Tudo bem? Alguma outra dÃºvida?"</div>
+    </div>
+    <div class="cls-w">
+      <div class="cls-c cls-v">
+        <h4>âœ… PAUSA VÃLIDA</h4>
+        <div class="cls-d" id="cls-v6" ondragover="clsDragOver(event)" ondrop="clsDrop(event,'v','f6')"></div>
+      </div>
+      <div class="cls-c cls-i">
+        <h4>âŒ PAUSA INVÃLIDA</h4>
+        <div class="cls-d" id="cls-i6" ondragover="clsDragOver(event)" ondrop="clsDrop(event,'i','f6')"></div>
+      </div>
+    </div>
+    <button class="bck" id="bv6" onclick="validateCls('f6')" style="margin-top:8px;display:none">âœ” VERIFICAR CLASSIFICAÃ‡ÃƒO</button>
+    <div class="fb ok" id="fb6ok">âœ… <b>ClassificaÃ§Ã£o correta!</b><br>âœ… VÃ¡lidas: "Conseguiu localizar...?" / "Deu certo...?" / "O rastreio atualizou...?" â€” sÃ£o perguntas de aÃ§Ã£o/verificaÃ§Ã£o vinculadas Ã  resoluÃ§Ã£o.<br>âŒ InvÃ¡lidas: "Posso te ajudar em mais alguma coisa?" / "Boa noite! Qualquer dÃºvida..." / "Tudo bem? Alguma outra dÃºvida?" â€” sÃ£o enceramentos/cumprimentos genÃ©ricos, nÃ£o pausas vÃ¡lidas.<div class="ev">+ PISTA: Pausa vÃ¡lida = pergunta de aÃ§Ã£o + cliente precisa executar algo antes de responder</div></div>
+    <div class="fb err" id="fb6err">âŒ Ainda hÃ¡ itens mal classificados. Lembre: pausa VÃLIDA tem uma pergunta de verificaÃ§Ã£o diretamente ligada Ã  resoluÃ§Ã£o ("deu certo?", "conseguiu?"). Pausa INVÃLIDA Ã© qualquer encerramento genÃ©rico ou saudaÃ§Ã£o.</div>
+    <button class="bnext" id="bn6" onclick="nextFase(7)">PRÃ“XIMA FASE â†’</button>
+  </div>
+</div>
+
+<!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+     FASE 7 â€” RECONSTITUIR ATENDIMENTO (ordenar)
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+<div class="fase" id="f7">
+  <div class="fase-card">
+    <span class="sb">FASE 07</span><span class="diff">â­â­ INTERMEDIÃRIO</span>
+    <div class="stit">ReconstituiÃ§Ã£o do Crime</div>
+    <div class="sdesc">O transcript foi destruÃ­do â€” as mensagens estÃ£o <b style="color:#f59e0b">embaralhadas</b>. Recoloque-as na <b style="color:#f59e0b">ordem correta</b> do bom atendimento.</div>
+    <div class="tlbl">PEÃ‡AS DO TRANSCRIPT (arraste para a sequÃªncia)</div>
+    <div class="ord-bank" id="ob7" ondragover="event.preventDefault()">
+      <div class="di" draggable="true" id="d7c" ondragstart="dragStart(event)" ondragend="dragEnd(event)">CSA: "O reembolso foi autorizado. Prazo: 1-3 dias Ãºteis no cartÃ£o."</div>
+      <div class="di" draggable="true" id="d7a" ondragstart="dragStart(event)" ondragend="dragEnd(event)">CSA: "OlÃ¡! Vi que vocÃª cancelou o pedido antes do envio. Vou verificar."</div>
+      <div class="di" draggable="true" id="d7e" ondragstart="dragStart(event)" ondragend="dragEnd(event)">CSA: "Perfeito! Qualquer dÃºvida, estou aqui. Tenha um Ã³timo dia!"</div>
+      <div class="di" draggable="true" id="d7b" ondragstart="dragStart(event)" ondragend="dragEnd(event)">CSA: "Confirmado! Pedido cancelado com sucesso. Processando o reembolso agora."</div>
+      <div class="di" draggable="true" id="d7d" ondragstart="dragStart(event)" ondragend="dragEnd(event)">CSA: "O reembolso apareceu na sua fatura jÃ¡?"</div>
+    </div>
+    <div class="tlbl" style="margin-top:8px">SEQUÃŠNCIA CORRETA</div>
+    <div class="ord-s" id="os7_1" data-pos="1" ondragover="dragOver(event)" ondrop="dropInSlot(event,'os7_1','f7')">1. Arraste aqui</div>
+    <div class="ord-s" id="os7_2" data-pos="2" ondragover="dragOver(event)" ondrop="dropInSlot(event,'os7_2','f7')">2. Arraste aqui</div>
+    <div class="ord-s" id="os7_3" data-pos="3" ondragover="dragOver(event)" ondrop="dropInSlot(event,'os7_3','f7')">3. Arraste aqui</div>
+    <div class="ord-s" id="os7_4" data-pos="4" ondragover="dragOver(event)" ondrop="dropInSlot(event,'os7_4','f7')">4. Arraste aqui</div>
+    <div class="ord-s" id="os7_5" data-pos="5" ondragover="dragOver(event)" ondrop="dropInSlot(event,'os7_5','f7')">5. Arraste aqui</div>
+    <button class="bck" id="bv7" onclick="validateOrder('f7')" style="margin-top:10px;display:none">âœ” VERIFICAR SEQUÃŠNCIA</button>
+    <div class="fb ok" id="fb7ok">âœ… <b>ReconstituiÃ§Ã£o completa!</b> SequÃªncia ideal: (1) Abertura + diagnÃ³stico â†’ (2) AÃ§Ã£o/confirmaÃ§Ã£o â†’ (3) ResoluÃ§Ã£o com prazo â†’ (4) Pausa vÃ¡lida de verificaÃ§Ã£o â†’ (5) Encerramento. Notar: o prazo de reembolso Ã© 1-3 dias Ãºteis para cancelamento prÃ©-envio.<div class="ev">+ PISTA: Nunca encerre antes de confirmar que o cliente ficou satisfeito com a resoluÃ§Ã£o</div></div>
+    <div class="fb err" id="fb7err">âŒ SequÃªncia incorreta. Pense: primeiro o CSA precisa diagnosticar, depois executar a aÃ§Ã£o, informar o resultado, verificar com o cliente e sÃ³ entÃ£o encerrar.</div>
+    <button class="bnext" id="bn7" onclick="nextFase(8)">PRÃ“XIMA FASE â†’</button>
+  </div>
+</div>
+
+<!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+     FASE 8 â€” LIGAÃ‡ÃƒO (TTS + anÃ¡lise)
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+<div class="fase" id="f8">
+  <div class="fase-card">
+    <span class="sb">FASE 08</span><span class="diff">â­â­â­ AVANÃ‡ADO</span>
+    <div class="stit">A LigaÃ§Ã£o Suspeita</div>
+    <div class="sdesc">Uma ligaÃ§Ã£o foi interceptada. Leia o transcript com atenÃ§Ã£o e identifique os <b style="color:#f59e0b">2 erros crÃ­ticos</b> do CSA.</div>
+    <div class="audio-w">
+      <div class="audio-label">ðŸ“ž TRANSCRIPT DA LIGAÃ‡ÃƒO â€” CONTATO TELEFÃ”NICO</div>
+      <div class="tx">
+        <span class="tb">ðŸ“ž CSA:</span> <span class="tk">"Boa tarde, Amazon, meu nome Ã© Carlos. Em que posso ajudar?"</span><br>
+        <span class="tc">ðŸ‘¤ Cliente:</span> <span class="tk">"Boa tarde! Quero cancelar minha assinatura Prime. Paguei R$19,90 mas nÃ£o usei nada esse mÃªs."</span><br>
+        <span class="tb">ðŸ“ž CSA:</span> <span class="tk">"Entendo. Vou verificar aqui... <span class="terr" id="err8a" data-tag="f8-a" onclick="spotErr8('err8a')">Como nÃ£o foi usado nenhum benefÃ­cio, infelizmente nÃ£o consigo processar o reembolso. A polÃ­tica da Amazon nÃ£o permite reembolso de Prime cancelado.</span>"</span><br>
+        <span class="tc">ðŸ‘¤ Cliente:</span> <span class="tk">"Mas eu nem sabia que ia renovar! Foi automÃ¡tico!"</span><br>
+        <span class="tb">ðŸ“ž CSA:</span> <span class="tk">"Sim, a renovaÃ§Ã£o Ã© automÃ¡tica. Mas como a cobranÃ§a jÃ¡ aconteceu, nÃ£o hÃ¡ como reverter. <span class="terr" id="err8b" data-tag="f8-b" onclick="spotErr8('err8b')">Se precisar de mais alguma coisa, pode me dar uma avaliaÃ§Ã£o boa no final?"</span>"</span><br>
+        <span class="tc">ðŸ‘¤ Cliente:</span> <span class="tk">"Isso Ã© absurdo!"</span>
+      </div>
+    </div>
+    <div class="tlbl">CLIQUE NOS 2 TRECHOS COM ERRO NO TRANSCRIPT</div>
+    <div class="found-c" id="fc8">Erros encontrados: <b id="fc8n">0</b>/2</div>
+    <div class="fb ok" id="fb8ok" style="display:none;padding:11px;font-size:.82rem;line-height:1.7;background:#14532d15;border:1px solid #22c55e33;color:#86efac;border-left:3px solid #22c55e">
+      âœ… <b>LigaÃ§Ã£o decifrada!</b><br>
+      1ï¸âƒ£ <b>Negou reembolso incorretamente</b> â€” renovaÃ§Ãµes automÃ¡ticas nÃ£o utilizadas podem ter reembolso analisado caso a caso, especialmente se o cliente nÃ£o sabia da renovaÃ§Ã£o. O CSA precisa verificar elegibilidade antes de negar.<br>
+      2ï¸âƒ£ <b>Pediu avaliaÃ§Ã£o positiva</b> â€” nunca peÃ§a para o cliente "dar uma avaliaÃ§Ã£o boa". Isso viola a polÃ­tica de CCX e Ã© coaching de avaliaÃ§Ã£o.<div class="ev">+ PISTA: Prime tem polÃ­tica especÃ­fica para cancelamentos â€” sempre consulte antes de negar</div></div>
+    <button class="bnext" id="bn8" onclick="nextFase(9)" style="display:none;margin-top:12px;background:linear-gradient(135deg,#f59e0b,#d97706);color:#000;font-family:'Courier New',monospace;font-size:.82rem;font-weight:900;padding:9px 22px;border:none;cursor:pointer;letter-spacing:2px;clip-path:polygon(6px 0,100% 0,calc(100% - 6px) 100%,0 100%)">PRÃ“XIMA FASE â†’</button>
+  </div>
+</div>
+
+<!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+     FASE 9 â€” PASTA CRIPTOGRAFADA (3 mini-puzzles)
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+<div class="fase" id="f9">
+  <div class="fase-card">
+    <span class="sb">FASE 09</span><span class="diff">â­â­â­ AVANÃ‡ADO</span>
+    <div class="stit">A Pasta Criptografada</div>
+    <div class="sdesc">A pasta com o relatÃ³rio completo tem <b style="color:#f59e0b">3 travas</b>. Resolva os 3 mini-puzzles em sequÃªncia para desbloqueÃ¡-la.</div>
+
+    <!-- TRAVA 1 -->
+    <div id="t9a" class="puz-w" style="margin-bottom:16px">
+      <div style="width:100%">
+        <div class="tlbl">ðŸ” TRAVA 1 â€” Qual Ã© o prazo mÃ¡ximo de ACW recomendado?</div>
+        <div class="opts" style="margin-top:8px">
+          <button class="opt" onclick="puzzleAns(1,'wrong','f9')">A) 30 segundos</button>
+          <button class="opt" onclick="puzzleAns(1,'correct','f9')">B) 60 segundos</button>
+          <button class="opt" onclick="puzzleAns(1,'wrong','f9')">C) 120 segundos</button>
+          <button class="opt" onclick="puzzleAns(1,'wrong','f9')">D) NÃ£o hÃ¡ prazo</button>
+        </div>
+        <div class="fb ok" id="puz9a-ok">âœ… Trava 1 desbloqueada! ACW mÃ¡ximo = 60s.</div>
+        <div class="fb err" id="puz9a-err">âŒ Incorreto. O limite de ACW Ã© 60 segundos.</div>
+      </div>
+    </div>
+
+    <!-- TRAVA 2 (aparece apÃ³s trava 1) -->
+    <div id="t9b" style="display:none;margin-bottom:16px">
+      <div class="tlbl">ðŸ” TRAVA 2 â€” Para cancelamentos PRÃ‰-ENVIO, qual o prazo de reembolso?</div>
+      <div class="opts" style="margin-top:8px">
+        <button class="opt" onclick="puzzleAns(2,'wrong','f9')">A) 5 a 12 dias Ãºteis</button>
+        <button class="opt" onclick="puzzleAns(2,'correct','f9')">B) 1 a 3 dias Ãºteis</button>
+        <button class="opt" onclick="puzzleAns(2,'wrong','f9')">C) 7 dias corridos</button>
+        <button class="opt" onclick="puzzleAns(2,'wrong','f9')">D) Imediato</button>
+      </div>
+      <div class="fb ok" id="puz9b-ok">âœ… Trava 2 desbloqueada! 1-3 dias Ãºteis para cancelamento prÃ©-envio.</div>
+      <div class="fb err" id="puz9b-err">âŒ Incorreto. Para cancelamento prÃ©-envio o prazo Ã© 1-3 dias Ãºteis.</div>
+    </div>
+
+    <!-- TRAVA 3 (aparece apÃ³s trava 2) -->
+    <div id="t9c" style="display:none">
+      <div class="tlbl">ðŸ” TRAVA 3 â€” O SIC deve ser preenchido em qual momento do contato?</div>
+      <div class="opts" style="margin-top:8px">
+        <button class="opt" onclick="puzzleAns(3,'wrong','f9')">A) Apenas no encerramento</button>
+        <button class="opt" onclick="puzzleAns(3,'wrong','f9')">B) Depois de resolver o problema</button>
+        <button class="opt" onclick="puzzleAns(3,'correct','f9')">C) No momento em que o motivo do contato Ã© identificado</button>
+        <button class="opt" onclick="puzzleAns(3,'wrong','f9')">D) Somente se o contato for auditÃ¡vel</button>
+      </div>
+      <div class="fb ok" id="puz9c-ok">âœ… Pasta desbloqueada! SIC deve ser preenchido NO MOMENTO da identificaÃ§Ã£o do motivo â€” nÃ£o ao final. RelatÃ³rio liberado!<div class="ev">+ PISTA: Preencher SIC ao encerrar Ã© o erro mais comum â€” abre risco de SIC em branco se o contato for abandonado</div></div>
+      <div class="fb err" id="puz9c-err">âŒ Incorreto. O SIC deve ser preenchido assim que vocÃª identifica o motivo do contato â€” nÃ£o sÃ³ no final.</div>
+    </div>
+    <button class="bnext" id="bn9" onclick="nextFase(10)">PRÃ“XIMA FASE â†’</button>
+  </div>
+</div>
+
+<!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+     FASE 10 â€” CENA DO CRIME (hidden objects)
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+<div class="fase" id="f10">
+  <div class="fase-card">
+    <span class="sb">FASE 10</span><span class="diff">â­â­â­ AVANÃ‡ADO</span>
+    <div class="stit">Cena do Crime</div>
+    <div class="sdesc">A estaÃ§Ã£o de trabalho foi deixada desorganizada. Encontre os <b style="color:#f59e0b">5 problemas</b> escondidos na cena â€” clique em cada item suspeito.</div>
+    <div class="room" id="r10" style="min-height:280px">
+      <div class="rg"></div>
+      <span class="room-lbl">ESTAÃ‡ÃƒO #12 â€” AHT ELEVADO DETECTADO</span>
+
+      <!-- 5 spots escondidos -->
+      <div class="spot" id="s10a" style="left:8%;top:42%" title="Suspeito?" onclick="foundSpot('s10a','f10','SIC em branco no AC3','O AC3 mostra o campo SIC vazio â€” o CSA encerrou o contato sem preencher o motivo. Isso invalida o contato na auditoria.')">ðŸ“‹</div>
+
+      <div class="spot" id="s10b" style="left:26%;top:62%" title="Suspeito?" onclick="foundSpot('s10b','f10','Bloco de notas sem organizaÃ§Ã£o','Sem bloco de notas organizado = CSA precisa perguntar dados repetidos ao cliente, aumentando o AHT desnecessariamente.')">ðŸ“</div>
+
+      <div class="spot" id="s10c" style="left:52%;top:28%" title="Suspeito?" onclick="foundSpot('s10c','f10','Timer de ACW: 147 segundos','ACW acima de 60s â€” o CSA demorou quase 2.5 minutos para registrar as notas apÃ³s o encerramento. Meta: â‰¤60s.')">â±ï¸</div>
+
+      <div class="spot" id="s10d" style="left:68%;top:55%" title="Suspeito?" onclick="foundSpot('s10d','f10','Aba do CS Assistant fechada','CS Assistant estava fechado â€” o CSA respondeu sobre prazo de devoluÃ§Ã£o sem consultar a polÃ­tica, gerando informaÃ§Ã£o incorreta.')">ðŸ’»</div>
+
+      <div class="spot" id="s10e" style="left:84%;top:40%" title="Suspeito?" onclick="foundSpot('s10e','f10','Post-it: \"pausar se demorar\"','InstruÃ§Ã£o de pausar proativamente sem motivo de resoluÃ§Ã£o â€” isso Ã© pausa invÃ¡lida e aumenta o HRR.')">â—</div>
+
+      <div class="found-c" id="fc10" style="position:absolute;bottom:8px;right:10px">Problemas encontrados: <b id="fc10n">0</b>/5</div>
+    </div>
+    <div class="fb ok" id="fb10ok" style="margin-top:10px;padding:11px;font-size:.82rem;line-height:1.7;background:#14532d15;border:1px solid #22c55e33;color:#86efac;border-left:3px solid #22c55e">
+      ðŸ” <b>Cena documentada!</b> Os 5 problemas encontrados:<br>
+      1. SIC em branco â†’ contato invalidado na auditoria<br>
+      2. Bloco de notas sem organizaÃ§Ã£o â†’ AHT aumentado por perguntas repetidas<br>
+      3. ACW de 147s â†’ mais que o dobro do limite (60s)<br>
+      4. CS Assistant fechado â†’ informaÃ§Ãµes de polÃ­tica sem consulta = erro<br>
+      5. "Pausar se demorar" â†’ pausa invÃ¡lida = HRR elevado<div class="ev">+ PISTA: Esses 5 padrÃµes sÃ£o os maiores drivers de AHT elevado na W32</div>
+    </div>
+    <button class="bnext" id="bn10" onclick="showEnd()">â–¶ CONTINUAR (FASES 11-15 em breve)</button>
+  </div>
+</div>
+
+</div><!-- /fases -->
+
+<!-- TELA FINAL -->
+<div id="se">
+  <div class="badge-icon">ðŸ…</div>
+  <div class="et">INVESTIGAÃ‡ÃƒO PARCIAL</div>
+  <div class="es">VocÃª completou as fases 6 a 10 da OperaÃ§Ã£o AHT.<br>As fases 11-15 serÃ£o liberadas em breve.<br><br>Continue assim â€” o BTB agradece!</div>
+  <div class="estats">
+    <div class="sr"><span class="sl">Fases concluÃ­das</span><span class="sv" id="se_f">â€”</span></div>
+    <div class="sr"><span class="sl">Acertos diretos</span><span class="sv" id="se_a">â€”</span></div>
+    <div class="sr"><span class="sl">Tempo total</span><span class="sv" id="se_t">â€”</span></div>
+  </div>
+  <div class="reconhecimento">ðŸ… reconhecimento: 35 MINUTOS (jogo completo)</div>
+  <button class="bmain" onclick="location.reload()">â†© JOGAR NOVAMENTE</button>
+</div>
+
+<!-- POPUP -->
+<div class="pop-ov" id="pov" onclick="if(event.target===this)closePop()">
+  <div class="pop">
+    <button class="pop-x" onclick="closePop()">âœ•</button>
+    <h3 id="ph">â€”</h3>
+    <p id="pp">â€”</p>
+    <div class="ev" id="pev"></div>
+  </div>
+</div>
+
+<!-- INVENTÃRIO -->
+<div class="inv-p" id="invp">
+  <div class="inv-t">ðŸ—‚ INVENTÃRIO</div>
+  <div id="inv-list"><div class="inv-0">Nenhuma pista ainda.</div></div>
+</div>
+
+</div>
+<script>
+var state={fase:6,startTime:null,timerInt:null,inv:[],score:{direct:0,total:0},
+  f6items:{},f6done:false,
+  f7order:{os7_1:null,os7_2:null,os7_3:null,os7_4:null,os7_5:null},
+  f8found:{a:false,b:false},f8count:0,
+  f9step:1,
+  f10found:{},f10count:0,
+  answered:{},dragItem:null};
+
+var CLS6_V=['p6a','p6c','p6e'],CLS6_I=['p6b','p6d','p6f'];
+var F7_CORRECT=['d7a','d7b','d7c','d7d','d7e'];
+var TITLES={6:'Pausa VÃ¡lida ou InvÃ¡lida?',7:'ReconstituiÃ§Ã£o do Crime',8:'A LigaÃ§Ã£o Suspeita',9:'A Pasta Criptografada',10:'Cena do Crime'};
+var STARS={6:'â­â­',7:'â­â­',8:'â­â­â­',9:'â­â­â­',10:'â­â­â­'};
+
+function startGame(){
+  document.getElementById('si').style.display='none';
+  document.getElementById('hud').style.display='block';
+  state.startTime=Date.now();
+  state.timerInt=setInterval(updateTimer,1000);
+  goFase(6);
+}
+function goFase(n){
+  document.querySelectorAll('.fase').forEach(function(f){f.classList.remove('active');});
+  var el=document.getElementById('f'+n);
+  if(el){el.classList.add('active');}
+  state.fase=n;
+  document.getElementById('hfn').textContent=n;
+  document.getElementById('htit').textContent=TITLES[n]||'â€”';
+  document.getElementById('hstr').textContent=STARS[n]||'â­â­â­';
+  document.getElementById('hpb').style.width=Math.round((n/15)*100)+'%';
+  window.scrollTo({top:0,behavior:'smooth'});
+  if(n===7)initF7();
+}
+function nextFase(n){if(n>10){showEnd();return;}goFase(n);}
+function updateTimer(){
+  var s=Math.floor((Date.now()-state.startTime)/1000);
+  var m=Math.floor(s/60);var ss=s%60;
+  document.getElementById('htimer').textContent=(m<10?'0':'')+m+':'+(ss<10?'0':'')+ss;
+}
+function openPop(title,desc){document.getElementById('ph').textContent=title;document.getElementById('pp').textContent=desc;document.getElementById('pov').classList.add('open');}
+function closePop(){document.getElementById('pov').classList.remove('open');}
+function addInv(item){if(state.inv.indexOf(item)!==-1)return;state.inv.push(item);renderInv();}
+function renderInv(){
+  var list=document.getElementById('inv-list');
+  if(!state.inv.length){list.innerHTML='<div class="inv-0">Nenhuma pista ainda.</div>';return;}
+  list.innerHTML=state.inv.map(function(i){return '<div class="inv-i">'+i+'</div>';}).join('');
+}
+function toggleInv(){document.getElementById('invp').classList.toggle('open');}
+function show(id){var el=document.getElementById(id);if(el){el.style.display='';el.classList.add('show');}}
+function hide(id){var el=document.getElementById(id);if(el){el.style.display='none';el.classList.remove('show');}}
+
+// DRAG
+function dragStart(e){state.dragItem=e.target.id;e.target.classList.add('dragging');e.dataTransfer.setData('text/plain',e.target.id);}
+function dragEnd(e){e.target.classList.remove('dragging');}
+function dragOver(e){e.preventDefault();e.currentTarget.classList.add('hl');}
+function dropInSlot(e,slotId,faseId){
+  e.preventDefault();e.currentTarget.classList.remove('hl');
+  var itemId=e.dataTransfer.getData('text/plain');
+  var item=document.getElementById(itemId);
+  if(!item)return;
+  var slot=document.getElementById(slotId);
+  var existing=slot.dataset.item;
+  if(existing){var exEl=document.getElementById(existing);if(exEl)document.getElementById(faseId==='f7'?'ob7':'ob6').appendChild(exEl);}
+  slot.dataset.item=itemId;slot.textContent='';slot.appendChild(item);slot.classList.add('filled');
+  if(faseId==='f7'){
+    state.f7order[slotId]=itemId;
+    var allFilled=Object.values(state.f7order).every(function(v){return v!==null;});
+    if(allFilled)show('bv7');
+  }
+}
+
+// FASE 6 â€” classify
+function clsDragOver(e){e.preventDefault();e.currentTarget.classList.add('hl');}
+function clsDrop(e,side,faseId){
+  e.preventDefault();e.currentTarget.classList.remove('hl');
+  var itemId=e.dataTransfer.getData('text/plain');
+  var item=document.getElementById(itemId);
+  if(!item)return;
+  var target=document.getElementById('cls-'+side+'6');
+  target.appendChild(item);
+  state.f6items[itemId]=side;
+  var total=Object.keys(state.f6items).length;
+  if(total>=6)show('bv6');
+}
+function validateCls(faseId){
+  var allOk=true;
+  CLS6_V.forEach(function(id){if(state.f6items[id]!=='v')allOk=false;});
+  CLS6_I.forEach(function(id){if(state.f6items[id]!=='i')allOk=false;});
+  if(allOk){show('fb6ok');hide('fb6err');show('bn6');state.score.direct++;}
+  else{show('fb6err');hide('fb6ok');}
+  state.score.total++;
+}
+
+// FASE 7 â€” order
+function initF7(){
+  var bank=document.getElementById('ob7');
+  ['d7a','d7b','d7c','d7d','d7e'].forEach(function(id){var el=document.getElementById(id);if(el&&el.parentNode!==bank)bank.appendChild(el);});
+  for(var k in state.f7order)state.f7order[k]=null;
+  ['os7_1','os7_2','os7_3','os7_4','os7_5'].forEach(function(sid){
+    var sl=document.getElementById(sid);sl.classList.remove('filled','ok-s','err-s');sl.textContent=sl.dataset.pos+'. Arraste aqui';
+  });
+  hide('bv7');hide('fb7ok');hide('fb7err');hide('bn7');
+}
+function validateOrder(faseId){
+  if(faseId!=='f7')return;
+  var order=['os7_1','os7_2','os7_3','os7_4','os7_5'].map(function(sid){return state.f7order[sid];});
+  var isOk=JSON.stringify(order)===JSON.stringify(F7_CORRECT);
+  ['os7_1','os7_2','os7_3','os7_4','os7_5'].forEach(function(sid,i){
+    var sl=document.getElementById(sid);sl.classList.remove('ok-s','err-s');
+    sl.classList.add(order[i]===F7_CORRECT[i]?'ok-s':'err-s');
+  });
+  if(isOk){state.score.direct++;show('fb7ok');show('bn7');hide('fb7err');}
+  else{show('fb7err');hide('fb7ok');hide('bn7');}
+  state.score.total++;
+}
+
+// FASE 8 â€” spot errors
+function spotErr8(errId){
+  var el=document.getElementById(errId);
+  if(!el||el.classList.contains('fnd'))return;
+  var tag=errId==='err8a'?'a':'b';
+  if(state.f8found[tag])return;
+  state.f8found[tag]=true;
+  el.classList.add('fnd');el.style.cursor='default';
+  state.f8count++;
+  document.getElementById('fc8n').textContent=state.f8count;
+  addInv('Erro ligaÃ§Ã£o: '+errId);
+  if(state.f8count>=2){
+    show('fb8ok');show('bn8');
+  }
+}
+
+// FASE 9 â€” puzzles encadeados
+function puzzleAns(step,result,faseId){
+  var btn=event.target;
+  var container=document.getElementById('t9'+String.fromCharCode(96+step));
+  container.querySelectorAll('.opt').forEach(function(b){b.disabled=true;});
+  var okId='puz9'+String.fromCharCode(96+step)+'-ok';
+  var errId='puz9'+String.fromCharCode(96+step)+'-err';
+  if(result==='correct'){
+    btn.classList.add('correct');
+    show(okId);hide(errId);
+    state.score.direct++;
+    setTimeout(function(){
+      if(step<3){
+        document.getElementById('t9'+String.fromCharCode(97+step)).style.display='block';
+        state.f9step=step+1;
+      } else {
+        show('bn9');
+      }
+    },900);
+  } else {
+    btn.classList.add('wrong');
+    show(errId);
+    setTimeout(function(){
+      hide(errId);
+      container.querySelectorAll('.opt').forEach(function(b){b.disabled=false;b.classList.remove('wrong');});
+    },1600);
+  }
+  state.score.total++;
+}
+
+// FASE 10 â€” hidden objects
+function foundSpot(spotId,faseId,title,desc){
+  if(state.f10found[spotId])return;
+  state.f10found[spotId]=true;
+  var el=document.getElementById(spotId);
+  if(el)el.classList.add('fnd');
+  state.f10count++;
+  document.getElementById('fc10n').textContent=state.f10count;
+  addInv(title);
+  openPop(title,desc);
+  if(state.f10count>=5){
+    show('fb10ok');show('bn10');
+  }
+}
+
+// END
+function showEnd(){
+  document.querySelectorAll('.fase').forEach(function(f){f.classList.remove('active');});
+  clearInterval(state.timerInt);
+  var s=Math.floor((Date.now()-state.startTime)/1000);
+  var m=Math.floor(s/60);var ss=s%60;
+  document.getElementById('se_f').textContent='5/15 (parcial, fases 6-10)';
+  document.getElementById('se_a').textContent=state.score.direct+'/'+state.score.total;
+  document.getElementById('se_t').textContent=(m<10?'0':'')+m+':'+(ss<10?'0':'')+ss;
+  document.getElementById('se').classList.add('active');
+}
+</script>
+</body>
+</html>
